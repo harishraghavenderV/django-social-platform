@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Story | ConnectSphere{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-plus-circle-fill me-2" style="color: var(--accent-color);"></i>Create Story</h5>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="story-image" class="form-label text-secondary-custom">Choose a photo</label>
+                    <input type="file" class="form-control" id="story-image" name="image" accept="image/*" required onchange="previewStory(this)">
+                </div>
+                <div id="story-preview" class="mb-3 d-none text-center">
+                    <img id="story-preview-img" src="#" alt="Story preview" class="img-fluid rounded" style="max-height: 400px;">
+                </div>
+                <div class="mb-3">
+                    <label for="story-caption" class="form-label text-secondary-custom">Caption (optional)</label>
+                    <input type="text" class="form-control" id="story-caption" name="caption" maxlength="200" placeholder="Add a caption...">
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'home' %}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Share Story</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function previewStory(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('story-preview-img').src = e.target.result;
+                document.getElementById('story-preview').classList.remove('d-none');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
+{% endblock %}

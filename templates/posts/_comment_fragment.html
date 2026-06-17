@@ -1,0 +1,18 @@
+<div class="d-flex align-items-start p-2 rounded" style="background-color: rgba(15, 23, 42, 0.2); border: 1px solid var(--border-color);">
+    <a href="{% url 'profile' username=comment.author.username %}">
+        {% if comment.author.userprofile.profile_picture %}
+            <img src="{{ comment.author.userprofile.profile_picture.url }}" class="avatar-img me-2" style="width:35px; height:35px;" alt="{{ comment.author.username }}">
+        {% else %}
+            <div class="avatar-placeholder me-2" style="width:35px; height:35px; font-size: 0.8rem;">
+                {{ comment.author.username|slice:":1"|upper }}
+            </div>
+        {% endif %}
+    </a>
+    <div class="flex-grow-1">
+        <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold small"><a href="{% url 'profile' username=comment.author.username %}" class="text-decoration-none text-light">{{ comment.author.username }}</a></h6>
+            <span class="text-secondary-custom small" style="font-size: 0.75rem;">{{ comment.created_at|timesince }} ago</span>
+        </div>
+        <p class="mb-0 text-secondary-custom small mt-1">{{ comment.content }}</p>
+    </div>
+</div>

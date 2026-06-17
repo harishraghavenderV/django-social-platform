@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Groups | ConnectSphere{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <h4 class="fw-bold mb-0"><i class="bi bi-collection-fill me-2" style="color: var(--accent-color);"></i>Groups</h4>
+            <a href="{% url 'create_group' %}" class="btn btn-primary rounded-pill px-4"><i class="bi bi-plus-lg me-1"></i>Create Group</a>
+        </div>
+
+        <!-- Search -->
+        <form method="GET" class="mb-4">
+            <input type="text" name="q" value="{{ query }}" class="form-control search-bar" placeholder="Search groups...">
+        </form>
+
+        <!-- All Groups -->
+        <div class="row g-3">
+            {% for group in groups %}
+            <div class="col-md-6">
+                <div class="card p-0 h-100" style="transition: transform 0.2s ease;">
+                    {% if group.cover_image %}
+                        <div style="height:120px; background-image:url('{{ group.cover_image.url }}'); background-size:cover; background-position:center; border-radius:16px 16px 0 0;"></div>
+                    {% else %}
+                        <div style="height:120px; background:linear-gradient(135deg, var(--accent-color), var(--accent-hover)); border-radius:16px 16px 0 0; display:flex; align-items:center; justify-content:center;">
+                            <i class="bi bi-collection-fill text-white" style="font-size:2.5rem; opacity:0.5;"></i>
+                        </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-1">
+                            <a href="{% url 'group_detail' group_id=group.id %}" class="text-decoration-none text-light">{{ group.name }}</a>
+                        </h6>
+                        <p class="text-secondary-custom small mb-2">{{ group.description|truncatechars:80 }}</p>
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="text-secondary-custom small">
+                                <i class="bi bi-people-fill me-1"></i>{{ group.members }} member{{ group.members|pluralize }}
+                                {% if group.is_private %}<span class="ms-2"><i class="bi bi-lock-fill"></i> Private</span>{% endif %}
+                            </span>
+                            <a href="{% url 'group_detail' group_id=group.id %}" class="btn btn-outline-light btn-sm rounded-pill px-3">View</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-5">
+                <i class="bi bi-collection fs-1 text-secondary-custom"></i>
+                <p class="text-secondary-custom mt-2">No groups found. Create the first one!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Sidebar: My Groups -->
+    <div class="col-md-4 d-none d-md-block">
+        <div class="card p-3">
+            <h6 class="fw-bold text-secondary-custom mb-3"><i class="bi bi-bookmark-fill me-1"></i>My Groups</h6>
+            {% for group in my_groups %}
+            <a href="{% url 'group_detail' group_id=group.id %}" class="d-flex align-items-center gap-2 text-decoration-none text-light mb-3">
+                {% if group.cover_image %}
+                    <img src="{{ group.cover_image.url }}" style="width:40px;height:40px;border-radius:8px;object-fit:cover;" alt="{{ group.name }}">
+                {% else %}
+                    <div style="width:40px;height:40px;border-radius:8px;background:linear-gradient(135deg, var(--accent-color), var(--accent-hover));display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-collection-fill text-white" style="font-size:0.9rem;"></i>
+                    </div>
+                {% endif %}
+                <div>
+                    <h6 class="mb-0 fw-bold small">{{ group.name }}</h6>
+                    <span class="text-secondary-custom small">{{ group.members }} member{{ group.members|pluralize }}</span>
+                </div>
+            </a>
+            {% empty %}
+            <p class="text-secondary-custom small">You haven't joined any groups yet.</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,272 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Profile | ConnectSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .ig-connect-card {
+        background: linear-gradient(135deg, rgba(131, 58, 180, 0.08), rgba(253, 29, 29, 0.06), rgba(252, 176, 69, 0.08));
+        border: 1px solid rgba(131, 58, 180, 0.25);
+        border-radius: 12px;
+        padding: 1.25rem;
+        transition: border-color 0.2s ease;
+    }
+    .ig-connect-card:hover {
+        border-color: rgba(131, 58, 180, 0.45);
+    }
+    .ig-gradient-icon {
+        background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-size: 1.6rem;
+    }
+    .ig-connect-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+    .ig-badge-connected {
+        background: rgba(16, 185, 129, 0.12);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .ig-badge-disconnected {
+        background: rgba(100, 116, 139, 0.12);
+        color: #94a3b8;
+        border: 1px solid rgba(100, 116, 139, 0.3);
+    }
+    .ig-badge-expiring {
+        background: rgba(245, 158, 11, 0.12);
+        color: #f59e0b;
+        border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .btn-ig-connect {
+        background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
+        color: #fff;
+        border: none;
+        border-radius: 20px;
+        padding: 0.45rem 1.25rem;
+        font-size: 0.88rem;
+        font-weight: 600;
+        transition: opacity 0.2s ease, transform 0.15s ease;
+    }
+    .btn-ig-connect:hover {
+        opacity: 0.88;
+        color: #fff;
+        transform: translateY(-1px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h4 class="fw-bold mb-4"><i class="bi bi-gear-fill me-2 text-primary"></i>Profile Settings</h4>
+            
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <h5 class="fw-bold text-secondary-custom mb-3 border-bottom pb-2" style="border-color: var(--border-color) !important;">Account Info</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="id_username">Username</label>
+                        <input type="text" name="username" id="id_username" class="form-control" value="{{ user_form.username.value|default:'' }}" required>
+                        {% if user_form.username.errors %}
+                            <div class="text-danger small mt-1">{{ user_form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_email">Email Address</label>
+                        <input type="email" name="email" id="id_email" class="form-control" value="{{ user_form.email.value|default:'' }}" required>
+                        {% if user_form.email.errors %}
+                            <div class="text-danger small mt-1">{{ user_form.email.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="id_first_name">First Name</label>
+                        <input type="text" name="first_name" id="id_first_name" class="form-control" value="{{ user_form.first_name.value|default:'' }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_last_name">Last Name</label>
+                        <input type="text" name="last_name" id="id_last_name" class="form-control" value="{{ user_form.last_name.value|default:'' }}">
+                    </div>
+                </div>
+
+                <h5 class="fw-bold text-secondary-custom mb-3 border-bottom pb-2" style="border-color: var(--border-color) !important;">Public Profile</h5>
+                
+                <div class="mb-3">
+                    <label for="id_bio">Bio</label>
+                    <textarea name="bio" id="id_bio" class="form-control" rows="3">{{ profile_form.bio.value|default:'' }}</textarea>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="id_location">Location</label>
+                        <input type="text" name="location" id="id_location" class="form-control" value="{{ profile_form.location.value|default:'' }}" placeholder="e.g. San Francisco, CA">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_website">Website</label>
+                        <input type="url" name="website" id="id_website" class="form-control" value="{{ profile_form.website.value|default:'' }}" placeholder="https://yourwebsite.com">
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="id_profile_picture" class="form-label">Profile Picture</label>
+                        <input class="form-control" type="file" name="profile_picture" id="id_profile_picture" accept="image/*">
+                        {% if request.user.userprofile.profile_picture %}
+                            <div class="mt-2 small text-secondary-custom">
+                                Current: <a href="{{ request.user.userprofile.profile_picture.url }}" target="_blank" class="text-secondary-custom">{{ request.user.userprofile.profile_picture.name }}</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_cover_photo" class="form-label">Cover Photo</label>
+                        <input class="form-control" type="file" name="cover_photo" id="id_cover_photo" accept="image/*">
+                        {% if request.user.userprofile.cover_photo %}
+                            <div class="mt-2 small text-secondary-custom">
+                                Current: <a href="{{ request.user.userprofile.cover_photo.url }}" target="_blank" class="text-secondary-custom">{{ request.user.userprofile.cover_photo.name }}</a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <h5 class="fw-bold text-secondary-custom mb-3 border-bottom pb-2" style="border-color: var(--border-color) !important;">Security Hardening</h5>
+                <div class="mb-4">
+                    <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);">
+                        <div>
+                            <h6 class="mb-1 text-light fw-semibold">Two-Factor Authentication (2FA)</h6>
+                            <p class="text-secondary-custom small mb-0">Secure your account with an authenticator app TOTP device.</p>
+                        </div>
+                        <a href="{% url 'setup_2fa' %}" class="btn btn-outline-accent rounded-pill px-4" style="border-color: var(--accent); color: #fff;">Configure 2FA</a>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'profile' username=user.username %}" class="btn btn-outline-light rounded-pill px-4">Cancel</a>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Save Changes</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- Instagram Connect Section (outside main form)                -->
+        <!-- ============================================================ -->
+        <div class="card p-4 mt-4">
+            <h5 class="fw-bold mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-instagram ig-gradient-icon"></i>
+                Instagram Integration
+            </h5>
+
+            {% if request.user.instagram_account %}
+                {% with account=request.user.instagram_account %}
+                <div class="ig-connect-card mb-3">
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="fw-bold text-light">@{{ account.ig_username }}</span>
+                                {% if account.is_token_expiring_soon %}
+                                    <span class="ig-connect-badge ig-badge-expiring">
+                                        <i class="bi bi-exclamation-triangle-fill"></i> Token expiring soon
+                                    </span>
+                                {% elif account.is_token_expired %}
+                                    <span class="ig-connect-badge ig-badge-disconnected">
+                                        <i class="bi bi-x-circle-fill"></i> Token expired
+                                    </span>
+                                {% else %}
+                                    <span class="ig-connect-badge ig-badge-connected">
+                                        <i class="bi bi-check-circle-fill"></i> Connected
+                                    </span>
+                                {% endif %}
+                            </div>
+                            <div class="text-secondary-custom small">
+                                {% if account.last_synced %}
+                                    Last synced: {{ account.last_synced|timesince }} ago
+                                {% else %}
+                                    Not yet synced
+                                {% endif %}
+                                &nbsp;·&nbsp;
+                                {% if account.token_expires_at %}
+                                    Token expires: {{ account.token_expires_at|date:"M d, Y" }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <!-- Sync Now -->
+                            {% if not account.is_token_expired %}
+                            <form method="POST" action="{% url 'instagram_sync' %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3"
+                                    id="ig-sync-btn">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>Sync Now
+                                </button>
+                            </form>
+                            {% endif %}
+                            <!-- Reconnect (refresh token) -->
+                            <a href="{% url 'instagram_connect' %}" class="btn btn-sm rounded-pill px-3"
+                               style="background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045); color: #fff; font-size: 0.82rem;">
+                                <i class="bi bi-arrow-repeat me-1"></i>Reconnect
+                            </a>
+                            <!-- Disconnect -->
+                            <form method="POST" action="{% url 'instagram_disconnect' %}" class="d-inline"
+                                  onsubmit="return confirm('Disconnect Instagram? This will not delete your synced posts.');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                    <i class="bi bi-x-lg me-1"></i>Disconnect
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sync stats -->
+                <p class="text-secondary-custom small mb-0">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Your Instagram posts are automatically imported into your ConnectSphere feed.
+                    Run <code>python manage.py sync_instagram_feeds</code> to schedule bulk syncs.
+                </p>
+                {% endwith %}
+
+            {% else %}
+                <!-- Not connected -->
+                <div class="ig-connect-card">
+                    <div class="d-flex align-items-start gap-3">
+                        <div class="flex-grow-1">
+                            <h6 class="text-light fw-semibold mb-1">Connect your Instagram account</h6>
+                            <p class="text-secondary-custom small mb-3">
+                                Link your real Instagram account to automatically sync your photos and reels 
+                                into your ConnectSphere feed. Your posts will appear natively with full 
+                                like, comment, and share functionality.
+                            </p>
+                            <ul class="text-secondary-custom small mb-3 ps-3">
+                                <li>Auto-sync your latest photos &amp; videos</li>
+                                <li>Real Instagram embeds for public posts</li>
+                                <li>One-click manual sync anytime</li>
+                                <li>No Meta Developer App required</li>
+                            </ul>
+                            <a href="{% url 'instagram_connect' %}" class="btn-ig-connect btn" id="ig-connect-btn">
+                                <i class="bi bi-instagram me-2"></i>Connect Instagram
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-secondary-custom small mt-2 mb-0">
+                    <i class="bi bi-lock-fill me-1"></i>
+                    Add <code>INSTAGRAM_USERNAME</code> and <code>INSTAGRAM_PASSWORD</code>
+                    to your <code>.env</code> file, then click Connect.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Event | ConnectSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .create-event-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 16px;
+        padding: 30px;
+        margin-top: 20px;
+    }
+    
+    .form-control:focus, .form-check-input:focus {
+        border-color: var(--accent-color) !important;
+        box-shadow: 0 0 0 0.25rem var(--accent-glow) !important;
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--accent-color) !important;
+        border-color: var(--accent-color) !important;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    #online-link-group {
+        transition: all 0.3s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'events:event_list' %}" class="btn btn-link text-secondary-custom p-0 me-3">
+                <i class="bi bi-arrow-left fs-4"></i>
+            </a>
+            <h2 class="mb-0 fw-bold">Create Event</h2>
+        </div>
+        
+        <div class="create-event-card">
+            <form method="POST" enctype="multipart/form-data" id="create-event-form">
+                {% csrf_token %}
+                
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger rounded-3 mb-4">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <!-- Event Title -->
+                <div class="mb-3">
+                    <label for="id_title" class="form-label">Event Title</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}
+                        <div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Event Description -->
+                <div class="mb-3">
+                    <label for="id_description" class="form-label">Description</label>
+                    {{ form.description }}
+                    {% if form.description.errors %}
+                        <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Cover Image -->
+                <div class="mb-3">
+                    <label for="id_cover_image" class="form-label">Cover Image</label>
+                    {{ form.cover_image }}
+                    {% if form.cover_image.errors %}
+                        <div class="text-danger small mt-1">{{ form.cover_image.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Date and Time Grid -->
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label for="id_start_datetime" class="form-label">Starts At</label>
+                        {{ form.start_datetime }}
+                        {% if form.start_datetime.errors %}
+                            <div class="text-danger small mt-1">{{ form.start_datetime.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label for="id_end_datetime" class="form-label">Ends At</label>
+                        {{ form.end_datetime }}
+                        {% if form.end_datetime.errors %}
+                            <div class="text-danger small mt-1">{{ form.end_datetime.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Location -->
+                <div class="mb-3" id="location-group">
+                    <label for="id_location" class="form-label">Location / Physical Venue</label>
+                    {{ form.location }}
+                    {% if form.location.errors %}
+                        <div class="text-danger small mt-1">{{ form.location.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Online Event Toggle -->
+                <div class="mb-3 form-check">
+                    {{ form.is_online }}
+                    <label class="form-check-label text-light" for="id_is_online">
+                        This is an online virtual event
+                    </label>
+                    {% if form.is_online.errors %}
+                        <div class="text-danger small mt-1">{{ form.is_online.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Online Link (Hidden by default, shown on toggle) -->
+                <div class="mb-4 d-none" id="online-link-group">
+                    <label for="id_online_link" class="form-label">Meeting URL (Zoom, Teams, Google Meet)</label>
+                    {{ form.online_link }}
+                    {% if form.online_link.errors %}
+                        <div class="text-danger small mt-1">{{ form.online_link.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary rounded-pill py-2.5 fw-semibold">
+                        Host Event
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const isOnlineCheckbox = $('#id_is_online');
+    const onlineLinkGroup = $('#online-link-group');
+    const locationInput = $('#id_location');
+    
+    function toggleOnlineFields() {
+        if (isOnlineCheckbox.is(':checked')) {
+            onlineLinkGroup.removeClass('d-none');
+            $('#id_online_link').prop('required', true);
+        } else {
+            onlineLinkGroup.addClass('d-none');
+            $('#id_online_link').prop('required', false);
+        }
+    }
+    
+    // Initial check
+    toggleOnlineFields();
+    
+    // On change
+    isOnlineCheckbox.on('change', function() {
+        toggleOnlineFields();
+    });
+});
+</script>
+{% endblock %}

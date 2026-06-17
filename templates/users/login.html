@@ -1,0 +1,912 @@
+{% load socialaccount %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | ConnectSphere</title>
+    <meta name="description" content="Sign in to ConnectSphere — connect with friends and creators worldwide.">
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:title" content="Login | ConnectSphere">
+    <meta property="og:description" content="Sign in to ConnectSphere — connect with friends and creators worldwide.">
+    <!-- Google Fonts: Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg-deep: #0a0e17;
+            --card-bg: #121824;
+            --border-color: #242f48;
+            --border-hover: #3d4f75;
+            --accent-blue: #0095f6;
+            --accent-blue-hover: #18a3ff;
+            --text-primary: #f8fafc;
+            --text-secondary: #8e9cb2;
+            --danger: #f43f5e;
+            
+            /* Custom Instagram-inspired gradient (Sunset Coral to Gold - Color Ban Compliant) */
+            --instagram-gradient: linear-gradient(45deg, #f0932b 0%, #e65c00 30%, #ff5252 60%, #ff7979 100%);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            min-height: 100vh;
+            background-color: var(--bg-deep);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Ambient grid pattern background */
+        .grid-bg {
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Layout Split Wrapper */
+        .split-container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 2rem;
+            display: grid;
+            grid-template-cols: 1fr;
+            gap: 4rem;
+            align-items: center;
+            z-index: 1;
+        }
+
+        @media (min-width: 992px) {
+            .split-container {
+                grid-template-columns: 1.1fr 0.9fr;
+            }
+        }
+
+        /* ==================== LEFT SIDE: COLLAGE ==================== */
+        .collage-side {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        @media (min-width: 992px) {
+            .collage-side {
+                display: flex;
+            }
+        }
+
+        .collage-brand {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .collage-brand i {
+            font-size: 2.2rem;
+            background: var(--instagram-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .collage-brand span {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: -0.8px;
+        }
+
+        .collage-heading {
+            font-size: 2.6rem;
+            font-weight: 700;
+            line-height: 1.25;
+            margin-bottom: 3.5rem;
+            max-width: 480px;
+        }
+
+        .collage-heading span.highlight {
+            background: var(--instagram-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Mockup Area */
+        .mockups-wrapper {
+            position: relative;
+            height: 480px;
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        /* Base Phone Frame styling */
+        .phone-mockup {
+            position: absolute;
+            background-color: #000;
+            border: 8px solid #20242b;
+            border-radius: 36px;
+            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
+            overflow: hidden;
+            width: 220px;
+            height: 380px;
+            will-change: transform;
+            transition: transform 0.5s ease-out;
+        }
+
+        .phone-mockup img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.95;
+        }
+
+        /* Decorative features inside mockups */
+        .phone-notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 14px;
+            background: #20242b;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+            z-index: 10;
+        }
+
+        .phone-indicator {
+            position: absolute;
+            padding: 4px 8px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            z-index: 5;
+        }
+
+        /* Left Phone (Curly Hair Person) */
+        .mockup-left {
+            left: 0;
+            bottom: 30px;
+            transform: rotate(-8deg);
+            animation: floatLeft 8s ease-in-out infinite alternate;
+            z-index: 1;
+        }
+
+        /* Right Phone (Guitar) */
+        .mockup-right {
+            right: 40px;
+            bottom: 60px;
+            transform: rotate(10deg);
+            animation: floatRight 9s ease-in-out infinite alternate;
+            z-index: 2;
+        }
+
+        /* Center Phone (Sunset Scenery - Foreground) */
+        .mockup-center {
+            left: 130px;
+            bottom: 0;
+            transform: rotate(-3deg) scale(1.08);
+            border-color: #2d333f;
+            animation: floatCenter 7s ease-in-out infinite alternate;
+            z-index: 3;
+        }
+
+        /* Animations */
+        @keyframes floatLeft {
+            0% { transform: translateY(0px) rotate(-8deg); }
+            100% { transform: translateY(-12px) rotate(-6deg); }
+        }
+        @keyframes floatRight {
+            0% { transform: translateY(0px) rotate(10deg); }
+            100% { transform: translateY(-16px) rotate(8deg); }
+        }
+        @keyframes floatCenter {
+            0% { transform: translateY(0px) rotate(-3deg) scale(1.08); }
+            100% { transform: translateY(-10px) rotate(-4deg) scale(1.08); }
+        }
+
+        /* Interactive Widgets on Collage */
+        .collage-badge-heart {
+            position: absolute;
+            left: -15px;
+            top: 120px;
+            background: var(--instagram-gradient);
+            padding: 10px;
+            border-radius: 50%;
+            font-size: 1.1rem;
+            color: #fff;
+            box-shadow: 0 8px 16px rgba(230,92,0,0.3);
+            z-index: 10;
+            animation: pulseWidget 4s ease-in-out infinite alternate;
+        }
+
+        .collage-badge-stars {
+            position: absolute;
+            right: 15px;
+            top: 90px;
+            background: rgba(18, 24, 36, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            z-index: 10;
+        }
+
+        @keyframes pulseWidget {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+
+        /* ==================== RIGHT SIDE: PANEL ==================== */
+        .panel-side {
+            display: flex;
+            justify-content: center;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 28px;
+            padding: 3rem 2.25rem 2.5rem;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .login-card:hover {
+            border-color: var(--border-hover);
+        }
+
+        /* Settings Gear Icon */
+        .settings-btn {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.25s, transform 0.3s;
+            z-index: 10;
+        }
+        
+        .settings-btn:hover {
+            color: var(--text-primary);
+            transform: rotate(45deg);
+        }
+
+        /* Screen States */
+        .login-screen {
+            display: none;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .login-screen.active {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Saved Profile Screen Layout */
+        .saved-account-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 2.25rem;
+        }
+
+        /* Avatar Container with Wavy Ring */
+        .avatar-outer-ring {
+            width: 116px;
+            height: 116px;
+            border-radius: 50%;
+            padding: 3px;
+            background: var(--instagram-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1.25rem;
+            position: relative;
+        }
+
+        .avatar-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: var(--card-bg);
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar-inner img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .saved-username {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        /* Brand Headers (when in default standard login) */
+        .brand-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .brand-header i {
+            font-size: 1.6rem;
+            background: var(--instagram-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-header span {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.6px;
+        }
+
+        .tagline {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 2.25rem;
+        }
+
+
+        /* ==================== BUTTONS & INPUTS ==================== */
+        
+        .btn-blue {
+            display: block;
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background-color: var(--accent-blue);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn-blue:hover {
+            background-color: var(--accent-blue-hover);
+        }
+
+        .btn-blue:active {
+            transform: scale(0.98);
+        }
+
+        .btn-outline {
+            display: block;
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background-color: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            font-family: inherit;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: border-color 0.25s, background-color 0.25s;
+            text-align: center;
+            text-decoration: none;
+            margin-top: 0.85rem;
+        }
+
+        .btn-outline:hover {
+            border-color: var(--text-secondary);
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Form styling */
+        .form-group {
+            margin-bottom: 1.25rem;
+            position: relative;
+        }
+
+        .form-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-group label {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.6rem;
+            background-color: rgba(10, 14, 23, 0.5);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            border-radius: 12px;
+            outline: none;
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(0, 149, 246, 0.2);
+        }
+
+        .form-group i.field-icon {
+            position: absolute;
+            left: 14px;
+            bottom: 12px;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            pointer-events: none;
+        }
+
+        /* Sub-login link settings */
+        .forgot-link {
+            font-size: 0.8rem;
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.75rem 0;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex-grow: 1;
+            height: 1px;
+            background-color: var(--border-color);
+        }
+
+        .divider span {
+            padding: 0 0.8rem;
+        }
+
+        /* OAuth Provider Buttons */
+        .oauth-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .oauth-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: rgba(255, 255, 255, 0.01);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: background 0.2s, border-color 0.2s;
+        }
+
+        .oauth-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--border-hover);
+        }
+
+        /* Card footer */
+        .card-footer {
+            margin-top: 1.75rem;
+            text-align: center;
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+        }
+
+        .card-footer a {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .card-footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Meta Branding at bottom */
+        .meta-brand {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-secondary);
+            font-size: 0.7rem;
+            margin-top: 2rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+
+        /* Inline Slide-Down Password Prompt for Saved User */
+        .saved-password-prompt {
+            display: none;
+            width: 100%;
+            margin-top: 1rem;
+            animation: slideDown 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Form Errors UI */
+        .errors-box {
+            background-color: rgba(244, 63, 94, 0.08);
+            border: 1px solid rgba(244, 63, 94, 0.25);
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            margin-bottom: 1.25rem;
+            font-size: 0.82rem;
+            color: #fda4af;
+        }
+
+        .errors-box ul {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 0;
+        }
+
+        .errors-box li::before {
+            content: '⚠️ ';
+            margin-right: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-bg"></div>
+
+    <div class="split-container">
+        <!-- ==================== LEFT COLUMN: COLLAGE ==================== -->
+        <div class="collage-side">
+            <div class="collage-brand">
+                <i class="bi bi-grid-fill"></i>
+                <span>ConnectSphere</span>
+            </div>
+            
+            <h1 class="collage-heading">
+                See everyday moments from your <span class="highlight">close friends</span>.
+            </h1>
+
+            <div class="mockups-wrapper">
+                <!-- Heart Reaction Badge -->
+                <div class="collage-badge-heart">
+                    <i class="bi bi-heart-fill"></i>
+                </div>
+                <!-- Close Friends star badge -->
+                <div class="collage-badge-stars">
+                    <i class="bi bi-star-fill" style="color: #00e676;"></i>
+                    <span>Close Friends</span>
+                </div>
+
+                <!-- Left Phone Mockup -->
+                <div class="phone-mockup mockup-left">
+                    <div class="phone-notch"></div>
+                    <div class="phone-indicator" style="top: 25px; left: 15px;">
+                        <i class="bi bi-eye-fill"></i> 142
+                    </div>
+                    <img src="/media/landing/story_collage_1.png" alt="Story Close-up">
+                </div>
+
+                <!-- Right Phone Mockup -->
+                <div class="phone-mockup mockup-right">
+                    <div class="phone-notch"></div>
+                    <div class="phone-indicator" style="top: 25px; left: 15px;">
+                        <i class="bi bi-play-fill"></i> Live
+                    </div>
+                    <img src="/media/landing/story_collage_3.png" alt="Story Music">
+                </div>
+
+                <!-- Center Phone Mockup (Foreground) -->
+                <div class="phone-mockup mockup-center">
+                    <div class="phone-notch"></div>
+                    <div class="phone-indicator" style="bottom: 20px; left: 50%; transform: translateX(-50%); width: 85%;">
+                        <i class="bi bi-chat-fill me-1"></i> Send a message...
+                    </div>
+                    <img src="/media/landing/story_collage_2.png" alt="Story Sunset">
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== RIGHT COLUMN: LOGIN PANEL ==================== -->
+        <div class="panel-side">
+            <div class="login-card">
+                <!-- Settings gear resets saved account for testing -->
+                <button type="button" class="settings-btn" id="btn-reset-saved" title="Reset Saved Profile">
+                    <i class="bi bi-gear-fill"></i>
+                </button>
+
+                <!-- ==================== SCREEN A: SAVED PROFILE VIEW ==================== -->
+                <div class="login-screen" id="screen-saved">
+                    <div class="saved-account-header">
+                        <div class="avatar-outer-ring">
+                            <div class="avatar-inner">
+                                <img src="/media/landing/harish_dhoni_avatar.png" id="saved-avatar-img" alt="Saved Profile">
+                            </div>
+                        </div>
+                        <h2 class="saved-username" id="saved-username-txt">harishraghav_21</h2>
+                    </div>
+
+                    <!-- Primary Continue Button -->
+                    <button type="button" class="btn-blue" id="btn-continue-login">Continue</button>
+
+                    <!-- Slide down password input -->
+                    <div class="saved-password-prompt" id="saved-password-container">
+                        <form method="POST" id="saved-login-form" action="{% url 'login' %}">
+                            {% csrf_token %}
+                            <!-- Hidden input populated by JS -->
+                            <input type="hidden" name="username" id="saved-username-hidden">
+                            
+                            <div class="form-group" style="margin-top: 0.5rem;">
+                                <input type="password" name="password" id="saved-password-input" placeholder="Enter your password" required>
+                                <i class="bi bi-lock field-icon" style="bottom: 11px;"></i>
+                            </div>
+                            <button type="submit" class="btn-blue">Log In</button>
+                        </form>
+                    </div>
+
+                    <button type="button" class="btn-outline" id="btn-use-other">Use another profile</button>
+                    
+                    <a href="{% url 'register' %}" class="btn-outline" style="margin-top: 0.85rem;">Create new account</a>
+
+                    <div class="meta-brand">
+                        <i class="bi bi-infinity"></i> Meta
+                    </div>
+                </div>
+
+                <!-- ==================== SCREEN B: STANDARD LOGIN VIEW ==================== -->
+                <div class="login-screen" id="screen-standard">
+                    <div class="brand-header">
+                        <i class="bi bi-grid-fill"></i>
+                        <span>ConnectSphere</span>
+                    </div>
+                    <p class="tagline">Sign in to connect with friends & creators</p>
+
+                    <!-- Error messages container -->
+                    {% if form.errors %}
+                    <div class="errors-box">
+                        <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <!-- Main Login Form -->
+                    <form method="POST" id="standard-login-form-el" action="{% url 'login' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="id_username">Username</label>
+                            <input type="text" name="username" id="id_username" placeholder="Enter username" autocomplete="username" required>
+                            <i class="bi bi-person field-icon"></i>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="form-label-row">
+                                <label for="id_password">Password</label>
+                                <a href="{% url 'password_reset' %}" class="forgot-link">Forgot password?</a>
+                            </div>
+                            <input type="password" name="password" id="id_password" placeholder="Enter password" autocomplete="current-password" required>
+                            <i class="bi bi-lock field-icon"></i>
+                        </div>
+
+                        <button type="submit" class="btn-blue" style="margin-top: 0.5rem;">Sign In</button>
+                    </form>
+
+                    <!-- Back to Saved Profile (only shows if a saved profile actually exists) -->
+                    <button type="button" class="btn-outline" id="btn-back-to-saved" style="display: none;">
+                        <i class="bi bi-arrow-left me-2"></i>Back to Saved Profile
+                    </button>
+
+                    <div class="divider">
+                        <span>or continue with</span>
+                    </div>
+
+                    <!-- Social Login Buttons -->
+                    <div class="oauth-buttons">
+                        <a href="{% provider_login_url 'google' %}" class="oauth-btn">
+                            <i class="bi bi-google" style="color: #ea4335;"></i>
+                            <span>Google</span>
+                        </a>
+                        <a href="{% provider_login_url 'github' %}" class="oauth-btn">
+                            <i class="bi bi-github" style="color: #f0f6fc;"></i>
+                            <span>GitHub</span>
+                        </a>
+                    </div>
+
+                    <p class="card-footer">
+                        Don't have an account? <a href="{% url 'register' %}">Create one</a>
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript logic to manage screen state and LocalStorage -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const screenSaved = document.getElementById("screen-saved");
+            const screenStandard = document.getElementById("screen-standard");
+            const btnUseOther = document.getElementById("btn-use-other");
+            const btnBackToSaved = document.getElementById("btn-back-to-saved");
+            const btnResetSaved = document.getElementById("btn-reset-saved");
+            const btnContinueLogin = document.getElementById("btn-continue-login");
+            const savedPasswordContainer = document.getElementById("saved-password-container");
+            const savedUsernameHidden = document.getElementById("saved-username-hidden");
+            const savedPasswordInput = document.getElementById("saved-password-input");
+            
+            const savedUsernameTxt = document.getElementById("saved-username-txt");
+            const savedAvatarImg = document.getElementById("saved-avatar-img");
+            
+            // Check if Django form returned errors. If errors exist, always default to standard screen to show them.
+            const hasErrors = {% if form.errors %}true{% else %}false{% endif %};
+
+            // Initialize or retrieve saved account from LocalStorage
+            let savedUsername = localStorage.getItem("cs_saved_username");
+            let savedAvatar = localStorage.getItem("cs_saved_avatar");
+
+            // Mock default if localStorage is empty to populate the specific UI screenshot look (harishraghav_21)
+            if (!savedUsername) {
+                savedUsername = "harishraghav_21";
+                savedAvatar = "/media/landing/harish_dhoni_avatar.png";
+            }
+
+            // Sync text and avatar
+            if (savedUsernameTxt) savedUsernameTxt.textContent = savedUsername;
+            if (savedAvatarImg && savedAvatar) savedAvatarImg.src = savedAvatar;
+            if (savedUsernameHidden) savedUsernameHidden.value = savedUsername;
+
+            function showScreen(screenId) {
+                if (screenId === "saved") {
+                    screenStandard.classList.remove("active");
+                    setTimeout(() => {
+                        screenStandard.style.display = "none";
+                        screenSaved.style.display = "block";
+                        setTimeout(() => screenSaved.classList.add("active"), 50);
+                    }, 300);
+                } else {
+                    screenSaved.classList.remove("active");
+                    setTimeout(() => {
+                        screenSaved.style.display = "none";
+                        screenStandard.style.display = "block";
+                        setTimeout(() => screenStandard.classList.add("active"), 50);
+                    }, 300);
+                    
+                    // Show back button only if we have a saved profile
+                    if (localStorage.getItem("cs_saved_username")) {
+                        btnBackToSaved.style.display = "block";
+                    }
+                }
+            }
+
+            // Route initially
+            if (hasErrors) {
+                // Show standard form screen to display error messages
+                screenSaved.style.display = "none";
+                screenStandard.style.display = "block";
+                screenStandard.classList.add("active");
+                if (localStorage.getItem("cs_saved_username")) {
+                    btnBackToSaved.style.display = "block";
+                }
+            } else {
+                // Show saved account screen
+                screenStandard.style.display = "none";
+                screenSaved.style.display = "block";
+                screenSaved.classList.add("active");
+            }
+
+            // Toggle handlers
+            btnUseOther.addEventListener("click", function() {
+                showScreen("standard");
+            });
+
+            btnBackToSaved.addEventListener("click", function() {
+                showScreen("saved");
+            });
+
+            // Gear Icon resets saved profile & resets page
+            btnResetSaved.addEventListener("click", function() {
+                if (confirm("Reset and clear saved accounts?")) {
+                    localStorage.removeItem("cs_saved_username");
+                    localStorage.removeItem("cs_saved_avatar");
+                    window.location.reload();
+                }
+            });
+
+            // Continue clicks slides down password input inline
+            btnContinueLogin.addEventListener("click", function() {
+                if (savedPasswordContainer.style.display === "block") {
+                    savedPasswordContainer.style.display = "none";
+                } else {
+                    savedPasswordContainer.style.display = "block";
+                    savedPasswordInput.focus();
+                }
+            });
+
+            // On successful form submit of standard login form, capture username for next load
+            const standardForm = document.getElementById("standard-login-form-el");
+            standardForm.addEventListener("submit", function() {
+                const usernameVal = document.getElementById("id_username").value;
+                if (usernameVal) {
+                    localStorage.setItem("cs_saved_username", usernameVal);
+                    // Set default avatar placeholder or standard avatar path
+                    localStorage.setItem("cs_saved_avatar", "/media/landing/harish_dhoni_avatar.png");
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,926 @@
+{% extends 'base.html' %}
+
+{% block title %}Reels | ConnectSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Custom styles for Reels vertical player */
+    body {
+        overflow: hidden; /* Prevent body scroll so only reels container scrolls */
+    }
+    
+    .main-content {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    
+    .reels-wrapper {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: calc(100vh - 76px); /* Navbar is ~76px */
+        background: #090d16;
+        position: relative;
+    }
+    
+    .reels-container {
+        width: 100%;
+        max-width: 450px;
+        height: 100%;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
+        scrollbar-width: none; /* Firefox */
+        position: relative;
+    }
+    
+    .reels-container::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+    
+    .reel-card {
+        width: 100%;
+        height: 100%;
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+        position: relative;
+        background: #000;
+        overflow: hidden;
+    }
+    
+    .reel-video-container {
+        width: 100%;
+        height: 100%;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+    
+    .reel-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    /* Play/Pause state HUD */
+    .play-hud {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.8);
+        background: rgba(0,0,0,0.6);
+        color: #fff;
+        width: 65px;
+        height: 65px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2rem;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 15;
+        transition: all 0.3s ease;
+    }
+    .play-hud.show {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    
+    /* Overlay UI */
+    .reel-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none; /* Let clicks pass to video player */
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 30%, transparent 60%, rgba(0,0,0,0.45) 100%);
+        padding: 24px;
+        color: #fff;
+    }
+    
+    .reel-overlay-content {
+        pointer-events: auto; /* Re-enable pointer events for buttons/info */
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 10px;
+    }
+    
+    .reel-meta {
+        max-width: 78%;
+    }
+    
+    .reel-author-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .reel-author-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 2px solid var(--accent-color);
+        margin-right: 10px;
+        object-fit: cover;
+    }
+    
+    .reel-author-avatar-placeholder {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 2px solid var(--accent-color);
+        margin-right: 10px;
+        background: var(--bg-surface);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    
+    .reel-author-name {
+        font-weight: 600;
+        font-size: 0.95rem;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+        color: #fff;
+        text-decoration: none;
+    }
+    
+    .reel-author-name:hover {
+        text-decoration: underline;
+    }
+    
+    .reel-follow-btn {
+        background: rgba(99, 102, 241, 0.25);
+        border: 1px solid var(--accent-color);
+        color: #fff;
+        padding: 2px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        margin-left: 10px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    
+    .reel-follow-btn:hover {
+        background: var(--accent-color);
+    }
+    
+    .reel-follow-btn.following {
+        background: rgba(255,255,255,0.15);
+        border-color: rgba(255,255,255,0.25);
+    }
+    
+    .reel-caption {
+        font-size: 0.9rem;
+        line-height: 1.4;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+        margin-bottom: 0;
+        word-break: break-word;
+    }
+    
+    .reel-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .reel-action-btn-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .reel-action-btn {
+        background: rgba(255,255,255,0.1);
+        border: none;
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    .reel-action-btn:hover {
+        transform: scale(1.15);
+        background: rgba(255,255,255,0.2);
+    }
+    
+    .reel-action-btn.liked {
+        color: var(--danger-color);
+        background: rgba(244, 63, 94, 0.2);
+        border: 1px solid rgba(244, 63, 94, 0.4);
+    }
+    
+    .reel-action-label {
+        font-size: 0.75rem;
+        color: #f1f5f9;
+        margin-top: 6px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+        font-weight: 500;
+    }
+    
+    /* Double tap heart animation */
+    .double-tap-heart {
+        position: absolute;
+        font-size: 5.5rem;
+        color: rgba(244, 63, 94, 0.95);
+        pointer-events: none;
+        z-index: 10;
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.3);
+        top: 50%;
+        left: 50%;
+    }
+    
+    @keyframes heartFadeInOut {
+        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+        15% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+        30% { transform: translate(-50%, -50%) scale(0.9); }
+        80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+    }
+    
+    .animate-heart {
+        animation: heartFadeInOut 0.8s ease-out forwards;
+    }
+    
+    /* Comments Drawer */
+    .comments-drawer {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 60%;
+        background: rgba(15, 23, 42, 0.98);
+        border-top: 1px solid var(--border-color);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 20px 20px 0 0;
+        transform: translateY(100%);
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        padding: 20px;
+    }
+    
+    .comments-drawer.open {
+        transform: translateY(0);
+    }
+    
+    .drawer-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    .drawer-title {
+        font-weight: 600;
+        font-size: 1.05rem;
+        margin: 0;
+        color: #fff;
+    }
+    
+    .close-drawer {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1.4rem;
+        cursor: pointer;
+    }
+    
+    .drawer-comments-list {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding-right: 5px;
+        margin-bottom: 15px;
+    }
+    
+    .drawer-comments-list::-webkit-scrollbar {
+        width: 4px;
+    }
+    
+    .drawer-comments-list::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.15);
+        border-radius: 4px;
+    }
+    
+    .comment-item {
+        display: flex;
+        margin-bottom: 15px;
+    }
+    
+    .comment-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-right: 10px;
+        object-fit: cover;
+    }
+    
+    .comment-avatar-placeholder {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-right: 10px;
+        background: var(--bg-surface);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .comment-content-box {
+        background: rgba(255,255,255,0.04);
+        padding: 8px 12px;
+        border-radius: 12px;
+        flex-grow: 1;
+    }
+    
+    .comment-user {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #fff;
+        margin-bottom: 2px;
+    }
+    
+    .comment-text {
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+        margin: 0;
+        word-break: break-word;
+    }
+    
+    .comment-date {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.3);
+        margin-top: 4px;
+    }
+    
+    .comment-form-container {
+        padding-top: 10px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    .comment-input-group {
+        display: flex;
+        gap: 8px;
+    }
+    
+    .comment-input {
+        background: rgba(255,255,255,0.06) !important;
+        border: 1px solid rgba(255,255,255,0.15) !important;
+        color: #fff !important;
+        border-radius: 20px !important;
+        padding: 8px 16px !important;
+        font-size: 0.9rem;
+    }
+    .comment-input:focus {
+        box-shadow: none !important;
+        border-color: var(--accent-color) !important;
+    }
+    
+    .comment-submit-btn {
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    /* Floating action button to post new reel */
+    .create-reel-float {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        z-index: 1000;
+        box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        transition: all 0.3s;
+    }
+    .create-reel-float:hover {
+        transform: translateY(-3px) scale(1.05);
+    }
+    
+    .no-reels-box {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: var(--text-secondary);
+        text-align: center;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reels-wrapper">
+    <!-- Floating Upload Button -->
+    <a href="{% url 'reels:create' %}" class="btn btn-primary create-reel-float rounded-pill d-flex align-items-center gap-2 px-3 py-2">
+        <i class="bi bi-plus-lg fs-5"></i>
+        <span class="d-none d-md-inline fw-semibold">Create Reel</span>
+    </a>
+
+    <!-- Main Reels Scroll Container -->
+    <div class="reels-container" id="reels-container" data-next-page="{% if reels.has_next %}{{ reels.next_page_number }}{% endif %}">
+        {% if reels %}
+            {% for reel in reels %}
+                <div class="reel-card" id="reel-{{ reel.id }}" data-reel-id="{{ reel.id }}">
+                    <!-- Video Container -->
+                    <div class="reel-video-container">
+                        <video class="reel-video" loop playsinline src="{{ reel.video.url }}"></video>
+                        <i class="bi bi-heart-fill double-tap-heart"></i>
+                        <div class="play-hud"><i class="bi bi-play-fill"></i></div>
+                    </div>
+                    
+                    <!-- Overlay Controls and Labels -->
+                    <div class="reel-overlay">
+                        <div class="reel-overlay-content">
+                            <!-- Author + Caption Info (Left) -->
+                            <div class="reel-meta">
+                                <div class="reel-author-info">
+                                    {% if reel.author.userprofile.profile_picture %}
+                                        <img class="reel-author-avatar" src="{{ reel.author.userprofile.profile_picture.url }}" alt="{{ reel.author.username }}">
+                                    {% else %}
+                                        <div class="reel-author-avatar-placeholder">
+                                            {{ reel.author.username|slice:":1"|upper }}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <a href="{% url 'profile' username=reel.author.username %}" class="reel-author-name">
+                                        {{ reel.author.username }}
+                                    </a>
+                                    
+                                    {% if reel.author != user %}
+                                        <button class="reel-follow-btn {% if reel.is_following %}following{% endif %}" data-user-id="{{ reel.author.id }}">
+                                            {% if reel.is_following %}Following{% else %}Follow{% endif %}
+                                        </button>
+                                    {% endif %}
+                                </div>
+                                <p class="reel-caption">{{ reel.caption }}</p>
+                            </div>
+                            
+                            <!-- Action Buttons (Right) -->
+                            <div class="reel-actions">
+                                <!-- Like Action -->
+                                <div class="reel-action-btn-wrapper">
+                                    <button class="reel-action-btn like-btn {% if reel.is_liked %}liked{% endif %}" data-reel-id="{{ reel.id }}">
+                                        <i class="bi {% if reel.is_liked %}bi-heart-fill{% else %}bi-heart{% endif %} fs-4"></i>
+                                    </button>
+                                    <span class="reel-action-label like-count">{{ reel.like_count }}</span>
+                                </div>
+                                
+                                <!-- Comments Action -->
+                                <div class="reel-action-btn-wrapper">
+                                    <button class="reel-action-btn comment-btn" data-reel-id="{{ reel.id }}">
+                                        <i class="bi bi-chat-text fs-4"></i>
+                                    </button>
+                                    <span class="reel-action-label comment-count">{{ reel.comment_count }}</span>
+                                </div>
+                                
+                                <!-- Share Action -->
+                                <div class="reel-action-btn-wrapper">
+                                    <button class="reel-action-btn share-btn" data-url="{{ request.scheme }}://{{ request.get_host }}{% url 'reels:detail' pk=reel.id %}">
+                                        <i class="bi bi-send fs-4"></i>
+                                    </button>
+                                    <span class="reel-action-label">Share</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Comments Slide-Up Drawer -->
+                    <div class="comments-drawer" id="comments-drawer-{{ reel.id }}">
+                        <div class="drawer-header">
+                            <h5 class="drawer-title">Comments</h5>
+                            <button class="close-drawer">&times;</button>
+                        </div>
+                        
+                        <div class="drawer-comments-list" id="comments-list-{{ reel.id }}">
+                            <!-- Loaded via AJAX on click -->
+                            <div class="text-center py-4 loading-comments">
+                                <div class="spinner-border spinner-border-sm text-light" role="status"></div>
+                                <span class="ms-2 text-secondary-custom">Loading comments...</span>
+                            </div>
+                        </div>
+                        
+                        <div class="comment-form-container">
+                            <form class="comment-form" data-reel-id="{{ reel.id }}">
+                                {% csrf_token %}
+                                <div class="comment-input-group">
+                                    <input type="text" class="form-control comment-input" placeholder="Add a comment..." required>
+                                    <button type="submit" class="btn btn-primary comment-submit-btn">
+                                        <i class="bi bi-arrow-up-short fs-5"></i>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="no-reels-box">
+                <i class="bi bi-camera-reels-fill fs-1 mb-3 text-secondary-custom"></i>
+                <h3>No reels found</h3>
+                <p class="text-secondary-custom mb-4">Be the first to share a vertical reel!</p>
+                <a href="{% url 'reels:create' %}" class="btn btn-primary rounded-pill px-4">Create a Reel</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function () {
+    const reelsContainer = $('#reels-container');
+    
+    // Play & Pause using IntersectionObserver
+    const observerOptions = {
+        root: reelsContainer[0],
+        rootMargin: '0px',
+        threshold: 0.6
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            const video = $(entry.target).find('video')[0];
+            if (!video) return;
+            if (entry.isIntersecting) {
+                // Pause all other videos
+                $('video').not(video).each(function() {
+                    this.pause();
+                });
+                
+                // Play active video
+                video.play().catch(err => {
+                    console.log("Auto-play waiting for user gesture:", err);
+                });
+            } else {
+                video.pause();
+                video.currentTime = 0;
+            }
+        });
+    }, observerOptions);
+
+    // Observe initial cards
+    $('.reel-card').each(function () {
+        observer.observe(this);
+    });
+
+    // Tap/Click on video to play/pause
+    $(document).on('click', '.reel-video-container', function (e) {
+        // Prevent clicks on action buttons/meta from triggers
+        if ($(e.target).closest('.reel-overlay, .comments-drawer').length > 0) return;
+        
+        const video = $(this).find('video')[0];
+        const hud = $(this).find('.play-hud');
+        const hudIcon = hud.find('i');
+        
+        if (video.paused) {
+            video.play();
+            hudIcon.removeClass('bi-pause-fill').addClass('bi-play-fill');
+        } else {
+            video.pause();
+            hudIcon.removeClass('bi-play-fill').addClass('bi-pause-fill');
+        }
+        
+        hud.addClass('show');
+        setTimeout(() => {
+            hud.removeClass('show');
+        }, 600);
+    });
+
+    // Double-tap to Like Reel
+    let lastTap = 0;
+    $(document).on('click', '.reel-video-container', function (e) {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        
+        if (tapLength < 300 && tapLength > 0) {
+            const card = $(this).closest('.reel-card');
+            const reelId = card.data('reel-id');
+            const heart = $(this).find('.double-tap-heart');
+            
+            // Heart animation
+            heart.addClass('animate-heart');
+            setTimeout(() => {
+                heart.removeClass('animate-heart');
+            }, 800);
+            
+            // Trigger like if not already liked
+            const likeBtn = card.find('.like-btn');
+            if (!likeBtn.hasClass('liked')) {
+                toggleLike(reelId, likeBtn);
+            }
+        }
+        lastTap = currentTime;
+    });
+
+    // Click on Heart Like Button
+    $(document).on('click', '.like-btn', function (e) {
+        e.preventDefault();
+        const reelId = $(this).data('reel-id');
+        toggleLike(reelId, $(this));
+    });
+
+    function toggleLike(reelId, element) {
+        $.ajax({
+            url: `/reels/${reelId}/like/`,
+            type: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function (data) {
+                const countSpan = element.closest('.reel-action-btn-wrapper').find('.like-count');
+                countSpan.text(data.like_count);
+                
+                if (data.liked) {
+                    element.addClass('liked');
+                    element.find('i').removeClass('bi-heart').addClass('bi-heart-fill');
+                } else {
+                    element.removeClass('liked');
+                    element.find('i').removeClass('bi-heart-fill').addClass('bi-heart');
+                }
+            }
+        });
+    }
+
+    // Toggle Follow Button
+    $(document).on('click', '.reel-follow-btn', function (e) {
+        e.preventDefault();
+        const userId = $(this).data('user-id');
+        const btn = $(this);
+        
+        $.ajax({
+            url: `/friends/follow/${userId}/`,
+            type: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function (data) {
+                if (data.followed) {
+                    btn.addClass('following').text('Following');
+                } else {
+                    btn.removeClass('following').text('Follow');
+                }
+                
+                // Update all buttons for this user ID on the page
+                $(`.reel-follow-btn[data-user-id="${userId}"]`).each(function() {
+                    if (data.followed) {
+                        $(this).addClass('following').text('Following');
+                    } else {
+                        $(this).removeClass('following').text('Follow');
+                    }
+                });
+            }
+        });
+    });
+
+    // Comments Drawer Open
+    $(document).on('click', '.comment-btn', function (e) {
+        e.preventDefault();
+        const reelId = $(this).data('reel-id');
+        const drawer = $(`#comments-drawer-${reelId}`);
+        drawer.addClass('open');
+        
+        // Load comments via AJAX
+        loadComments(reelId);
+    });
+
+    // Close Comments Drawer
+    $(document).on('click', '.close-drawer', function () {
+        $(this).closest('.comments-drawer').removeClass('open');
+    });
+
+    // Add Comment AJAX Form
+    $(document).on('submit', '.comment-form', function (e) {
+        e.preventDefault();
+        const form = $(this);
+        const reelId = form.data('reel-id');
+        const input = form.find('.comment-input');
+        const content = input.val().strip ? input.val().trim() : input.val();
+        
+        if (!content) return;
+        
+        $.ajax({
+            url: `/reels/${reelId}/comment/`,
+            type: 'POST',
+            data: {
+                content: content,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                ajax: 'true'
+            },
+            success: function (data) {
+                if (data.success) {
+                    input.val('');
+                    
+                    // Prepend new comment
+                    const commentList = $(`#comments-list-${reelId}`);
+                    const noComments = commentList.find('.no-comments');
+                    if (noComments.length > 0) {
+                        noComments.remove();
+                    }
+                    
+                    const avatarHtml = data.author_avatar ? 
+                        `<img class="comment-avatar" src="${data.author_avatar}" alt="${data.author_username}">` :
+                        `<div class="comment-avatar-placeholder">${data.author_username.charAt(0).toUpperCase()}</div>`;
+                    
+                    const commentHtml = `
+                        <div class="comment-item" id="comment-${data.comment_id}">
+                            ${avatarHtml}
+                            <div class="comment-content-box">
+                                <div class="comment-user">${data.author_username}</div>
+                                <p class="comment-text">${data.content}</p>
+                                <div class="comment-date">${data.created_at}</div>
+                            </div>
+                        </div>
+                    `;
+                    commentList.prepend(commentHtml);
+                    
+                    // Update comment count
+                    $(`#reel-${reelId}`).find('.comment-count').text(data.comment_count);
+                }
+            }
+        });
+    });
+
+    function loadComments(reelId) {
+        const commentList = $(`#comments-list-${reelId}`);
+        
+        $.ajax({
+            url: `/reels/${reelId}/`,
+            type: 'GET',
+            success: function (html) {
+                // Parse HTML to extract comments block
+                const comments = $(html).find(`#comments-list-${reelId}`).html();
+                commentList.html(comments);
+            },
+            error: function() {
+                commentList.html('<p class="text-center text-danger py-4">Error loading comments</p>');
+            }
+        });
+    }
+
+    // Share Button
+    $(document).on('click', '.share-btn', function (e) {
+        e.preventDefault();
+        const url = $(this).data('url');
+        
+        navigator.clipboard.writeText(url).then(() => {
+            // Show toast/alert notification
+            if (window.showToast) {
+                window.showToast("Link copied to clipboard!", null, "info");
+            } else {
+                alert("Link copied to clipboard!");
+            }
+        }).catch(err => {
+            console.error("Failed to copy url: ", err);
+        });
+    });
+
+    // Infinite Scroll / Paginated Reel loading
+    let loadingNext = false;
+    reelsContainer.on('scroll', function () {
+        const container = reelsContainer[0];
+        const threshold = container.scrollHeight - container.clientHeight - 300;
+        
+        if (container.scrollTop > threshold && !loadingNext) {
+            const nextPage = reelsContainer.attr('data-next-page');
+            if (nextPage) {
+                loadingNext = true;
+                reelsContainer.removeAttr('data-next-page'); // temporarily clear to avoid double loads
+                
+                $.ajax({
+                    url: `?page=${nextPage}&ajax=true`,
+                    type: 'GET',
+                    success: function (data) {
+                        if (data.reels && data.reels.length > 0) {
+                            data.reels.forEach(reel => {
+                                const avatarHtml = reel.author_avatar ? 
+                                    `<img class="reel-author-avatar" src="${reel.author_avatar}" alt="${reel.author_username}">` :
+                                    `<div class="reel-author-avatar-placeholder">${reel.author_username.charAt(0).toUpperCase()}</div>`;
+                                
+                                const followBtnHtml = (reel.author_username !== '{{ user.username }}') ? 
+                                    `<button class="reel-follow-btn ${reel.is_following ? 'following' : ''}" data-user-id="${reel.author_id}">
+                                        ${reel.is_following ? 'Following' : 'Follow'}
+                                     </button>` : '';
+
+                                const likeClass = reel.is_liked ? 'liked' : '';
+                                const likeIcon = reel.is_liked ? 'bi-heart-fill' : 'bi-heart';
+
+                                const reelCardHtml = `
+                                    <div class="reel-card" id="reel-${reel.id}" data-reel-id="${reel.id}">
+                                        <div class="reel-video-container">
+                                            <video class="reel-video" loop playsinline src="${reel.video_url}"></video>
+                                            <i class="bi bi-heart-fill double-tap-heart"></i>
+                                            <div class="play-hud"><i class="bi bi-play-fill"></i></div>
+                                        </div>
+                                        
+                                        <div class="reel-overlay">
+                                            <div class="reel-overlay-content">
+                                                <div class="reel-meta">
+                                                    <div class="reel-author-info">
+                                                        ${avatarHtml}
+                                                        <a href="/profile/${reel.author_username}/" class="reel-author-name">
+                                                            ${reel.author_username}
+                                                        </a>
+                                                        ${followBtnHtml}
+                                                    </div>
+                                                    <p class="reel-caption">${reel.caption}</p>
+                                                </div>
+                                                
+                                                <div class="reel-actions">
+                                                    <div class="reel-action-btn-wrapper">
+                                                        <button class="reel-action-btn like-btn ${likeClass}" data-reel-id="${reel.id}">
+                                                            <i class="bi ${likeIcon} fs-4"></i>
+                                                        </button>
+                                                        <span class="reel-action-label like-count">${reel.like_count}</span>
+                                                    </div>
+                                                    
+                                                    <div class="reel-action-btn-wrapper">
+                                                        <button class="reel-action-btn comment-btn" data-reel-id="${reel.id}">
+                                                            <i class="bi bi-chat-text fs-4"></i>
+                                                        </button>
+                                                        <span class="reel-action-label comment-count">${reel.comment_count}</span>
+                                                    </div>
+                                                    
+                                                    <div class="reel-action-btn-wrapper">
+                                                        <button class="reel-action-btn share-btn" data-url="${window.location.origin}/reels/${reel.id}/">
+                                                            <i class="bi bi-send fs-4"></i>
+                                                        </button>
+                                                        <span class="reel-action-label">Share</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="comments-drawer" id="comments-drawer-${reel.id}">
+                                            <div class="drawer-header">
+                                                <h5 class="drawer-title">Comments</h5>
+                                                <button class="close-drawer">&times;</button>
+                                            </div>
+                                            
+                                            <div class="drawer-comments-list" id="comments-list-${reel.id}">
+                                                <div class="text-center py-4 loading-comments">
+                                                    <div class="spinner-border spinner-border-sm text-light" role="status"></div>
+                                                    <span class="ms-2 text-secondary-custom">Loading comments...</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="comment-form-container">
+                                                <form class="comment-form" data-reel-id="${reel.id}">
+                                                    {% csrf_token %}
+                                                    <div class="comment-input-group">
+                                                        <input type="text" class="form-control comment-input" placeholder="Add a comment..." required>
+                                                        <button type="submit" class="btn btn-primary comment-submit-btn">
+                                                            <i class="bi bi-arrow-up-short fs-5"></i>
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                `;
+                                
+                                const newCard = $(reelCardHtml).appendTo(reelsContainer);
+                                observer.observe(newCard[0]);
+                            });
+                            
+                            loadingNext = false;
+                            if (data.has_next) {
+                                reelsContainer.attr('data-next-page', data.next_page_number);
+                            }
+                        }
+                    },
+                    error: function () {
+                        loadingNext = false;
+                    }
+                });
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,23 @@
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.ruff_cache/
+
+# Django local settings / databases
+db.sqlite3
+.env
+local_settings.py
+
+# Instagram Instagrapi Local Session
+instagram_session.json
+
+# Media files
+media/

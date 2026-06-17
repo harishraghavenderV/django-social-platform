@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Activity Log | ConnectSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .activity-card { max-width: 700px; margin: 0 auto; }
+
+    .timeline {
+        position: relative;
+        padding-left: 2.5rem;
+    }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 14px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, var(--accent-color), var(--border-color));
+        border-radius: 2px;
+    }
+
+    .timeline-item {
+        position: relative;
+        padding: 0.75rem 0;
+        padding-left: 1.5rem;
+        transition: all .2s ease;
+    }
+    .timeline-item:hover {
+        background: rgba(99, 102, 241, 0.04);
+        margin: 0 -1rem;
+        padding-left: calc(1.5rem + 1rem);
+        padding-right: 1rem;
+        border-radius: 10px;
+    }
+
+    .timeline-dot {
+        position: absolute;
+        left: -2.5rem;
+        top: 1rem;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        border: 2px solid var(--bg-color);
+        box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    .timeline-item:hover .timeline-dot {
+        left: calc(-2.5rem + 1rem);
+    }
+
+    .timeline-content {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 0.85rem 1rem;
+        transition: border-color .2s;
+    }
+    .timeline-item:hover .timeline-content {
+        border-color: var(--border-hover);
+    }
+
+    .timeline-description {
+        color: var(--text-primary);
+        font-weight: 500;
+        font-size: 0.92rem;
+    }
+    .timeline-time {
+        color: var(--text-secondary);
+        font-size: 0.78rem;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+    .empty-state i { font-size: 3rem; color: var(--text-secondary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Header -->
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'profile' username=user.username %}" class="btn btn-outline-secondary rounded-pill px-3 me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h4 class="fw-bold mb-0">Activity Log</h4>
+                <p class="text-secondary-custom small mb-0">Your recent activity on ConnectSphere</p>
+            </div>
+        </div>
+
+        <div class="card activity-card">
+            <div class="card-body p-4">
+                {% if page_obj.object_list %}
+                <div class="timeline">
+                    {% for log in page_obj %}
+                    <div class="timeline-item">
+                        <div class="timeline-dot" style="background: {{ log.color }}; color: #fff;">
+                            <i class="bi {{ log.icon }}"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-description">{{ log.description }}</div>
+                            <div class="timeline-time">
+                                <i class="bi bi-clock me-1"></i>{{ log.created_at|timesince }} ago
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link rounded-pill" href="?page={{ page_obj.previous_page_number }}" style="background: var(--card-bg); border-color: var(--border-color); color: var(--text-primary);">
+                                <i class="bi bi-chevron-left"></i> Prev
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li class="page-item disabled">
+                            <span class="page-link rounded-pill" style="background: var(--accent-color); border-color: var(--accent-color); color: #fff;">
+                                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                            </span>
+                        </li>
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link rounded-pill" href="?page={{ page_obj.next_page_number }}" style="background: var(--card-bg); border-color: var(--border-color); color: var(--text-primary);">
+                                Next <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-clock-history"></i>
+                    <h5 class="fw-bold text-light mt-3">No Activity Yet</h5>
+                    <p class="text-secondary-custom">Start interacting with ConnectSphere and your activity will show up here.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

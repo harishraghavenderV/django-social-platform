@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ event.title }} | ConnectSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .event-detail-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 16px;
+        overflow: hidden;
+        margin-top: 20px;
+    }
+    
+    .event-detail-banner-container {
+        height: 320px;
+        background: #0f172a;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .event-detail-banner {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .event-detail-content {
+        padding: 30px;
+    }
+    
+    .event-detail-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 20px;
+        color: #fff;
+    }
+    
+    .event-sidebar-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+    }
+    
+    .meta-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .meta-list-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .meta-list-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .meta-icon-container {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: rgba(99, 102, 241, 0.15);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: var(--accent-color);
+        flex-shrink: 0;
+    }
+    
+    .meta-label {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #fff;
+        margin-bottom: 2px;
+    }
+    
+    .meta-value {
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+        word-break: break-all;
+    }
+    
+    .attendee-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 2px solid var(--bg-color);
+        margin-right: -10px;
+        object-fit: cover;
+        transition: transform 0.2s;
+    }
+    
+    .attendee-avatar:hover {
+        transform: scale(1.15);
+        z-index: 10;
+        position: relative;
+    }
+    
+    .attendee-avatar-placeholder {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: 2px solid var(--bg-color);
+        margin-right: -10px;
+        background: var(--bg-surface);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.8rem;
+        font-weight: bold;
+        transition: transform 0.2s;
+    }
+    
+    .attendee-avatar-placeholder:hover {
+        transform: scale(1.15);
+        z-index: 10;
+        position: relative;
+    }
+    
+    .organizer-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 8px;
+        border: 1px solid var(--accent-color);
+    }
+    
+    .rsvp-btn-group .btn {
+        flex-grow: 1;
+        font-size: 0.85rem;
+        font-weight: 600;
+        border-radius: 20px;
+    }
+    
+    .rsvp-btn-group .btn.active-going {
+        background: #10b981 !important;
+        border-color: #10b981 !important;
+        color: #fff !important;
+    }
+    
+    .rsvp-btn-group .btn.active-interested {
+        background: #3b82f6 !important;
+        border-color: #3b82f6 !important;
+        color: #fff !important;
+    }
+    
+    .rsvp-btn-group .btn.active-not_going {
+        background: #ef4444 !important;
+        border-color: #ef4444 !important;
+        color: #fff !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-3">
+    <div class="d-flex align-items-center mb-3">
+        <a href="{% url 'events:event_list' %}" class="btn btn-link text-secondary-custom p-0 me-3">
+            <i class="bi bi-arrow-left fs-4"></i>
+        </a>
+        <h4 class="mb-0 fw-bold">Event Details</h4>
+    </div>
+    
+    <div class="event-detail-card">
+        <!-- Cover image banner -->
+        <div class="event-detail-banner-container">
+            {% if event.cover_image %}
+                <img src="{{ event.cover_image.url }}" class="event-detail-banner" alt="{{ event.title }}">
+            {% else %}
+                <div class="event-detail-banner d-flex align-items-center justify-content-center" style="background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%);">
+                    <i class="bi bi-calendar-event" style="font-size: 4rem; color: var(--text-secondary); opacity: 0.4;"></i>
+                </div>
+            {% endif %}
+        </div>
+        
+        <!-- Main details -->
+        <div class="event-detail-content">
+            <div class="row">
+                <!-- Left: Title, Description -->
+                <div class="col-lg-8">
+                    <h1 class="event-detail-title">{{ event.title }}</h1>
+                    
+                    <div class="d-flex align-items-center mb-4 text-secondary-custom small">
+                        <span>Hosted by:</span>
+                        {% if event.creator.userprofile.profile_picture %}
+                            <img class="organizer-avatar ms-2" src="{{ event.creator.userprofile.profile_picture.url }}" alt="{{ event.creator.username }}">
+                        {% else %}
+                            <div class="organizer-avatar ms-2 d-inline-flex align-items-center justify-content-center bg-secondary text-white rounded-circle" style="width: 24px; height: 24px; font-size: 0.7rem; font-weight: bold;">
+                                {{ event.creator.username|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+                        <a href="{% url 'profile' username=event.creator.username %}" class="text-decoration-none text-light fw-semibold">
+                            {{ event.creator.username }}
+                        </a>
+                    </div>
+                    
+                    <h5 class="fw-bold mb-3 text-light">Description</h5>
+                    <div class="text-secondary-custom mb-5" style="white-space: pre-line; line-height: 1.6;">
+                        {{ event.description }}
+                    </div>
+                    
+                    <!-- Attendees List Grid -->
+                    <h5 class="fw-bold mb-3 text-light">Attendees ({{ going_rsvps.count }})</h5>
+                    <div class="mb-5">
+                        {% if going_rsvps %}
+                            <div class="d-flex flex-wrap align-items-center">
+                                <div class="d-flex me-4">
+                                    {% for rsvp in going_rsvps|slice:":8" %}
+                                        <a href="{% url 'profile' username=rsvp.user.username %}" title="{{ rsvp.user.username }}">
+                                            {% if rsvp.user.userprofile.profile_picture %}
+                                                <img class="attendee-avatar" src="{{ rsvp.user.userprofile.profile_picture.url }}" alt="{{ rsvp.user.username }}">
+                                            {% else %}
+                                                <div class="attendee-avatar-placeholder">
+                                                    {{ rsvp.user.username|slice:":1"|upper }}
+                                                </div>
+                                            {% endif %}
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                                {% if going_rsvps.count > 8 %}
+                                    <span class="text-secondary-custom small">+ {{ going_rsvps.count|add:"-8" }} more going</span>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <p class="text-secondary-custom small">No one has RSVP'ed going yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Right Sidebar: Date, Location, RSVP actions -->
+                <div class="col-lg-4">
+                    <div class="event-sidebar-card">
+                        <h5 class="fw-bold mb-3 text-light border-bottom pb-2" style="border-color: rgba(255,255,255,0.06) !important;">Event Details</h5>
+                        <ul class="meta-list">
+                            <!-- Date & Time -->
+                            <li class="meta-list-item">
+                                <div class="meta-icon-container">
+                                    <i class="bi bi-calendar-event-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="meta-label">Date & Time</div>
+                                    <div class="meta-value">
+                                        {{ event.start_datetime|date:"l, M d, Y" }} <br>
+                                        {{ event.start_datetime|date:"H:i" }} - {{ event.end_datetime|date:"H:i" }}
+                                    </div>
+                                </div>
+                            </li>
+                            
+                            <!-- Location -->
+                            {% if event.location %}
+                            <li class="meta-list-item">
+                                <div class="meta-icon-container">
+                                    <i class="bi bi-geo-alt-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="meta-label">Location</div>
+                                    <div class="meta-value">{{ event.location }}</div>
+                                </div>
+                            </li>
+                            {% endif %}
+                            
+                            <!-- Online link -->
+                            {% if event.is_online %}
+                            <li class="meta-list-item">
+                                <div class="meta-icon-container">
+                                    <i class="bi bi-laptop-fill fs-5"></i>
+                                </div>
+                                <div>
+                                    <div class="meta-label">Virtual Event</div>
+                                    <div class="meta-value">
+                                        {% if event.online_link %}
+                                            <a href="{{ event.online_link }}" target="_blank" class="btn btn-sm btn-outline-accent rounded-pill px-3 mt-1" style="border-color: var(--accent-color); color: #fff;">Join Meeting</a>
+                                        {% else %}
+                                            Online Link not posted
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <!-- RSVP Picker Box -->
+                    <div class="event-sidebar-card">
+                        <h5 class="fw-bold mb-3 text-light">RSVP Status</h5>
+                        <div class="rsvp-btn-group d-flex gap-2 mb-3">
+                            <button class="btn btn-outline-secondary rsvp-btn {% if user_rsvp_status == 'going' %}active-going{% endif %}" data-status="going">
+                                Going
+                            </button>
+                            <button class="btn btn-outline-secondary rsvp-btn {% if user_rsvp_status == 'interested' %}active-interested{% endif %}" data-status="interested">
+                                Interested
+                            </button>
+                            <button class="btn btn-outline-secondary rsvp-btn {% if user_rsvp_status == 'not_going' %}active-not_going{% endif %}" data-status="not_going">
+                                No
+                            </button>
+                        </div>
+                        <div class="d-flex justify-content-between text-secondary-custom small">
+                            <span><strong id="going-count">{{ going_rsvps.count }}</strong> Going</span>
+                            <span><strong id="interested-count">{{ interested_rsvps.count }}</strong> Interested</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('.rsvp-btn').on('click', function(e) {
+        e.preventDefault();
+        const btn = $(this);
+        const status = btn.data('status');
+        const eventId = "{{ event.id }}";
+        
+        // If already active, remove RSVP
+        const isRemoving = btn.hasClass('active-going') || btn.hasClass('active-interested') || btn.hasClass('active-not_going');
+        const submitStatus = isRemoving ? 'remove' : status;
+        
+        $.ajax({
+            url: `/events/${eventId}/rsvp/`,
+            type: 'POST',
+            data: {
+                status: submitStatus,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(data) {
+                if (data.success) {
+                    // Reset all button styles
+                    $('.rsvp-btn').removeClass('active-going active-interested active-not_going');
+                    
+                    // Add active style to correct button if not removed
+                    if (data.current_status) {
+                        $(`.rsvp-btn[data-status="${data.current_status}"]`).addClass(`active-${data.current_status}`);
+                    }
+                    
+                    // Update counts
+                    $('#going-count').text(data.going_count);
+                    $('#interested-count').text(data.interested_count);
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

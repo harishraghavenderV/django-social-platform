@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications | ConnectSphere{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-bell-fill me-2 text-primary"></i>Notifications</h5>
+                <button id="mark-all-read-btn" class="btn btn-outline-light btn-sm rounded-pill px-3">Mark all as read</button>
+            </div>
+            
+            <div class="d-flex flex-column gap-2" id="notifications-list">
+                {% for notification in notifications %}
+                <div class="d-flex align-items-center justify-content-between p-3 rounded notification-item {% if not notification.is_read %}bg-dark-border{% endif %}" 
+                     style="border: 1px solid var(--border-color); background-color: {% if not notification.is_read %}rgba(99, 102, 241, 0.08){% else %}rgba(15, 23, 42, 0.2){% endif %};"
+                     data-id="{{ notification.id }}">
+                    <div class="d-flex align-items-center">
+                        <a href="{% url 'profile' username=notification.sender.username %}">
+                            {% if notification.sender.userprofile.profile_picture %}
+                                <img src="{{ notification.sender.userprofile.profile_picture.url }}" class="avatar-img me-2" style="width: 40px; height: 40px;" alt="{{ notification.sender.username }}">
+                            {% else %}
+                                <div class="avatar-placeholder me-2" style="width: 40px; height: 40px; font-size: 0.9rem;">
+                                    {{ notification.sender.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        </a>
+                        <div class="ms-2">
+                            <p class="mb-0 text-light small">
+                                <span class="fw-bold">{{ notification.sender.username }}</span>
+                                {% if notification.notification_type == 'like' %}
+                                    liked your <a href="{% url 'post_detail' pk=notification.post.id %}" class="text-decoration-none fw-semibold" style="color: var(--accent-color);">post</a>.
+                                {% elif notification.notification_type == 'comment' %}
+                                    commented on your <a href="{% url 'post_detail' pk=notification.post.id %}" class="text-decoration-none fw-semibold" style="color: var(--accent-color);">post</a>.
+                                {% elif notification.notification_type == 'friend_request' %}
+                                    sent you a <a href="{% url 'friends_list' %}" class="text-decoration-none fw-semibold" style="color: var(--accent-color);">friend request</a>.
+                                {% elif notification.notification_type == 'friend_accept' %}
+                                    accepted your <a href="{% url 'profile' username=notification.sender.username %}" class="text-decoration-none fw-semibold" style="color: var(--accent-color);">friend request</a>.
+                                {% elif notification.notification_type == 'follow' %}
+                                    started following you.
+                                {% endif %}
+                            </p>
+                            <span class="text-secondary-custom small" style="font-size: 0.7rem;">{{ notification.created_at|timesince }} ago</span>
+                        </div>
+                    </div>
+                    {% if not notification.is_read %}
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill mark-read-btn" data-id="{{ notification.id }}">Mark read</button>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <div class="text-center py-5">
+                    <i class="bi bi-bell-slash fs-1 text-secondary-custom"></i>
+                    <p class="text-secondary-custom mt-2 mb-0">No notifications yet.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Mark Single Read
+    $(document).on('click', '.mark-read-btn', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var id = btn.data('id');
+        var url = "/notifications/mark-read/" + id + "/";
+        
+        $.ajax({
+            url: url,
+            type: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            success: function(data) {
+                var item = btn.closest('.notification-item');
+                item.css('background-color', 'rgba(15, 23, 42, 0.2)');
+                btn.remove();
+                checkNotifications(); // Refresh top badge
+            }
+        });
+    });
+
+    // Mark All Read
+    $('#mark-all-read-btn').on('click', function(e) {
+        e.preventDefault();
+        var url = "{% url 'mark_all_read' %}";
+        
+        $.ajax({
+            url: url,
+            type: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            success: function(data) {
+                $('.notification-item').css('background-color', 'rgba(15, 23, 42, 0.2)');
+                $('.mark-read-btn').remove();
+                checkNotifications(); // Refresh top badge
+            }
+        });
+    });
+</script>
+{% endblock %}

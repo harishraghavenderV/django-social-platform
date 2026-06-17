@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Messages | ConnectSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .conversation-item {
+        display: flex;
+        align-items: center;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+        text-decoration: none;
+        color: var(--text-primary);
+        transition: background-color 0.2s ease;
+    }
+    .conversation-item:hover {
+        background-color: rgba(99, 102, 241, 0.08);
+        color: var(--text-primary);
+    }
+    .conversation-item.unread {
+        background-color: rgba(99, 102, 241, 0.05);
+    }
+    .conversation-item .msg-preview {
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 300px;
+    }
+    .conversation-item .msg-time {
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        white-space: nowrap;
+    }
+    .unread-badge {
+        background-color: var(--accent-color);
+        color: white;
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header border-0 d-flex align-items-center justify-content-between px-4 py-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-chat-dots-fill me-2" style="color: var(--accent-color);"></i>Messages</h5>
+            </div>
+
+            {% if conversations %}
+                {% for item in conversations %}
+                <a href="{% url 'conversation_detail' conversation_id=item.conversation.id %}"
+                   class="conversation-item {% if item.unread_count > 0 %}unread{% endif %}">
+                    <!-- Avatar -->
+                    {% if item.other_user.userprofile.profile_picture %}
+                        <img src="{{ item.other_user.userprofile.profile_picture.url }}"
+                             class="avatar-img me-3" alt="{{ item.other_user.username }}">
+                    {% else %}
+                        <div class="avatar-placeholder me-3">
+                            {{ item.other_user.username|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
+
+                    <!-- Info -->
+                    <div class="flex-grow-1 me-3" style="min-width: 0;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0 fw-bold text-light">{{ item.other_user.username }}</h6>
+                            {% if item.last_message %}
+                                <span class="msg-time">{{ item.last_message.created_at|timesince }} ago</span>
+                            {% endif %}
+                        </div>
+                        {% if item.last_message %}
+                            <p class="msg-preview mb-0">
+                                {% if item.last_message.sender == user %}You: {% endif %}
+                                {% if item.last_message.content %}
+                                    {{ item.last_message.content|truncatechars:60 }}
+                                {% else %}
+                                    <i class="bi bi-image me-1"></i>Photo
+                                {% endif %}
+                            </p>
+                        {% else %}
+                            <p class="msg-preview mb-0">No messages yet</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Unread Badge -->
+                    {% if item.unread_count > 0 %}
+                        <div class="unread-badge">{{ item.unread_count }}</div>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-chat-text fs-1 text-secondary-custom"></i>
+                    <p class="text-secondary-custom mt-2">No conversations yet. Start chatting with your friends!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

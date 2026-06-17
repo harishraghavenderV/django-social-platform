@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block title %}Media Gallery | ConnectSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 12px;
+    }
+
+    .gallery-item {
+        position: relative;
+        border-radius: 14px;
+        overflow: hidden;
+        aspect-ratio: 1;
+        cursor: pointer;
+        border: 1px solid var(--border-color);
+        transition: transform .25s cubic-bezier(.22,1,.36,1), box-shadow .25s;
+    }
+    .gallery-item:hover {
+        transform: scale(1.03);
+        box-shadow: 0 8px 28px rgba(0,0,0,.3);
+        z-index: 2;
+    }
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform .3s;
+    }
+    .gallery-item:hover img {
+        transform: scale(1.05);
+    }
+
+    .gallery-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(0deg, rgba(0,0,0,.7) 0%, transparent 50%);
+        opacity: 0;
+        transition: opacity .25s;
+        display: flex;
+        align-items: flex-end;
+        padding: 1rem;
+    }
+    .gallery-item:hover .gallery-overlay { opacity: 1; }
+
+    .gallery-overlay .caption {
+        color: #fff;
+        font-size: 0.82rem;
+        font-weight: 500;
+        line-height: 1.3;
+    }
+
+    .gallery-type-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        padding: 0.2rem 0.55rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        backdrop-filter: blur(8px);
+        z-index: 3;
+    }
+    .badge-post { background: rgba(99, 102, 241, 0.85); color: #fff; }
+    .badge-reel { background: rgba(236, 72, 153, 0.85); color: #fff; }
+    .badge-story { background: rgba(249, 115, 22, 0.85); color: #fff; }
+
+    /* Lightbox */
+    .lightbox {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.92);
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn .2s ease;
+    }
+    .lightbox.active { display: flex; }
+    .lightbox img {
+        max-width: 90vw;
+        max-height: 90vh;
+        object-fit: contain;
+        border-radius: 12px;
+        box-shadow: 0 16px 64px rgba(0,0,0,.5);
+    }
+    .lightbox-close {
+        position: absolute;
+        top: 20px;
+        right: 24px;
+        font-size: 2rem;
+        color: #fff;
+        cursor: pointer;
+        transition: transform .2s;
+        background: none;
+        border: none;
+    }
+    .lightbox-close:hover { transform: scale(1.2); }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .filter-pills {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .filter-pill {
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all .2s;
+    }
+    .filter-pill:hover, .filter-pill.active {
+        background: var(--accent-color);
+        border-color: var(--accent-color);
+        color: #fff;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <!-- Header -->
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'profile' username=user.username %}" class="btn btn-outline-secondary rounded-pill px-3 me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h4 class="fw-bold mb-0">Media Gallery</h4>
+                <p class="text-secondary-custom small mb-0">{{ total_count }} media item{{ total_count|pluralize }}</p>
+            </div>
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="filter-pills">
+            <button class="filter-pill active" data-filter="all">All</button>
+            <button class="filter-pill" data-filter="post">Posts</button>
+            <button class="filter-pill" data-filter="reel">Reels</button>
+            <button class="filter-pill" data-filter="story">Stories</button>
+        </div>
+
+        {% if media_items %}
+        <div class="gallery-grid" id="gallery-grid">
+            {% for item in media_items %}
+            <a href="{{ item.link }}" class="gallery-item text-decoration-none" data-type="{{ item.type }}" data-img="{{ item.url }}" onclick="event.preventDefault(); openLightbox('{{ item.url }}');">
+                <span class="gallery-type-badge badge-{{ item.type }}">
+                    {% if item.type == 'post' %}<i class="bi bi-image me-1"></i>Post
+                    {% elif item.type == 'reel' %}<i class="bi bi-camera-reels me-1"></i>Reel
+                    {% else %}<i class="bi bi-circle me-1"></i>Story
+                    {% endif %}
+                </span>
+                <img src="{{ item.url }}" alt="{{ item.caption }}" loading="lazy">
+                <div class="gallery-overlay">
+                    {% if item.caption %}
+                    <span class="caption">{{ item.caption }}</span>
+                    {% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-images fs-1 text-secondary-custom"></i>
+            <h5 class="fw-bold text-light mt-3">No Media Yet</h5>
+            <p class="text-secondary-custom">Upload photos, create reels, or share stories to fill your gallery.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+    <button class="lightbox-close" onclick="closeLightbox()">
+        <i class="bi bi-x-lg"></i>
+    </button>
+    <img id="lightbox-img" src="" alt="Media preview">
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Lightbox
+    function openLightbox(src) {
+        document.getElementById('lightbox-img').src = src;
+        document.getElementById('lightbox').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeLightbox() {
+        document.getElementById('lightbox').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    document.getElementById('lightbox').addEventListener('click', function(e) {
+        if (e.target === this) closeLightbox();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeLightbox();
+    });
+
+    // Filter pills
+    document.querySelectorAll('.filter-pill').forEach(function(pill) {
+        pill.addEventListener('click', function() {
+            document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            var filter = this.dataset.filter;
+            document.querySelectorAll('.gallery-item').forEach(function(item) {
+                if (filter === 'all' || item.dataset.type === filter) {
+                    item.style.display = '';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

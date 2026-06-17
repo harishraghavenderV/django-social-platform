@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Post Detail | ConnectSphere{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Post Detail Card -->
+        <div class="card" id="post-card-{{ post.id }}">
+            <div class="card-header border-0 d-flex align-items-center justify-content-between pb-0">
+                <div class="d-flex align-items-center">
+                    <a href="{% url 'profile' username=post.author.username %}">
+                        {% if post.author.userprofile.profile_picture %}
+                            <img src="{{ post.author.userprofile.profile_picture.url }}" class="avatar-img me-2" alt="{{ post.author.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder me-2">
+                                {{ post.author.username|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+                    </a>
+                    <div>
+                        <h6 class="mb-0 fw-bold"><a href="{% url 'profile' username=post.author.username %}" class="text-decoration-none text-light">{{ post.author.username }}</a></h6>
+                        <span class="text-secondary-custom small">{{ post.created_at|timesince }} ago</span>
+                    </div>
+                </div>
+                {% if post.author == user %}
+                <div class="dropdown">
+                    <button class="btn btn-link text-secondary-custom p-0" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                        <li><a class="dropdown-item text-danger" href="{% url 'post_delete' pk=post.id %}"><i class="bi bi-trash-fill me-2"></i>Delete</a></li>
+                    </ul>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <p class="card-text fs-5">{{ post.content }}</p>
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" class="img-fluid rounded w-100 mb-3" alt="Post media">
+                {% endif %}
+                <hr class="my-2" style="border-color: var(--border-color);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-link text-decoration-none text-secondary-custom p-0 like-btn d-flex align-items-center" data-post-id="{{ post.id }}">
+                        <i class="bi {% if user in post.likes.all %}bi-heart-fill text-danger{% else %}bi-heart{% endif %} me-1 fs-5"></i>
+                        <span class="like-count">{{ post.like_count }}</span>
+                    </button>
+                    <span class="text-secondary-custom d-flex align-items-center">
+                        <i class="bi bi-chat me-1 fs-5"></i>
+                        <span><span id="detail-comment-count">{{ comments.count }}</span> Comments</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comments Section -->
+        <div class="card p-3">
+            <h6 class="fw-bold text-secondary-custom mb-3">Comments</h6>
+            
+            <!-- Add Comment Form -->
+            <form id="comment-form" action="{% url 'add_comment' pk=post.id %}" method="POST" class="mb-4">
+                {% csrf_token %}
+                <div class="input-group">
+                    <input type="text" class="form-control rounded-start-pill px-3" name="content" placeholder="Write a comment..." required>
+                    <button class="btn btn-primary rounded-end-pill px-4" type="submit">Post</button>
+                </div>
+            </form>
+            
+            <!-- Comments List -->
+            <div class="d-flex flex-column gap-3" id="comments-list-container">
+                {% for comment in comments %}
+                    {% include 'posts/_comment_fragment.html' with comment=comment %}
+                {% empty %}
+                    <p class="text-secondary-custom small text-center my-3" id="no-comments-placeholder">No comments yet. Start the conversation!</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Like Action Handler
+    $(document).on('click', '.like-btn', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var postId = btn.data('post-id');
+        var url = "/post/" + postId + "/like/";
+        
+        $.ajax({
+            url: url,
+            type: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}"
+            },
+            success: function(data) {
+                var icon = btn.find('i');
+                var countSpan = btn.find('.like-count');
+                
+                countSpan.text(data.like_count);
+                if (data.liked) {
+                    icon.removeClass('bi-heart').addClass('bi-heart-fill text-danger');
+                } else {
+                    icon.removeClass('bi-heart-fill text-danger').addClass('bi-heart');
+                }
+            }
+        });
+    });
+
+    // Intercept comment form submission for real-time AJAX submission
+    $(document).on('submit', '#comment-form', function(e) {
+        e.preventDefault();
+        var form = $(this);
+        var input = form.find('input[name="content"]');
+        var content = input.val().trim();
+        if (!content) return;
+
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: form.serialize(),
+            success: function() {
+                input.val('');
+            }
+        });
+    });
+
+    // WebSocket connection
+    $(document).ready(function() {
+        const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+        const socketUrl = wsScheme + "://" + window.location.host + "/ws/posts/";
+        const postsSocket = new WebSocket(socketUrl);
+
+        postsSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            
+            if (data.type === 'post_comment_update' && data.post_id === {{ post.id }}) {
+                // Remove placeholder if it exists
+                $('#no-comments-placeholder').remove();
+                
+                // Append comment HTML and slide it in
+                const newComment = $(data.comment_html);
+                newComment.hide().appendTo('#comments-list-container').slideDown(300);
+                
+                // Update comments count label
+                $('#detail-comment-count').text(data.comment_count);
+            } else if (data.type === 'post_like_update' && data.post_id === {{ post.id }}) {
+                // Update like count
+                $('.like-count').text(data.like_count);
+            }
+        };
+
+        postsSocket.onclose = function(e) {
+            console.log("WebSocket connection closed unexpectedly");
+        };
+    });
+</script>
+{% endblock %}

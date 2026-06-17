@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Friends | ConnectSphere{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Incoming Requests -->
+        <div class="card p-3 mb-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-person-plus-fill me-2 text-primary"></i>Friend Requests</h5>
+            <div class="d-flex flex-column gap-3">
+                {% for req in received_requests %}
+                <div class="d-flex align-items-center justify-content-between p-2 rounded" style="background-color: rgba(15, 23, 42, 0.2); border: 1px solid var(--border-color);">
+                    <div class="d-flex align-items-center">
+                        <a href="{% url 'profile' username=req.sender.username %}">
+                            {% if req.sender.userprofile.profile_picture %}
+                                <img src="{{ req.sender.userprofile.profile_picture.url }}" class="avatar-img me-2" alt="{{ req.sender.username }}">
+                            {% else %}
+                                <div class="avatar-placeholder me-2">
+                                    {{ req.sender.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        </a>
+                        <div>
+                            <h6 class="mb-0 fw-bold"><a href="{% url 'profile' username=req.sender.username %}" class="text-decoration-none text-light">{{ req.sender.username }}</a></h6>
+                            <span class="text-secondary-custom small">@{{ req.sender.username }}</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'accept_friend_request' request_id=req.id %}" class="btn btn-success btn-sm rounded-pill px-3">Accept</a>
+                        <a href="{% url 'decline_friend_request' request_id=req.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3">Decline</a>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-secondary-custom small mb-0">No incoming friend requests.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Friends List -->
+        <div class="card p-3">
+            <h5 class="fw-bold mb-3"><i class="bi bi-people-fill me-2 text-primary"></i>My Friends ({{ friends|length }})</h5>
+            <div class="d-flex flex-column gap-3">
+                {% for friend in friends %}
+                <div class="d-flex align-items-center justify-content-between p-2 rounded" style="background-color: rgba(15, 23, 42, 0.2); border: 1px solid var(--border-color);">
+                    <div class="d-flex align-items-center">
+                        <a href="{% url 'profile' username=friend.username %}">
+                            {% if friend.userprofile.profile_picture %}
+                                <img src="{{ friend.userprofile.profile_picture.url }}" class="avatar-img me-2" alt="{{ friend.username }}">
+                            {% else %}
+                                <div class="avatar-placeholder me-2">
+                                    {{ friend.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        </a>
+                        <div>
+                            <h6 class="mb-0 fw-bold"><a href="{% url 'profile' username=friend.username %}" class="text-decoration-none text-light">{{ friend.username }}</a></h6>
+                            <span class="text-secondary-custom small">@{{ friend.username }}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <a href="{% url 'remove_friend' user_id=friend.id %}" class="btn btn-outline-danger btn-sm rounded-pill px-3">Remove</a>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-secondary-custom small text-center my-4">You have not added any friends yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

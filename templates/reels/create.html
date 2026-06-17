@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Reel | ConnectSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .create-reel-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 16px;
+        padding: 30px;
+        margin-top: 20px;
+    }
+    
+    .video-dropzone {
+        border: 2px dashed rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        padding: 40px 20px;
+        text-align: center;
+        background: rgba(255,255,255,0.01);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-height: 280px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+    
+    .video-dropzone:hover, .video-dropzone.dragover {
+        border-color: var(--accent-color);
+        background: rgba(99, 102, 241, 0.04);
+    }
+    
+    #video-preview-container {
+        display: none;
+        width: 100%;
+        max-width: 260px;
+        height: 420px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        margin: 15px auto;
+        position: relative;
+        background: #000;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+    }
+    
+    #video-preview {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .remove-video-btn {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: rgba(0,0,0,0.7);
+        border: none;
+        color: #fff;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1rem;
+        cursor: pointer;
+        z-index: 5;
+        transition: background 0.2s;
+    }
+    
+    .remove-video-btn:hover {
+        background: var(--danger-color);
+    }
+    
+    .char-counter {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-align: right;
+        margin-top: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-6">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'reels:feed' %}" class="btn btn-link text-secondary-custom p-0 me-3">
+                <i class="bi bi-arrow-left fs-4"></i>
+            </a>
+            <h2 class="mb-0 fw-bold">Create a Reel</h2>
+        </div>
+        
+        <div class="create-reel-card">
+            <form id="create-reel-form" method="POST" enctype="multipart/form-data" action="{% url 'reels:create' %}">
+                {% csrf_token %}
+                
+                <!-- Video Drag and Drop Zone -->
+                <div class="mb-4">
+                    <label class="form-label text-secondary-custom fw-semibold mb-2">Upload Video</label>
+                    <input type="file" name="video" id="video-input" accept="video/mp4,video/quicktime,video/x-m4v" class="d-none" required>
+                    
+                    <div class="video-dropzone" id="dropzone">
+                        <i class="bi bi-cloud-upload fs-1 text-secondary-custom mb-3"></i>
+                        <h5 class="fw-semibold">Drag and drop your video file here</h5>
+                        <p class="text-secondary-custom small mb-0">Supported formats: MP4, MOV, WebM (Max 50MB)</p>
+                        <p class="text-secondary-custom small">Vertical videos (9:16 aspect ratio) are highly recommended</p>
+                        <button type="button" class="btn btn-outline-light btn-sm rounded-pill px-4 mt-2" onclick="$('#video-input').click();">Select File</button>
+                    </div>
+                    
+                    <!-- HTML5 Video Preview -->
+                    <div id="video-preview-container">
+                        <button type="button" class="remove-video-btn" id="remove-video-btn">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                        <video id="video-preview" controls loop muted></video>
+                    </div>
+                </div>
+                
+                <!-- Caption Textarea -->
+                <div class="mb-4">
+                    <label for="caption" class="form-label text-secondary-custom fw-semibold">Caption</label>
+                    <textarea class="form-control" name="caption" id="caption" rows="4" maxlength="300" placeholder="Write a catchy caption... #hashtags" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; border-radius: 12px;"></textarea>
+                    <div class="char-counter"><span id="char-count">0</span> / 300</div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="d-grid mt-4">
+                    <button type="submit" class="btn btn-primary rounded-pill py-2.5 fw-semibold" id="submit-btn" disabled>Share Reel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const dropzone = $('#dropzone');
+    const fileInput = $('#video-input');
+    const previewContainer = $('#video-preview-container');
+    const previewVideo = $('#video-preview');
+    const submitBtn = $('#submit-btn');
+    const removeBtn = $('#remove-video-btn');
+    const caption = $('#caption');
+    const charCount = $('#char-count');
+    
+    // Drag and drop events
+    dropzone.on('dragover dragenter', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.addClass('dragover');
+    });
+    
+    dropzone.on('dragleave drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.removeClass('dragover');
+    });
+    
+    dropzone.on('drop', function(e) {
+        const files = e.originalEvent.dataTransfer.files;
+        if (files.length > 0) {
+            fileInput[0].files = files;
+            handleFileSelect(files[0]);
+        }
+    });
+    
+    fileInput.on('change', function() {
+        if (this.files.length > 0) {
+            handleFileSelect(this.files[0]);
+        }
+    });
+    
+    function handleFileSelect(file) {
+        // Validation: must be video and under 50MB
+        if (!file.type.startsWith('video/')) {
+            alert('Please select a valid video file.');
+            return;
+        }
+        
+        const maxSize = 50 * 1024 * 1024; // 50MB
+        if (file.size > maxSize) {
+            alert('File size exceeds the 50MB limit.');
+            return;
+        }
+        
+        // Show video preview
+        const fileURL = URL.createObjectURL(file);
+        previewVideo.attr('src', fileURL);
+        
+        dropzone.hide();
+        previewContainer.show();
+        submitBtn.prop('disabled', false);
+    }
+    
+    // Remove selected video
+    removeBtn.on('click', function(e) {
+        e.preventDefault();
+        fileInput.val('');
+        previewVideo.attr('src', '');
+        
+        previewContainer.hide();
+        dropzone.show();
+        submitBtn.prop('disabled', true);
+    });
+    
+    // Character counter for caption
+    caption.on('input', function() {
+        const textLength = $(this).val().length;
+        charCount.text(textLength);
+    });
+    
+    // Form upload progress indicator
+    $('#create-reel-form').on('submit', function() {
+        submitBtn.prop('disabled', true).html(`
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Uploading Reel...
+        `);
+    });
+});
+</script>
+{% endblock %}

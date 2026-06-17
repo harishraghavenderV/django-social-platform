@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Two-Factor Authentication | ConnectSphere{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-5">
+        <div class="card p-4 text-center">
+            <h4 class="fw-bold mb-4 text-light"><i class="bi bi-shield-lock-fill me-2" style="color: var(--accent-color);"></i>Verify Identity</h4>
+            
+            <p class="text-secondary-custom small mb-4 text-start">
+                Your account is protected with Two-Factor Authentication. Please enter the 6-digit verification code from your authenticator app to complete sign-in.
+            </p>
+
+            <form id="verify-2fa-form" class="text-start">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label for="token" class="form-label text-secondary-custom fw-semibold">Verification Code</label>
+                    <input type="text" name="token" id="token" class="form-control text-center fw-bold" placeholder="000000" pattern="[0-9]{6}" required autofocus style="font-size: 1.2rem; letter-spacing: 0.2em;">
+                </div>
+                <div id="2fa-error" class="text-danger small d-none mb-3"></div>
+                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">Verify Code</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#verify-2fa-form').on('submit', function(e) {
+        e.preventDefault();
+        const form = $(this);
+        const submitBtn = form.find('button[type="submit"]');
+        const errorDiv = $('#2fa-error');
+        
+        submitBtn.prop('disabled', true).text('Verifying...');
+        errorDiv.addClass('d-none');
+        
+        $.ajax({
+            url: "{% url 'verify_2fa' %}",
+            type: 'POST',
+            data: form.serialize(),
+            success: function(data) {
+                if (data.success) {
+                    showToast(data.message, '', 'friend_accept');
+                    setTimeout(() => { window.location.href = "{% url 'home' %}"; }, 1000);
+                } else {
+                    errorDiv.text(data.error || 'An error occurred.').removeClass('d-none');
+                    submitBtn.prop('disabled', false).text('Verify Code');
+                }
+            },
+            error: function(xhr) {
+                errorDiv.text(xhr.responseJSON?.error || 'An error occurred. Please try again.').removeClass('d-none');
+                submitBtn.prop('disabled', false).text('Verify Code');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

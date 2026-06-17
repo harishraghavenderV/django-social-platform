@@ -1,0 +1,174 @@
+from django.test import TestCase, Client
+from django.urls import reverse
+from django.contrib.auth.models import User
+from posts.models import Post, Comment
+from notifications.models import Notification
+
+class PostsViewsTestCase(TestCase):
+    def setUp(self):
+        self.client = Client()
+        # Create users
+        self.user1 = User.objects.create_user(username='user1', password='password123')
+        self.user2 = User.objects.create_user(username='user2', password='password123')
+        # Create a post
+        self.post = Post.objects.create(author=self.user1, content='Hello World')
+
+    def test_home_feed_unauthenticated(self):
+        """Test that unauthenticated users can access the home page."""
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'posts/home.html')
+        self.assertNotIn('posts', response.context)
+
+    def test_home_feed_authenticated(self):
+        """Test that authenticated users see posts in home feed."""
+        self.client.login(username='user1', password='password123')
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'posts/home.html')
+        self.assertIn('posts', response.context)
+        self.assertEqual(response.context['posts'].count(), 1)
+
+    def test_post_create(self):
+        """Test creating a post via POST request."""
+        self.client.login(username='user1', password='password123')
+        data = {'content': 'My second post'}
+        response = self.client.post(reverse('post_create'), data=data)
+        self.assertEqual(response.status_code, 302) # Redirect to home
+        self.assertEqual(Post.objects.count(), 2)
+        self.assertTrue(Post.objects.filter(content='My second post').exists())
+
+    def test_post_detail(self):
+        """Test viewing post details and comments."""
+        self.client.login(username='user1', password='password123')
+        response = self.client.get(reverse('post_detail', kwargs={'pk': self.post.pk}))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'posts/post_detail.html')
+        self.assertEqual(response.context['post'], self.post)
+
+    def test_post_delete(self):
+        """Test that author can delete their post, but others cannot."""
+        # Try as user2 first (should not delete)
+        self.client.login(username='user2', password='password123')
+        response = self.client.post(reverse('post_delete', kwargs={'pk': self.post.pk}))
+        self.assertEqual(Post.objects.count(), 1)
+        
+        # Try as user1 (author, should delete)
+        self.client.login(username='user1', password='password123')
+        response = self.client.post(reverse('post_delete', kwargs={'pk': self.post.pk}))
+        self.assertEqual(Post.objects.count(), 0)
+
+    def test_post_like_toggle(self):
+        """Test reacting/un-reacting on a post, and that notification is sent to author."""
+        self.client.login(username='user2', password='password123')
+        # React to the post
+        response = self.client.post(reverse('post_react', kwargs={'pk': self.post.pk}), data={'reaction_type': 'like'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['reacted'], True)
+        self.assertEqual(response.json()['reaction_type'], 'like')
+        self.assertEqual(self.post.reaction_count(), 1)
+        # Check notification was created
+        self.assertTrue(Notification.objects.filter(
+            recipient=self.user1,
+            sender=self.user2,
+            notification_type='like',
+            post=self.post
+        ).exists())
+
+        # Un-react the post
+        response = self.client.post(reverse('post_react', kwargs={'pk': self.post.pk}), data={'reaction_type': 'like'})
+        self.assertEqual(response.json()['reacted'], False)
+        self.assertEqual(self.post.reaction_count(), 0)
+
+    def test_add_comment(self):
+        """Test adding a comment and notification to post author."""
+        self.client.login(username='user2', password='password123')
+        data = {'content': 'Cool post!'}
+        response = self.client.post(reverse('add_comment', kwargs={'pk': self.post.pk}), data=data)
+        self.assertEqual(response.status_code, 302) # Redirect to detail view
+        self.assertEqual(Comment.objects.count(), 1)
+        self.assertTrue(Comment.objects.filter(content='Cool post!').exists())
+        # Check notification
+        self.assertTrue(Notification.objects.filter(
+            recipient=self.user1,
+            sender=self.user2,
+            notification_type='comment',
+            post=self.post
+        ).exists())
+
+    def test_search(self):
+        """Test search query searches username and post content."""
+        self.client.login(username='user1', password='password123')
+        response = self.client.get(reverse('search') + '?q=Hello')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.post, response.context['posts_results'])
+        
+        response = self.client.get(reverse('search') + '?q=user2')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.user2, response.context['users_results'])
+
+    def test_create_poll(self):
+        """Test that creating a poll saves the Post, Poll, and PollOption objects."""
+        self.client.login(username='user1', password='password123')
+        data = {
+            'content': 'Check this poll out!',
+            'question': 'What is your favorite framework?',
+            'options': ['Django', 'FastAPI', 'Flask']
+        }
+        response = self.client.post(reverse('create_poll'), data=data)
+        self.assertEqual(response.status_code, 302)  # Redirects to home
+        
+        # Verify database objects
+        from posts.poll_models import Poll
+        self.assertEqual(Poll.objects.count(), 1)
+        poll = Poll.objects.first()
+        self.assertEqual(poll.question, 'What is your favorite framework?')
+        self.assertEqual(poll.options.count(), 3)
+        self.assertEqual(poll.post.content, 'Check this poll out!')
+
+    def test_vote_poll(self):
+        """Test voting in a poll increments vote count and prevents double voting."""
+        from posts.poll_models import Poll, PollOption, PollVote
+        poll = Poll.objects.create(post=self.post, question='Test Poll')
+        opt1 = PollOption.objects.create(poll=poll, text='Yes')
+        opt2 = PollOption.objects.create(poll=poll, text='No')
+        
+        # Vote 1: user2 votes Yes
+        self.client.login(username='user2', password='password123')
+        response = self.client.post(reverse('vote_poll', kwargs={'pk': poll.pk}), data={'option_id': opt1.id})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['success'], True)
+        self.assertEqual(PollVote.objects.count(), 1)
+        
+        opt1.refresh_from_db()
+        self.assertEqual(opt1.vote_count, 1)
+        self.assertEqual(poll.total_votes(), 1)
+        
+        # Vote 2: user2 tries to vote again (should fail)
+        response = self.client.post(reverse('vote_poll', kwargs={'pk': poll.pk}), data={'option_id': opt2.id})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['success'], False)
+        self.assertEqual(PollVote.objects.count(), 1)
+
+    def test_import_instagram_missing_url(self):
+        """Test importing instagram post with missing url parameter."""
+        self.client.login(username='user1', password='password123')
+        response = self.client.post(reverse('import_instagram'))
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('URL is required', response.json()['error'])
+
+    def test_import_instagram_iframe_embed(self):
+        """Test importing instagram post to create an iframe embed."""
+        self.client.login(username='user1', password='password123')
+        url = 'https://www.instagram.com/p/C_thanthitv/'
+        response = self.client.post(reverse('import_instagram'), data={'url': url})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['success'], True)
+        self.assertEqual(response.json()['author'], 'thanthitv')
+        self.assertEqual(response.json()['instagram_url'], 'https://www.instagram.com/p/C_thanthitv/')
+        
+        # Verify the post and author user profiles were created
+        self.assertTrue(User.objects.filter(username='thanthitv').exists())
+        self.assertTrue(Post.objects.filter(author__username='thanthitv').exists())
+        post = Post.objects.filter(author__username='thanthitv').first()
+        self.assertEqual(post.instagram_url, 'https://www.instagram.com/p/C_thanthitv/')

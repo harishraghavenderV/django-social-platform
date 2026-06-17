@@ -1,0 +1,603 @@
+{% extends 'base.html' %}
+
+{% block title %}Reel by {{ reel.author.username }} | ConnectSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .reel-detail-container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 16px;
+        overflow: hidden;
+        margin-top: 20px;
+    }
+    
+    .reel-detail-video-col {
+        background: #000;
+        height: 600px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+    
+    .reel-detail-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        cursor: pointer;
+    }
+    
+    /* Play/Pause state HUD */
+    .play-hud {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0.8);
+        background: rgba(0,0,0,0.6);
+        color: #fff;
+        width: 65px;
+        height: 65px;
+        border-radius: 50%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 2rem;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 15;
+        transition: all 0.3s ease;
+    }
+    .play-hud.show {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    
+    .double-tap-heart {
+        position: absolute;
+        font-size: 5.5rem;
+        color: rgba(244, 63, 94, 0.95);
+        pointer-events: none;
+        z-index: 10;
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.3);
+        top: 50%;
+        left: 50%;
+    }
+    
+    @keyframes heartFadeInOut {
+        0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+        15% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+        30% { transform: translate(-50%, -50%) scale(0.9); }
+        80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+    }
+    
+    .animate-heart {
+        animation: heartFadeInOut 0.8s ease-out forwards;
+    }
+    
+    .reel-detail-info-col {
+        display: flex;
+        flex-direction: column;
+        height: 600px;
+        background: rgba(19, 28, 49, 0.4);
+    }
+    
+    .info-header {
+        padding: 20px;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .author-info {
+        display: flex;
+        align-items: center;
+    }
+    
+    .author-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 12px;
+        border: 2px solid var(--accent-color);
+        object-fit: cover;
+    }
+    
+    .author-avatar-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 12px;
+        background: var(--bg-surface);
+        border: 2px solid var(--accent-color);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+    }
+    
+    .author-name {
+        font-weight: 600;
+        color: #fff;
+        text-decoration: none;
+        font-size: 0.95rem;
+    }
+    
+    .author-name:hover {
+        text-decoration: underline;
+    }
+    
+    .follow-btn {
+        background: rgba(99, 102, 241, 0.2);
+        border: 1px solid var(--accent-color);
+        color: #fff;
+        padding: 2px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        border: 1px solid var(--accent-color);
+    }
+    
+    .follow-btn:hover {
+        background: var(--accent-color);
+    }
+    
+    .follow-btn.following {
+        background: rgba(255,255,255,0.15);
+        border-color: rgba(255,255,255,0.25);
+    }
+    
+    .info-body {
+        padding: 20px;
+        flex-grow: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .caption-box {
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    
+    .caption-text {
+        font-size: 0.92rem;
+        line-height: 1.5;
+        color: var(--text-primary);
+        margin: 0;
+        word-break: break-word;
+    }
+    
+    .comments-section-title {
+        font-weight: 600;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary);
+        margin-bottom: 15px;
+    }
+    
+    .comments-list {
+        flex-grow: 1;
+    }
+    
+    .comment-item {
+        display: flex;
+        margin-bottom: 15px;
+    }
+    
+    .comment-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-right: 10px;
+        object-fit: cover;
+    }
+    
+    .comment-avatar-placeholder {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        margin-right: 10px;
+        background: var(--bg-surface);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+    
+    .comment-content-box {
+        background: rgba(255, 255, 255, 0.03);
+        padding: 8px 12px;
+        border-radius: 12px;
+        flex-grow: 1;
+    }
+    
+    .comment-user {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #fff;
+        margin-bottom: 2px;
+    }
+    
+    .comment-text {
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+        margin: 0;
+        word-break: break-word;
+    }
+    
+    .comment-date {
+        font-size: 0.75rem;
+        color: rgba(255,255,255,0.3);
+        margin-top: 4px;
+    }
+    
+    .info-footer {
+        padding: 20px;
+        border-top: 1px solid var(--border-color);
+        background: rgba(19, 28, 49, 0.6);
+    }
+    
+    .action-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+    }
+    
+    .action-btn {
+        background: none;
+        border: none;
+        color: var(--text-primary);
+        font-size: 1.35rem;
+        padding: 0;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    
+    .action-btn:hover {
+        transform: scale(1.12);
+    }
+    
+    .action-btn.liked {
+        color: var(--danger-color);
+    }
+    
+    .stats-row {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+    
+    .comment-input-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+    
+    .comment-input {
+        background: rgba(255,255,255,0.05) !important;
+        border: 1px solid var(--border-color) !important;
+        color: #fff !important;
+        border-radius: 20px !important;
+        padding: 8px 16px !important;
+        font-size: 0.9rem;
+    }
+    .comment-input:focus {
+        border-color: var(--accent-color) !important;
+        box-shadow: none !important;
+    }
+    
+    .comment-submit-btn {
+        border-radius: 50%;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .no-comments {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-3">
+    <div class="d-flex align-items-center mb-3">
+        <a href="{% url 'reels:feed' %}" class="btn btn-link text-secondary-custom p-0 me-3">
+            <i class="bi bi-arrow-left fs-4"></i>
+        </a>
+        <h4 class="mb-0 fw-bold">Reel Detail</h4>
+    </div>
+    
+    <div class="reel-detail-container row g-0">
+        <!-- Video Column -->
+        <div class="col-md-5 reel-detail-video-col">
+            <video class="reel-detail-video" autoplay loop muted src="{{ reel.video.url }}"></video>
+            <i class="bi bi-heart-fill double-tap-heart"></i>
+            <div class="play-hud"><i class="bi bi-play-fill"></i></div>
+        </div>
+        
+        <!-- Info Column -->
+        <div class="col-md-7 reel-detail-info-col">
+            <div class="info-header">
+                <div class="author-info">
+                    {% if reel.author.userprofile.profile_picture %}
+                        <img class="author-avatar" src="{{ reel.author.userprofile.profile_picture.url }}" alt="{{ reel.author.username }}">
+                    {% else %}
+                        <div class="author-avatar-placeholder">
+                            {{ reel.author.username|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <a href="{% url 'profile' username=reel.author.username %}" class="author-name">
+                            {{ reel.author.username }}
+                        </a>
+                    </div>
+                </div>
+                
+                {% if reel.author != user %}
+                    <button class="follow-btn {% if reel.is_following %}following{% endif %}" id="follow-btn" data-user-id="{{ reel.author.id }}">
+                        {% if reel.is_following %}Following{% else %}Follow{% endif %}
+                    </button>
+                {% endif %}
+            </div>
+            
+            <div class="info-body">
+                <!-- Caption -->
+                <div class="caption-box">
+                    <p class="caption-text">{{ reel.caption }}</p>
+                    <div class="text-secondary-custom small mt-2">
+                        {{ reel.created_at|date:"M d, Y" }}
+                    </div>
+                </div>
+                
+                <!-- Comments list -->
+                <div class="comments-section-title">Comments</div>
+                <div class="comments-list" id="comments-list-{{ reel.id }}">
+                    {% if comments %}
+                        {% for comment in comments %}
+                            <div class="comment-item" id="comment-{{ comment.id }}">
+                                {% if comment.author.userprofile.profile_picture %}
+                                    <img class="comment-avatar" src="{{ comment.author.userprofile.profile_picture.url }}" alt="{{ comment.author.username }}">
+                                {% else %}
+                                    <div class="comment-avatar-placeholder">
+                                        {{ comment.author.username|slice:":1"|upper }}
+                                    </div>
+                                {% endif %}
+                                <div class="comment-content-box">
+                                    <div class="comment-user">{{ comment.author.username }}</div>
+                                    <p class="comment-text">{{ comment.content }}</p>
+                                    <div class="comment-date">{{ comment.created_at|date:"M d, Y" }}</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4 no-comments">
+                            <i class="bi bi-chat-text fs-2 d-block mb-2 text-secondary-custom opacity-50"></i>
+                            No comments yet. Be the first to share your thoughts!
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="info-footer">
+                <!-- Action Row -->
+                <div class="action-row">
+                    <div class="action-buttons">
+                        <!-- Like -->
+                        <button class="action-btn like-btn {% if reel.is_liked %}liked{% endif %}" id="like-btn" data-reel-id="{{ reel.id }}">
+                            <i class="bi {% if reel.is_liked %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+                        </button>
+                        
+                        <!-- Share -->
+                        <button class="action-btn share-btn" data-url="{{ request.build_absolute_uri }}">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="stats-row">
+                        <span id="like-count">{{ reel.like_count }}</span> likes &middot; 
+                        <span id="view-count">{{ reel.view_count }}</span> views
+                    </div>
+                </div>
+                
+                <!-- Comment Input -->
+                <form id="comment-form" data-reel-id="{{ reel.id }}">
+                    {% csrf_token %}
+                    <div class="comment-input-group">
+                        <input type="text" id="comment-input" class="form-control comment-input" placeholder="Add a comment..." required>
+                        <button type="submit" class="btn btn-primary comment-submit-btn">
+                            <i class="bi bi-arrow-up-short fs-5"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const video = $('.reel-detail-video')[0];
+    
+    // Tap to play/pause video
+    $('.reel-detail-video-col').on('click', function(e) {
+        if ($(e.target).closest('.action-btn, #comment-form').length > 0) return;
+        
+        const hud = $('.play-hud');
+        const hudIcon = hud.find('i');
+        
+        if (video.paused) {
+            video.play();
+            hudIcon.removeClass('bi-pause-fill').addClass('bi-play-fill');
+        } else {
+            video.pause();
+            hudIcon.removeClass('bi-play-fill').addClass('bi-pause-fill');
+        }
+        
+        hud.addClass('show');
+        setTimeout(() => {
+            hud.removeClass('show');
+        }, 600);
+    });
+
+    // Double click/tap to like
+    let lastTap = 0;
+    $('.reel-detail-video-col').on('click', function(e) {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        
+        if (tapLength < 300 && tapLength > 0) {
+            const heart = $('.double-tap-heart');
+            heart.addClass('animate-heart');
+            setTimeout(() => {
+                heart.removeClass('animate-heart');
+            }, 800);
+            
+            const likeBtn = $('#like-btn');
+            if (!likeBtn.hasClass('liked')) {
+                toggleLike();
+            }
+        }
+        lastTap = currentTime;
+    });
+
+    // Click on like button
+    $('#like-btn').on('click', function(e) {
+        e.preventDefault();
+        toggleLike();
+    });
+
+    function toggleLike() {
+        const reelId = $('#like-btn').data('reel-id');
+        $.ajax({
+            url: `/reels/${reelId}/like/`,
+            type: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(data) {
+                $('#like-count').text(data.like_count);
+                const likeBtn = $('#like-btn');
+                
+                if (data.liked) {
+                    likeBtn.addClass('liked');
+                    likeBtn.find('i').removeClass('bi-heart').addClass('bi-heart-fill');
+                } else {
+                    likeBtn.removeClass('liked');
+                    likeBtn.find('i').removeClass('bi-heart-fill').addClass('bi-heart');
+                }
+            }
+        });
+    }
+
+    // Toggle Follow
+    $('#follow-btn').on('click', function(e) {
+        e.preventDefault();
+        const userId = $(this).data('user-id');
+        const btn = $(this);
+        
+        $.ajax({
+            url: `/friends/follow/${userId}/`,
+            type: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(data) {
+                if (data.followed) {
+                    btn.addClass('following').text('Following');
+                } else {
+                    btn.removeClass('following').text('Follow');
+                }
+            }
+        });
+    });
+
+    // Share Copy
+    $('.share-btn').on('click', function(e) {
+        e.preventDefault();
+        const url = $(this).data('url');
+        
+        navigator.clipboard.writeText(url).then(() => {
+            if (window.showToast) {
+                window.showToast("Link copied to clipboard!", null, "info");
+            } else {
+                alert("Link copied to clipboard!");
+            }
+        }).catch(err => {
+            console.error("Failed to copy url: ", err);
+        });
+    });
+
+    // Submit Comment AJAX
+    $('#comment-form').on('submit', function(e) {
+        e.preventDefault();
+        const reelId = $(this).data('reel-id');
+        const input = $('#comment-input');
+        const content = input.val().trim();
+        
+        if (!content) return;
+        
+        $.ajax({
+            url: `/reels/${reelId}/comment/`,
+            type: 'POST',
+            data: {
+                content: content,
+                csrfmiddlewaretoken: '{{ csrf_token }}',
+                ajax: 'true'
+            },
+            success: function(data) {
+                if (data.success) {
+                    input.val('');
+                    
+                    // Prepend comment
+                    const commentList = $(`.comments-list`);
+                    const noComments = commentList.find('.no-comments');
+                    if (noComments.length > 0) {
+                        noComments.remove();
+                    }
+                    
+                    const avatarHtml = data.author_avatar ? 
+                        `<img class="comment-avatar" src="${data.author_avatar}" alt="${data.author_username}">` :
+                        `<div class="comment-avatar-placeholder">${data.author_username.charAt(0).toUpperCase()}</div>`;
+                    
+                    const commentHtml = `
+                        <div class="comment-item" id="comment-${data.comment_id}">
+                            ${avatarHtml}
+                            <div class="comment-content-box">
+                                <div class="comment-user">${data.author_username}</div>
+                                <p class="comment-text">${data.content}</p>
+                                <div class="comment-date">${data.created_at}</div>
+                            </div>
+                        </div>
+                    `;
+                    commentList.prepend(commentHtml);
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

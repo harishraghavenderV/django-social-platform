@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Group | ConnectSphere{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-collection-fill me-2" style="color: var(--accent-color);"></i>Create a Group</h5>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="id_name" class="form-label text-secondary-custom">Group Name</label>
+                    <input type="text" class="form-control" id="id_name" name="name" maxlength="100" required placeholder="Enter group name...">
+                </div>
+                <div class="mb-3">
+                    <label for="id_description" class="form-label text-secondary-custom">Description</label>
+                    <textarea class="form-control" id="id_description" name="description" rows="3" placeholder="What's this group about?"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="id_cover_image" class="form-label text-secondary-custom">Cover Image (optional)</label>
+                    <input type="file" class="form-control" id="id_cover_image" name="cover_image" accept="image/*">
+                </div>
+                <div class="mb-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="id_is_private" name="is_private">
+                        <label class="form-check-label text-secondary-custom" for="id_is_private">
+                            <i class="bi bi-lock-fill me-1"></i>Private Group (invite only)
+                        </label>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'group_list' %}" class="btn btn-outline-secondary rounded-pill px-4">Cancel</a>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Create Group</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

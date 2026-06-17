@@ -1,0 +1,312 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat with {{ other_user.username }} | ConnectSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 140px);
+        max-height: 700px;
+    }
+    .chat-header {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .message-bubble {
+        max-width: 70%;
+        padding: 0.75rem 1rem;
+        border-radius: 18px;
+        position: relative;
+        word-break: break-word;
+        animation: msgFadeIn 0.3s ease;
+    }
+    @keyframes msgFadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .message-sent {
+        align-self: flex-end;
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    .message-received {
+        align-self: flex-start;
+        background-color: rgba(51, 65, 85, 0.6);
+        color: var(--text-primary);
+        border-bottom-left-radius: 4px;
+    }
+    .message-time {
+        font-size: 0.65rem;
+        opacity: 0.7;
+        margin-top: 0.25rem;
+    }
+    .message-sent .message-time {
+        text-align: right;
+        color: rgba(255, 255, 255, 0.8);
+    }
+    .message-received .message-time {
+        color: var(--text-secondary);
+    }
+    .chat-input-area {
+        border-top: 1px solid var(--border-color);
+        padding: 1rem 1.25rem;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+    }
+    .chat-input-area input[type="text"] {
+        flex: 1;
+        border-radius: 24px;
+        padding: 0.6rem 1.2rem;
+    }
+    .chat-input-area .btn-send {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+        border: none;
+        color: white;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .chat-input-area .btn-send:hover {
+        transform: scale(1.08);
+        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+    .message-image {
+        max-width: 100%;
+        border-radius: 12px;
+        margin-bottom: 0.25rem;
+    }
+    .typing-indicator {
+        display: none;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+        padding: 0 1.5rem 0.5rem;
+        font-style: italic;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card chat-container">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <a href="{% url 'inbox' %}" class="btn btn-link text-secondary-custom p-0 me-1">
+                    <i class="bi bi-arrow-left fs-5"></i>
+                </a>
+                <a href="{% url 'profile' username=other_user.username %}">
+                    {% if other_user.userprofile.profile_picture %}
+                        <img src="{{ other_user.userprofile.profile_picture.url }}"
+                             class="avatar-img" style="width:40px; height:40px;" alt="{{ other_user.username }}">
+                    {% else %}
+                        <div class="avatar-placeholder" style="width:40px; height:40px; font-size:0.9rem;">
+                            {{ other_user.username|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
+                </a>
+                <div>
+                    <h6 class="mb-0 fw-bold text-light">
+                        <a href="{% url 'profile' username=other_user.username %}" class="text-decoration-none text-light">
+                            {{ other_user.username }}
+                        </a>
+                    </h6>
+                    <span class="text-secondary-custom small" id="chat-status">Online</span>
+                </div>
+            </div>
+
+            <!-- Messages -->
+            <div class="chat-messages" id="chat-messages">
+                {% for msg in messages %}
+                <div class="message-bubble {% if msg.sender == user %}message-sent{% else %}message-received{% endif %}">
+                    {% if msg.image %}
+                        <img src="{{ msg.image.url }}" class="message-image" alt="Shared image">
+                    {% endif %}
+                    {% if msg.content %}
+                        <div>{{ msg.content }}</div>
+                    {% endif %}
+                    <div class="message-time">{{ msg.created_at|date:"M d, h:i A" }}</div>
+                </div>
+                {% empty %}
+                <div class="text-center py-4">
+                    <i class="bi bi-hand-wave fs-1 text-secondary-custom"></i>
+                    <p class="text-secondary-custom mt-2">Say hello to {{ other_user.username }}!</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Typing indicator -->
+            <div class="typing-indicator" id="typing-indicator">
+                {{ other_user.username }} is typing...
+            </div>
+
+            <!-- Input Area -->
+            <div class="chat-input-area">
+                <label for="msg-image-upload" class="btn btn-outline-secondary rounded-circle p-0"
+                       style="width:42px; height:42px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                    <i class="bi bi-image"></i>
+                </label>
+                <input id="msg-image-upload" type="file" accept="image/*" class="d-none">
+                <input type="text" class="form-control" id="chat-input" placeholder="Type a message..."
+                       autocomplete="off">
+                <button class="btn-send" id="send-btn" type="button">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    var conversationId = {{ conversation.id }};
+    var currentUserId = {{ user.id }};
+    var currentUsername = '{{ user.username }}';
+    var chatMessages = document.getElementById('chat-messages');
+    var chatInput = document.getElementById('chat-input');
+    var sendBtn = document.getElementById('send-btn');
+
+    // Scroll to bottom
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    scrollToBottom();
+
+    // WebSocket Connection
+    var wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    var chatSocket = null;
+
+    function connectWebSocket() {
+        chatSocket = new WebSocket(
+            wsScheme + '://' + window.location.host + '/ws/chat/' + conversationId + '/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            var data = JSON.parse(e.data);
+            if (data.type === 'chat_message') {
+                appendMessage(data.message);
+            }
+        };
+
+        chatSocket.onclose = function(e) {
+            // Reconnect after 3 seconds
+            setTimeout(connectWebSocket, 3000);
+        };
+
+        chatSocket.onerror = function(e) {
+            console.log('WebSocket error, falling back to AJAX');
+        };
+    }
+
+    try {
+        connectWebSocket();
+    } catch(e) {
+        console.log('WebSocket not available, using AJAX fallback');
+    }
+
+    function appendMessage(msg) {
+        // Remove empty state if present
+        var emptyState = chatMessages.querySelector('.text-center.py-4');
+        if (emptyState) emptyState.remove();
+
+        var isSent = msg.sender_id === currentUserId;
+        var bubble = document.createElement('div');
+        bubble.className = 'message-bubble ' + (isSent ? 'message-sent' : 'message-received');
+
+        var html = '';
+        if (msg.image_url) {
+            html += '<img src="' + msg.image_url + '" class="message-image" alt="Shared image">';
+        }
+        if (msg.content) {
+            html += '<div>' + escapeHtml(msg.content) + '</div>';
+        }
+        html += '<div class="message-time">' + msg.created_at + '</div>';
+        bubble.innerHTML = html;
+
+        chatMessages.appendChild(bubble);
+        scrollToBottom();
+    }
+
+    function escapeHtml(text) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
+
+    // Send message
+    function sendMessage() {
+        var content = chatInput.value.trim();
+        if (!content) return;
+
+        // Try WebSocket first
+        if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
+            chatSocket.send(JSON.stringify({ 'message': content }));
+            chatInput.value = '';
+            chatInput.focus();
+        } else {
+            // AJAX fallback
+            $.ajax({
+                url: '{% url "send_message" conversation_id=conversation.id %}',
+                type: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' },
+                data: { content: content },
+                success: function(data) {
+                    appendMessage(data);
+                    chatInput.value = '';
+                    chatInput.focus();
+                }
+            });
+        }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+
+    // Image upload via AJAX
+    document.getElementById('msg-image-upload').addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+            var formData = new FormData();
+            formData.append('image', this.files[0]);
+            formData.append('content', '');
+
+            $.ajax({
+                url: '{% url "send_message" conversation_id=conversation.id %}',
+                type: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' },
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(data) {
+                    appendMessage(data);
+                }
+            });
+            this.value = '';
+        }
+    });
+</script>
+{% endblock %}

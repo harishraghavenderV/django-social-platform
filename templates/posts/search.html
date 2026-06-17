@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+
+{% block title %}Search — "{{ query }}" | ConnectSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .search-tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 1.5rem;
+    }
+    .search-tab {
+        padding: 0.7rem 1.25rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        transition: all .2s;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    .search-tab:hover { color: var(--text-primary); }
+    .search-tab.active {
+        color: var(--text-primary);
+        border-bottom-color: var(--accent-color);
+    }
+    .search-tab .count-badge {
+        background: rgba(99, 102, 241, 0.2);
+        color: var(--accent-color);
+        padding: 0.15rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+
+    .filter-bar {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.25rem;
+        flex-wrap: wrap;
+    }
+    .filter-pill {
+        padding: 0.35rem 0.85rem;
+        border-radius: 20px;
+        border: 1px solid var(--border-color);
+        background: transparent;
+        color: var(--text-secondary);
+        font-weight: 500;
+        font-size: 0.8rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all .2s;
+    }
+    .filter-pill:hover, .filter-pill.active {
+        background: var(--accent-color);
+        border-color: var(--accent-color);
+        color: #fff;
+    }
+
+    .hashtag-card {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--border-color);
+        transition: background .15s;
+    }
+    .hashtag-card:last-child { border-bottom: none; }
+    .hashtag-card:hover {
+        background: rgba(99, 102, 241, 0.04);
+    }
+    .hashtag-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--accent-color), #818cf8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-weight: 700;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Search Header -->
+        <div class="mb-4">
+            <h4 class="fw-bold mb-1">
+                {% if query %}
+                    Search results for "<span style="color: var(--accent-color);">{{ query }}</span>"
+                {% else %}
+                    Search
+                {% endif %}
+            </h4>
+            {% if query %}
+            <p class="text-secondary-custom small mb-0">
+                {{ users_count }} people · {{ posts_count }} posts · {{ hashtags_count }} hashtags
+            </p>
+            {% endif %}
+        </div>
+
+        {% if query %}
+        <!-- Tabs -->
+        <div class="search-tabs">
+            <a href="?q={{ query }}&tab=people&sort={{ sort }}&date_range={{ date_range }}" class="search-tab {% if tab == 'people' %}active{% endif %}">
+                <i class="bi bi-people-fill"></i> People
+                <span class="count-badge">{{ users_count }}</span>
+            </a>
+            <a href="?q={{ query }}&tab=posts&sort={{ sort }}&date_range={{ date_range }}" class="search-tab {% if tab == 'posts' %}active{% endif %}">
+                <i class="bi bi-file-earmark-text-fill"></i> Posts
+                <span class="count-badge">{{ posts_count }}</span>
+            </a>
+            <a href="?q={{ query }}&tab=hashtags&sort={{ sort }}&date_range={{ date_range }}" class="search-tab {% if tab == 'hashtags' %}active{% endif %}">
+                <i class="bi bi-hash"></i> Hashtags
+                <span class="count-badge">{{ hashtags_count }}</span>
+            </a>
+        </div>
+
+        <!-- Sort & Date Filters -->
+        <div class="filter-bar">
+            <a href="?q={{ query }}&tab={{ tab }}&sort=recent&date_range={{ date_range }}" class="filter-pill {% if sort == 'recent' %}active{% endif %}">
+                <i class="bi bi-clock me-1"></i>Recent
+            </a>
+            <a href="?q={{ query }}&tab={{ tab }}&sort=popular&date_range={{ date_range }}" class="filter-pill {% if sort == 'popular' %}active{% endif %}">
+                <i class="bi bi-fire me-1"></i>Popular
+            </a>
+            <span class="mx-1" style="color: var(--border-color);">|</span>
+            <a href="?q={{ query }}&tab={{ tab }}&sort={{ sort }}&date_range=" class="filter-pill {% if not date_range %}active{% endif %}">All Time</a>
+            <a href="?q={{ query }}&tab={{ tab }}&sort={{ sort }}&date_range=today" class="filter-pill {% if date_range == 'today' %}active{% endif %}">Today</a>
+            <a href="?q={{ query }}&tab={{ tab }}&sort={{ sort }}&date_range=week" class="filter-pill {% if date_range == 'week' %}active{% endif %}">This Week</a>
+            <a href="?q={{ query }}&tab={{ tab }}&sort={{ sort }}&date_range=month" class="filter-pill {% if date_range == 'month' %}active{% endif %}">This Month</a>
+        </div>
+
+        {% if tab == 'people' %}
+        <!-- People Results -->
+        <div class="card p-3">
+            <div class="d-flex flex-column gap-3">
+                {% for match in users_results %}
+                <div class="d-flex align-items-center justify-content-between p-2 rounded" style="background: rgba(15, 23, 42, 0.2); border: 1px solid var(--border-color); border-radius: 12px;">
+                    <div class="d-flex align-items-center">
+                        <a href="{% url 'profile' username=match.username %}">
+                            {% if match.userprofile.profile_picture %}
+                                <img src="{{ match.userprofile.profile_picture.url }}" class="avatar-img me-2" alt="{{ match.username }}">
+                            {% else %}
+                                <div class="avatar-placeholder me-2">
+                                    {{ match.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        </a>
+                        <div>
+                            <h6 class="mb-0 fw-bold"><a href="{% url 'profile' username=match.username %}" class="text-decoration-none text-light">{{ match.username }}</a></h6>
+                            <span class="text-secondary-custom small">
+                                @{{ match.username }}
+                                {% if match.follower_count %} · {{ match.follower_count }} follower{{ match.follower_count|pluralize }}{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <a href="{% url 'profile' username=match.username %}" class="btn btn-outline-light btn-sm rounded-pill px-3">View Profile</a>
+                </div>
+                {% empty %}
+                <p class="text-secondary-custom small mb-0 text-center py-3">No people found matching your query.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        {% elif tab == 'posts' %}
+        <!-- Posts Results -->
+        <div class="d-flex flex-column gap-3">
+            {% for post in posts_results %}
+            <div class="card" id="post-card-{{ post.id }}">
+                <div class="card-header border-0 d-flex align-items-center justify-content-between pb-0">
+                    <div class="d-flex align-items-center">
+                        <a href="{% url 'profile' username=post.author.username %}">
+                            {% if post.author.userprofile.profile_picture %}
+                                <img src="{{ post.author.userprofile.profile_picture.url }}" class="avatar-img me-2" alt="{{ post.author.username }}">
+                            {% else %}
+                                <div class="avatar-placeholder me-2">
+                                    {{ post.author.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        </a>
+                        <div>
+                            <h6 class="mb-0 fw-bold"><a href="{% url 'profile' username=post.author.username %}" class="text-decoration-none text-light">{{ post.author.username }}</a></h6>
+                            <span class="text-secondary-custom small">{{ post.created_at|timesince }} ago</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">{{ post.content }}</p>
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" class="img-fluid rounded w-100 mb-3" alt="Post media">
+                    {% endif %}
+                    <hr class="my-2" style="border-color: var(--border-color);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-secondary-custom small">
+                            <i class="bi bi-heart-fill me-1" style="color: #f43f5e;"></i>{{ post.reaction_count }}
+                            <i class="bi bi-chat-fill ms-2 me-1" style="color: #3b82f6;"></i>{{ post.comments.count }}
+                        </span>
+                        <a href="{% url 'post_detail' pk=post.id %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">View Post</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-5 card">
+                <i class="bi bi-journal-richtext fs-1 text-secondary-custom"></i>
+                <p class="text-secondary-custom mt-2">No posts found matching your query.</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% elif tab == 'hashtags' %}
+        <!-- Hashtag Results -->
+        <div class="card">
+            {% for ht in hashtag_results %}
+            <a href="{% url 'hashtag_feed' tag=ht.name %}" class="hashtag-card text-decoration-none">
+                <div class="hashtag-icon">#</div>
+                <div class="flex-grow-1">
+                    <div class="text-light fw-semibold">#{{ ht.name }}</div>
+                    <div class="text-secondary-custom" style="font-size: 0.78rem;">
+                        {{ ht.post_count }} post{{ ht.post_count|pluralize }}
+                    </div>
+                </div>
+                <i class="bi bi-chevron-right text-secondary-custom"></i>
+            </a>
+            {% empty %}
+            <div class="text-center py-4">
+                <i class="bi bi-hash fs-1 text-secondary-custom"></i>
+                <p class="text-secondary-custom mt-2 mb-0">No hashtags found matching your query.</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% else %}
+        <!-- Empty State -->
+        <div class="text-center py-5">
+            <i class="bi bi-search fs-1 text-secondary-custom"></i>
+            <h5 class="fw-bold text-light mt-3">Search ConnectSphere</h5>
+            <p class="text-secondary-custom">Find people, posts, and hashtags</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

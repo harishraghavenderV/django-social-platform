@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+
+{% block title %}Notification Preferences | ConnectSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .prefs-card {
+        max-width: 640px;
+        margin: 0 auto;
+    }
+
+    .pref-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+        transition: background .15s;
+    }
+    .pref-row:last-child { border-bottom: none; }
+    .pref-row:hover {
+        background: rgba(99, 102, 241, 0.04);
+        margin: 0 -1rem;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        border-radius: 10px;
+    }
+
+    .pref-label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+    .pref-label i {
+        font-size: 1.25rem;
+        color: var(--accent-color);
+        width: 28px;
+        text-align: center;
+    }
+    .pref-label .pref-title { font-weight: 600; color: var(--text-primary); }
+    .pref-label .pref-desc { font-size: 0.82rem; color: var(--text-secondary); }
+
+    /* Custom toggle switch */
+    .toggle-switch {
+        position: relative;
+        width: 52px;
+        height: 28px;
+        flex-shrink: 0;
+    }
+    .toggle-switch input { display: none; }
+    .toggle-slider {
+        position: absolute;
+        inset: 0;
+        background: rgba(71, 85, 105, 0.5);
+        border-radius: 14px;
+        cursor: pointer;
+        transition: background .3s;
+    }
+    .toggle-slider::before {
+        content: '';
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        background: #fff;
+        border-radius: 50%;
+        top: 3px;
+        left: 3px;
+        transition: transform .3s cubic-bezier(.4,0,.2,1), box-shadow .3s;
+    }
+    .toggle-switch input:checked + .toggle-slider {
+        background: var(--accent-color);
+    }
+    .toggle-switch input:checked + .toggle-slider::before {
+        transform: translateX(24px);
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Header -->
+        <div class="d-flex align-items-center mb-4">
+            <a href="{% url 'profile' username=user.username %}" class="btn btn-outline-secondary rounded-pill px-3 me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h4 class="fw-bold mb-0">Notification Preferences</h4>
+                <p class="text-secondary-custom small mb-0">Choose which notifications you'd like to receive</p>
+            </div>
+        </div>
+
+        <div class="card prefs-card">
+            <div class="card-body p-4">
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="pref-row">
+                        <div class="pref-label">
+                            <i class="bi bi-heart-fill" style="color: #f43f5e;"></i>
+                            <div>
+                                <div class="pref-title">Likes & Reactions</div>
+                                <div class="pref-desc">When someone reacts to your posts</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="pref_likes" {% if prefs.likes %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="pref-row">
+                        <div class="pref-label">
+                            <i class="bi bi-chat-fill" style="color: #3b82f6;"></i>
+                            <div>
+                                <div class="pref-title">Comments</div>
+                                <div class="pref-desc">When someone comments on your posts</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="pref_comments" {% if prefs.comments %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="pref-row">
+                        <div class="pref-label">
+                            <i class="bi bi-person-plus-fill" style="color: #10b981;"></i>
+                            <div>
+                                <div class="pref-title">Follows</div>
+                                <div class="pref-desc">When someone follows you</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="pref_follows" {% if prefs.follows %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="pref-row">
+                        <div class="pref-label">
+                            <i class="bi bi-chat-dots-fill" style="color: #6366f1;"></i>
+                            <div>
+                                <div class="pref-title">Messages</div>
+                                <div class="pref-desc">When you receive a new message</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="pref_messages" {% if prefs.messages %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="pref-row">
+                        <div class="pref-label">
+                            <i class="bi bi-calendar-event-fill" style="color: #06b6d4;"></i>
+                            <div>
+                                <div class="pref-title">Events</div>
+                                <div class="pref-desc">Event updates and reminders</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="pref_events" {% if prefs.events %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="pref-row">
+                        <div class="pref-label">
+                            <i class="bi bi-person-add" style="color: #f59e0b;"></i>
+                            <div>
+                                <div class="pref-title">Friend Requests</div>
+                                <div class="pref-desc">When someone sends you a friend request</div>
+                            </div>
+                        </div>
+                        <label class="toggle-switch">
+                            <input type="checkbox" name="pref_friend_requests" {% if prefs.friend_requests %}checked{% endif %}>
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <div class="mt-4 text-end">
+                        <button type="submit" class="btn btn-primary rounded-pill px-5">
+                            <i class="bi bi-check2-circle me-1"></i> Save Preferences
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

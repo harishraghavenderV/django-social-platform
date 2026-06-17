@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Blocked Users | ConnectSphere{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h4 class="fw-bold mb-4 text-light"><i class="bi bi-slash-circle-fill me-2 text-danger"></i>Blocked Users</h4>
+            <p class="text-secondary-custom small mb-4">
+                People you block will not be able to see your posts, send you messages, view your profile, or find your stories/reels. Likewise, you will not see their content or suggestions.
+            </p>
+            
+            <div id="blocked-users-list" class="d-flex flex-column gap-3">
+                {% for blocked_user in blocked_users %}
+                    <div class="d-flex align-items-center justify-content-between p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);" id="blocked-item-{{ blocked_user.username }}">
+                        <div class="d-flex align-items-center">
+                            {% if blocked_user.userprofile.profile_picture %}
+                                <img src="{{ blocked_user.userprofile.profile_picture.url }}" class="avatar-img me-3" style="width: 50px; height: 50px;" alt="{{ blocked_user.username }}">
+                            {% else %}
+                                <div class="avatar-placeholder me-3" style="width: 50px; height: 50px; font-size: 1.1rem;">
+                                    {{ blocked_user.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-0 fw-bold text-light">{{ blocked_user.username }}</h6>
+                                <span class="text-secondary-custom small">@{{ blocked_user.username }}</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline-danger btn-sm rounded-pill px-4 unblock-btn" data-username="{{ blocked_user.username }}">
+                            <i class="bi bi-person-check-fill me-1"></i>Unblock
+                        </button>
+                    </div>
+                {% empty %}
+                    <div class="text-center py-5" id="no-blocked-users">
+                        <i class="bi bi-shield-check fs-1 text-secondary-custom"></i>
+                        <p class="text-secondary-custom mt-2">You haven't blocked anyone yet.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $(document).on('click', '.unblock-btn', function(e) {
+        e.preventDefault();
+        const btn = $(this);
+        const username = btn.data('username');
+        
+        $.ajax({
+            url: `/moderation/block/${username}/`,
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function(data) {
+                if (!data.blocked) {
+                    $(`#blocked-item-${username}`).fadeOut(300, function() {
+                        $(this).remove();
+                        if ($('#blocked-users-list').children().length === 0) {
+                            $('#blocked-users-list').html(`
+                                <div class="text-center py-5" id="no-blocked-users">
+                                    <i class="bi bi-shield-check fs-1 text-secondary-custom"></i>
+                                    <p class="text-secondary-custom mt-2">You haven't blocked anyone yet.</p>
+                                </div>
+                            `);
+                        }
+                    });
+                }
+            },
+            error: function(xhr) {
+                alert(xhr.responseJSON?.error || 'An error occurred while trying to unblock.');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

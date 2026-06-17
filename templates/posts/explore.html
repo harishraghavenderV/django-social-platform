@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}Explore | ConnectSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .trending-tag {
+        display: inline-block;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        background-color: rgba(99, 102, 241, 0.12);
+        color: var(--accent-color);
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+    }
+    .trending-tag:hover {
+        background-color: rgba(99, 102, 241, 0.2);
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+        transform: translateY(-1px);
+    }
+    .discover-card {
+        text-align: center;
+        padding: 1.5rem 1rem;
+        transition: transform 0.2s ease;
+    }
+    .discover-card:hover {
+        transform: translateY(-3px);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Main: Trending Posts -->
+    <div class="col-md-8">
+        <h4 class="fw-bold mb-3">
+            <i class="bi bi-compass-fill me-2" style="color: var(--accent-color);"></i>Explore
+        </h4>
+
+        <!-- Trending Tags -->
+        {% if trending_tags %}
+        <div class="card p-3 mb-4">
+            <h6 class="fw-bold text-secondary-custom mb-3"><i class="bi bi-hash me-1"></i>Trending Hashtags</h6>
+            <div class="d-flex flex-wrap gap-2">
+                {% for tag in trending_tags %}
+                    <a href="{% url 'hashtag_feed' tag=tag.name %}" class="trending-tag">
+                        #{{ tag.name }}
+                        <span class="text-secondary-custom ms-1" style="font-size: 0.75rem;">{{ tag.post_count }}</span>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Trending Posts -->
+        <h6 class="fw-bold text-secondary-custom mb-3"><i class="bi bi-fire me-1"></i>Trending Posts</h6>
+        {% for post in trending_posts %}
+        <div class="card" id="post-card-{{ post.id }}">
+            <div class="card-header border-0 d-flex align-items-center justify-content-between pb-0">
+                <div class="d-flex align-items-center">
+                    <a href="{% url 'profile' username=post.author.username %}">
+                        {% if post.author.userprofile.profile_picture %}
+                            <img src="{{ post.author.userprofile.profile_picture.url }}" class="avatar-img me-2" alt="{{ post.author.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder me-2">
+                                {{ post.author.username|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+                    </a>
+                    <div>
+                        <h6 class="mb-0 fw-bold"><a href="{% url 'profile' username=post.author.username %}" class="text-decoration-none text-light">{{ post.author.username }}</a></h6>
+                        <span class="text-secondary-custom small">{{ post.created_at|timesince }} ago</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ post.content }}</p>
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" class="img-fluid rounded w-100 mb-3" alt="Post media">
+                {% endif %}
+                <hr class="my-2" style="border-color: var(--border-color);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <button class="btn btn-link text-decoration-none text-secondary-custom p-0 like-btn d-flex align-items-center" data-post-id="{{ post.id }}">
+                        <i class="bi {% if user in post.likes.all %}bi-heart-fill text-danger{% else %}bi-heart{% endif %} me-1 fs-5"></i>
+                        <span class="like-count">{{ post.like_count }}</span>
+                    </button>
+                    <a href="{% url 'post_detail' pk=post.id %}" class="btn btn-link text-decoration-none text-secondary-custom p-0 d-flex align-items-center">
+                        <i class="bi bi-chat me-1 fs-5"></i>
+                        <span>{{ post.comments.count }}</span>
+                    </a>
+                    <span class="text-secondary-custom small">
+                        <i class="bi bi-arrow-repeat me-1"></i>{{ post.share_count }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="text-center py-5 card">
+            <i class="bi bi-compass fs-1 text-secondary-custom"></i>
+            <p class="text-secondary-custom mt-2">Nothing trending right now. Check back later!</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Sidebar: Discover People -->
+    <div class="col-md-4 d-none d-md-block">
+        <div class="card p-3">
+            <h6 class="fw-bold text-secondary-custom mb-3"><i class="bi bi-person-plus me-1"></i>Discover People</h6>
+            <div class="row g-3">
+                {% for person in discover_users %}
+                <div class="col-6">
+                    <div class="card discover-card">
+                        <a href="{% url 'profile' username=person.username %}">
+                            {% if person.userprofile.profile_picture %}
+                                <img src="{{ person.userprofile.profile_picture.url }}" class="avatar-img-lg mb-2" alt="{{ person.username }}">
+                            {% else %}
+                                <div class="avatar-placeholder-lg mx-auto mb-2">
+                                    {{ person.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        </a>
+                        <h6 class="fw-bold mb-1 small">
+                            <a href="{% url 'profile' username=person.username %}" class="text-decoration-none text-light">{{ person.username }}</a>
+                        </h6>
+                        <span class="text-secondary-custom small">{{ person.follower_count }} follower{{ person.follower_count|pluralize }}</span>
+                        <a href="{% url 'follow_user' user_id=person.id %}" class="btn btn-primary btn-sm rounded-pill mt-2 px-3">Follow</a>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-secondary-custom small">No suggestions right now.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).on('click', '.like-btn', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var postId = btn.data('post-id');
+        var url = "/post/" + postId + "/like/";
+
+        $.ajax({
+            url: url,
+            type: "POST",
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },
+            success: function(data) {
+                var icon = btn.find('i');
+                var countSpan = btn.find('.like-count');
+                countSpan.text(data.like_count);
+                if (data.liked) {
+                    icon.removeClass('bi-heart').addClass('bi-heart-fill text-danger');
+                } else {
+                    icon.removeClass('bi-heart-fill text-danger').addClass('bi-heart');
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

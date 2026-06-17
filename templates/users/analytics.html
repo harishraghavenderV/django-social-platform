@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics Dashboard | ConnectSphere{% endblock %}
+
+{% block extra_css %}
+<style>
+    .analytics-header {
+        margin-bottom: 2rem;
+    }
+
+    .stat-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem;
+        text-align: center;
+        transition: transform .2s, border-color .2s;
+    }
+    .stat-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--border-hover);
+    }
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        line-height: 1.2;
+    }
+    .stat-label {
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+        margin-top: 0.25rem;
+    }
+    .stat-icon {
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .chart-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .chart-card h6 {
+        color: var(--text-primary);
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 280px;
+    }
+
+    .top-post-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .top-post-item:last-child { border-bottom: none; }
+    .top-post-rank {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: var(--accent-color);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    .top-post-rank.gold { background: linear-gradient(135deg, #f59e0b, #eab308); }
+    .top-post-rank.silver { background: linear-gradient(135deg, #94a3b8, #cbd5e1); color: #1e293b; }
+    .top-post-rank.bronze { background: linear-gradient(135deg, #d97706, #b45309); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <!-- Header -->
+        <div class="analytics-header d-flex align-items-center">
+            <a href="{% url 'profile' username=user.username %}" class="btn btn-outline-secondary rounded-pill px-3 me-3">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h4 class="fw-bold mb-0">Analytics Dashboard</h4>
+                <p class="text-secondary-custom small mb-0">Your content performance over the last 30 days</p>
+            </div>
+        </div>
+
+        <!-- Stat Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: #6366f1;"><i class="bi bi-file-earmark-text-fill"></i></div>
+                    <div class="stat-value">{{ total_posts }}</div>
+                    <div class="stat-label">Total Posts</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: #f43f5e;"><i class="bi bi-heart-fill"></i></div>
+                    <div class="stat-value">{{ total_reactions }}</div>
+                    <div class="stat-label">Total Reactions</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: #10b981;"><i class="bi bi-people-fill"></i></div>
+                    <div class="stat-value">{{ total_followers }}</div>
+                    <div class="stat-label">Followers</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stat-card">
+                    <div class="stat-icon" style="color: #f59e0b;"><i class="bi bi-lightning-charge-fill"></i></div>
+                    <div class="stat-value">{{ engagement_rate }}%</div>
+                    <div class="stat-label">Engagement Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Follower Growth Chart -->
+            <div class="col-md-7">
+                <div class="chart-card">
+                    <h6><i class="bi bi-graph-up-arrow me-2" style="color: #10b981;"></i>Follower Growth (30 Days)</h6>
+                    <div class="chart-container">
+                        <canvas id="followerChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Mix Chart -->
+            <div class="col-md-5">
+                <div class="chart-card">
+                    <h6><i class="bi bi-pie-chart-fill me-2" style="color: #6366f1;"></i>Content Mix</h6>
+                    <div class="chart-container">
+                        <canvas id="contentMixChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Post Engagement Chart -->
+            <div class="col-md-7">
+                <div class="chart-card">
+                    <h6><i class="bi bi-bar-chart-fill me-2" style="color: #3b82f6;"></i>Top Post Engagement</h6>
+                    <div class="chart-container">
+                        <canvas id="engagementChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Posts List -->
+            <div class="col-md-5">
+                <div class="chart-card">
+                    <h6><i class="bi bi-trophy-fill me-2" style="color: #eab308;"></i>Top Performing Posts</h6>
+                    {% if top_posts %}
+                        {% for post in top_posts|slice:":5" %}
+                        <div class="top-post-item">
+                            <div class="top-post-rank {% if forloop.counter == 1 %}gold{% elif forloop.counter == 2 %}silver{% elif forloop.counter == 3 %}bronze{% endif %}">
+                                {{ forloop.counter }}
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="text-light fw-semibold" style="font-size: 0.88rem;">
+                                    {{ post.content|truncatewords:8 }}
+                                </div>
+                                <div class="text-secondary-custom" style="font-size: 0.75rem;">
+                                    <i class="bi bi-heart-fill me-1" style="color: #f43f5e;"></i>{{ post.react_count }}
+                                    <i class="bi bi-chat-fill ms-2 me-1" style="color: #3b82f6;"></i>{{ post.comment_count }}
+                                </div>
+                            </div>
+                            <a href="{% url 'post_detail' pk=post.id %}" class="btn btn-sm btn-outline-secondary rounded-pill">
+                                <i class="bi bi-arrow-right"></i>
+                            </a>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="bi bi-bar-chart fs-1 text-secondary-custom"></i>
+                            <p class="text-secondary-custom mt-2 mb-0">No post data yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Color helpers
+    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+    const gridColor = isDark ? 'rgba(148, 163, 184, 0.1)' : 'rgba(100, 116, 139, 0.12)';
+    const textColor = isDark ? '#94a3b8' : '#64748b';
+
+    const chartDefaults = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: { color: textColor, font: { family: 'Outfit', weight: 500 } }
+            }
+        },
+        scales: {
+            x: {
+                grid: { color: gridColor },
+                ticks: { color: textColor, font: { family: 'Outfit' } }
+            },
+            y: {
+                grid: { color: gridColor },
+                ticks: { color: textColor, font: { family: 'Outfit' } },
+                beginAtZero: true
+            }
+        }
+    };
+
+    // Follower Growth Line Chart
+    const followerLabels = {{ follower_labels|safe }};
+    const followerData = {{ follower_data|safe }};
+
+    new Chart(document.getElementById('followerChart'), {
+        type: 'line',
+        data: {
+            labels: followerLabels.length ? followerLabels : ['No data'],
+            datasets: [{
+                label: 'New Followers',
+                data: followerData.length ? followerData : [0],
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#10b981',
+                pointBorderColor: '#10b981',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+            }]
+        },
+        options: chartDefaults
+    });
+
+    // Post Engagement Bar Chart
+    const postLabels = {{ post_labels|safe }};
+    const reactionData = {{ reaction_data|safe }};
+    const commentData = {{ comment_data|safe }};
+
+    new Chart(document.getElementById('engagementChart'), {
+        type: 'bar',
+        data: {
+            labels: postLabels.length ? postLabels : ['No data'],
+            datasets: [
+                {
+                    label: 'Reactions',
+                    data: reactionData.length ? reactionData : [0],
+                    backgroundColor: 'rgba(243, 63, 94, 0.7)',
+                    borderRadius: 6,
+                },
+                {
+                    label: 'Comments',
+                    data: commentData.length ? commentData : [0],
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderRadius: 6,
+                }
+            ]
+        },
+        options: chartDefaults
+    });
+
+    // Content Mix Doughnut Chart
+    new Chart(document.getElementById('contentMixChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['Posts', 'Reels', 'Stories'],
+            datasets: [{
+                data: [{{ content_mix.posts }}, {{ content_mix.reels }}, {{ content_mix.stories }}],
+                backgroundColor: ['#6366f1', '#ec4899', '#f97316'],
+                borderColor: isDark ? '#0f172a' : '#ffffff',
+                borderWidth: 3,
+                hoverOffset: 8,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: textColor, font: { family: 'Outfit', weight: 500 }, padding: 16 }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

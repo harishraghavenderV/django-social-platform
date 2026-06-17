@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Two-Factor Authentication Setup | ConnectSphere{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card p-4 text-center">
+            <h4 class="fw-bold mb-4 text-light"><i class="bi bi-shield-lock-fill me-2" style="color: var(--accent-color);"></i>Two-Factor Authentication (2FA)</h4>
+            
+            {% if already_enabled %}
+                <div class="mb-4">
+                    <div style="font-size: 4rem; color: var(--success-color);"><i class="bi bi-shield-fill-check"></i></div>
+                    <h5 class="text-light mt-2">2FA is currently enabled</h5>
+                    <p class="text-secondary-custom small mt-2">Your account is secured with Two-Factor Authentication using an authenticator app.</p>
+                </div>
+                <button id="disable-2fa-btn" class="btn btn-outline-danger rounded-pill px-4 mt-2">Disable 2FA</button>
+            {% else %}
+                <p class="text-secondary-custom small mb-4 text-start">
+                    Two-Factor Authentication adds an extra layer of security to your account. To configure it, please scan the QR code below using an authenticator app (such as Google Authenticator, Authy, or Microsoft Authenticator) and enter the 6-digit verification code.
+                </p>
+                
+                <div class="mb-4 p-3 rounded" style="background: white; display: inline-block; box-shadow: 0 4px 16px rgba(0,0,0,0.15);">
+                    <img src="{{ qr_uri }}" alt="QR Code" class="img-fluid" style="display: block; width: 180px; height: 180px;">
+                </div>
+                
+                <div class="text-start mb-4">
+                    <label class="form-label text-secondary-custom small fw-semibold">If you cannot scan the QR code, use this secret key:</label>
+                    <div class="d-flex align-items-center gap-2 p-2 rounded" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color);">
+                        <code class="text-light flex-grow-1 select-all" style="font-size: 0.9rem; word-break: break-all;">{{ device.key }}</code>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="navigator.clipboard.writeText('{{ device.key }}'); alert('Secret key copied to clipboard!');"><i class="bi bi-clipboard"></i></button>
+                    </div>
+                </div>
+
+                <form id="setup-2fa-form" class="text-start">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="token" class="form-label text-secondary-custom fw-semibold">Verification Code</label>
+                        <input type="text" name="token" id="token" class="form-control text-center fw-bold" placeholder="6-digit code" pattern="[0-9]{6}" required style="font-size: 1.2rem; letter-spacing: 0.2em;">
+                    </div>
+                    <div id="2fa-error" class="text-danger small d-none mb-3"></div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold">Verify & Enable</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    $('#setup-2fa-form').on('submit', function(e) {
+        e.preventDefault();
+        const form = $(this);
+        const submitBtn = form.find('button[type="submit"]');
+        const errorDiv = $('#2fa-error');
+        
+        submitBtn.prop('disabled', true).text('Verifying...');
+        errorDiv.addClass('d-none');
+        
+        $.ajax({
+            url: "{% url 'setup_2fa' %}",
+            type: 'POST',
+            data: form.serialize(),
+            success: function(data) {
+                if (data.success) {
+                    showToast(data.message, '', 'friend_accept');
+                    setTimeout(() => { window.location.reload(); }, 1500);
+                } else {
+                    errorDiv.text(data.error || 'An error occurred.').removeClass('d-none');
+                    submitBtn.prop('disabled', false).text('Verify & Enable');
+                }
+            },
+            error: function(xhr) {
+                errorDiv.text(xhr.responseJSON?.error || 'An error occurred. Please try again.').removeClass('d-none');
+                submitBtn.prop('disabled', false).text('Verify & Enable');
+            }
+        });
+    });
+
+    $('#disable-2fa-btn').on('click', function(e) {
+        e.preventDefault();
+        if (confirm("Are you sure you want to disable Two-Factor Authentication? Your account will be less secure.")) {
+            $.ajax({
+                url: "{% url 'disable_2fa' %}",
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                success: function(data) {
+                    if (data.success) {
+                        showToast(data.message, '', 'like');
+                        setTimeout(() => { window.location.reload(); }, 1500);
+                    }
+                },
+                error: function(xhr) {
+                    alert('An error occurred while disabling 2FA.');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}
