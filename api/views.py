@@ -24,7 +24,9 @@ class PostViewSet(viewsets.ModelViewSet):
         ).distinct().order_by('-created_at')
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        post = serializer.save(author=self.request.user)
+        from posts.views import notify_mentioned_users
+        notify_mentioned_users(post.content, self.request.user, post)
 
     @action(detail=True, methods=['post'])
     def react(self, request, pk=None):
@@ -84,6 +86,8 @@ class PostViewSet(viewsets.ModelViewSet):
                     notification_type='comment',
                     post=post,
                 )
+            from posts.views import notify_mentioned_users
+            notify_mentioned_users(serializer.validated_data.get('content', ''), request.user, post)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

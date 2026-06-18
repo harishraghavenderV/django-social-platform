@@ -5,6 +5,11 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 class PostConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
+        user = self.scope.get('user')
+        if not user or user.is_anonymous:
+            await self.close()
+            return
+
         self.group_name = 'posts_feed'
         await self.channel_layer.group_add(
             self.group_name,

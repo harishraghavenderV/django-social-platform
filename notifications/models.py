@@ -9,6 +9,7 @@ class Notification(models.Model):
         ('friend_request', 'Friend Request'),
         ('friend_accept', 'Friend Accept'),
         ('follow', 'Follow'),
+        ('mention', 'Mention'),
     )
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_notifications')

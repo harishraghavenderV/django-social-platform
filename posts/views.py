@@ -1,4 +1,5 @@
 import re
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -13,10 +14,31 @@ from .poll_models import Poll, PollOption, PollVote
 from friends.models import Follow
 from notifications.models import Notification
 
+logger = logging.getLogger(__name__)
+
 
 def extract_hashtags(text):
     """Extract hashtags from text and return list of tag names (lowercase)."""
     return list(set(re.findall(r'#(\w+)', text.lower())))
+
+
+def extract_mentions(text):
+    return list(set(re.findall(r'(?<![\w/])@([A-Za-z0-9_]+)', text or '')))
+
+
+def notify_mentioned_users(text, sender, post=None):
+    mentioned_usernames = extract_mentions(text)
+    if not mentioned_usernames:
+        return
+
+    mentioned_users = User.objects.filter(username__in=mentioned_usernames).exclude(id=sender.id)
+    for mentioned_user in mentioned_users:
+        Notification.objects.create(
+            recipient=mentioned_user,
+            sender=sender,
+            notification_type='mention',
+            post=post,
+        )
 
 
 def apply_hashtags(post):
@@ -98,6 +120,7 @@ def post_create(request):
                 image=image,
             )
             apply_hashtags(post)
+            notify_mentioned_users(post.content, request.user, post)
             
             # Broadcast the new post to channels
             try:
@@ -121,8 +144,8 @@ def post_create(request):
                         'author_username': request.user.username
                     }
                 )
-            except:
-                pass
+            except Exception:
+                logger.exception('Failed to broadcast new post %s', post.id)
     return redirect('home')
 
 
@@ -163,6 +186,7 @@ def post_edit(request, pk):
             post.is_edited = True
             post.save()
             apply_hashtags(post)
+            notify_mentioned_users(post.content, request.user, post)
         return redirect('post_detail', pk=pk)
 
     return render(request, 'posts/post_edit.html', {'post': post})
@@ -201,8 +225,8 @@ def post_react(request, pk):
                         'like_count': post.reaction_count()
                     }
                 )
-            except:
-                pass
+            except Exception:
+                logger.exception('Failed to broadcast reaction removal for post %s', post.id)
             return JsonResponse({
                 'reacted': False,
                 'reaction_type': None,
@@ -238,8 +262,8 @@ def post_react(request, pk):
                 'like_count': post.reaction_count()
             }
         )
-    except:
-        pass
+    except Exception:
+        logger.exception('Failed to broadcast reaction update for post %s', post.id)
 
     return JsonResponse({
         'reacted': True,
@@ -287,6 +311,7 @@ def add_comment(request, pk):
                     notification_type='comment',
                     post=post,
                 )
+            notify_mentioned_users(comment.content, request.user, post)
             # Broadcast the comment to channels
             try:
                 from asgiref.sync import async_to_sync
@@ -304,8 +329,8 @@ def add_comment(request, pk):
                         'comment_html': comment_html
                     }
                 )
-            except:
-                pass
+            except Exception:
+                logger.exception('Failed to broadcast comment %s for post %s', comment.id, post.id)
     return redirect('post_detail', pk=pk)
 
 
@@ -452,6 +477,7 @@ def create_poll(request):
                 content=content or question
             )
             apply_hashtags(post)
+            notify_mentioned_users(post.content, request.user, post)
             
             # Create poll
             poll = Poll.objects.create(
@@ -663,7 +689,7 @@ def import_instagram(request):
             }
         )
     except Exception:
-        pass
+        logger.exception('Failed to broadcast imported Instagram post %s', post.id)
 
     return JsonResponse({
         'success': True,

@@ -14,6 +14,7 @@ class UserProfile(models.Model):
         'comments': True,
         'follows': True,
         'messages': True,
+        'mentions': True,
         'events': True,
         'friend_requests': True,
     }

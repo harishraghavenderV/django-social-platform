@@ -96,6 +96,35 @@ class PostsViewsTestCase(TestCase):
             post=self.post
         ).exists())
 
+    def test_mentions_create_notifications(self):
+        """Test @mentions in posts and comments notify mentioned users."""
+        self.client.login(username='user1', password='password123')
+        response = self.client.post(
+            reverse('post_create'),
+            data={'content': 'Hello @user2, check this out #django'}
+        )
+        self.assertEqual(response.status_code, 302)
+        mentioned_post = Post.objects.latest('id')
+        self.assertTrue(Notification.objects.filter(
+            recipient=self.user2,
+            sender=self.user1,
+            notification_type='mention',
+            post=mentioned_post,
+        ).exists())
+
+        self.client.login(username='user2', password='password123')
+        response = self.client.post(
+            reverse('add_comment', kwargs={'pk': self.post.pk}),
+            data={'content': 'Thanks @user1'}
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Notification.objects.filter(
+            recipient=self.user1,
+            sender=self.user2,
+            notification_type='mention',
+            post=self.post,
+        ).exists())
+
     def test_search(self):
         """Test search query searches username and post content."""
         self.client.login(username='user1', password='password123')

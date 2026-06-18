@@ -46,5 +46,6 @@ def _get_notification_message(notification):
         'friend_request': f'{notification.sender.username} sent you a friend request',
         'friend_accept': f'{notification.sender.username} accepted your friend request',
         'follow': f'{notification.sender.username} started following you',
+        'mention': f'{notification.sender.username} mentioned you',
     }
     return messages.get(notification.notification_type, 'New notification')
