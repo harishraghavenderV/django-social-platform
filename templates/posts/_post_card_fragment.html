@@ -195,7 +195,17 @@
                 {% if post.author.userprofile.is_verified %}
                     <i class="bi bi-patch-check-fill text-primary" style="font-size: 0.85rem; margin-left: 2px;"></i>
                 {% endif %}
+                {% if post.co_authors.exists %}
+                    <span class="text-secondary-custom mx-1" style="font-size: 0.88rem;">and</span>
+                    {% for co_author in post.co_authors.all %}
+                        <a href="{% url 'profile' username=co_author.username %}" class="ig-post-username">{{ co_author.username }}</a>
+                        {% if co_author.userprofile.is_verified %}
+                            <i class="bi bi-patch-check-fill text-primary" style="font-size: 0.85rem; margin-left: 2px;"></i>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
             </div>
+
         </div>
         
         <!-- Post Settings Menu -->

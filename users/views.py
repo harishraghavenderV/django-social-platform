@@ -41,7 +41,10 @@ def profile_view(request, username):
         raise Http404("Profile not found or blocked.")
         
     profile = get_object_or_404(UserProfile, user=view_user)
-    posts = Post.objects.filter(author=view_user).order_by('-created_at')
+    posts = Post.objects.filter(
+        Q(author=view_user) | Q(co_authors=view_user)
+    ).distinct().order_by('-created_at')
+
     
     # Check friendship status
     friend_status = 'none'
@@ -103,8 +106,10 @@ def profile_view(request, username):
         'user_badges': user_badges,
         'activities': activities,
         'active_tab': tab,
+        'interest_tags_list': [t.strip() for t in profile.interest_tags.split(',') if t.strip()] if profile.interest_tags else [],
     }
     return render(request, 'users/profile.html', context)
+
 
 
 @login_required

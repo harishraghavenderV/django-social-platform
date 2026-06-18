@@ -92,10 +92,17 @@
                         {% endif %}
                     </div>
 
-                    <!-- Unread Badge -->
-                    {% if item.unread_count > 0 %}
-                        <div class="unread-badge">{{ item.unread_count }}</div>
-                    {% endif %}
+                    <!-- Pin Icon & Unread Badge -->
+                    <div class="d-flex align-items-center">
+                        <button class="btn btn-link p-0 text-secondary-custom pin-toggle-btn me-2"
+                                data-convo-id="{{ item.conversation.id }}"
+                                style="font-size: 1.1rem; border: none; outline: none; z-index: 5;">
+                            <i class="bi {% if item.is_pinned %}bi-pin-angle-fill{% else %}bi-pin-angle{% endif %}" {% if item.is_pinned %}style="color: var(--accent-color) !important;"{% endif %}></i>
+                        </button>
+                        {% if item.unread_count > 0 %}
+                            <div class="unread-badge">{{ item.unread_count }}</div>
+                        {% endif %}
+                    </div>
                 </a>
                 {% endfor %}
             {% else %}
@@ -108,3 +115,39 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('.pin-toggle-btn').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var btn = $(this);
+            var convoId = btn.data('convo-id');
+            var icon = btn.find('i');
+            
+            $.ajax({
+                url: '/messages/' + convoId + '/toggle-pin/',
+                type: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                success: function(data) {
+                    if (data.success) {
+                        if (data.is_pinned) {
+                            icon.removeClass('bi-pin-angle').addClass('bi-pin-angle-fill');
+                            icon.css('color', 'var(--accent-color)');
+                        } else {
+                            icon.removeClass('bi-pin-angle-fill').addClass('bi-pin-angle');
+                            icon.css('color', '');
+                        }
+                        window.location.reload();
+                    }
+                },
+                error: function(xhr) {
+                    alert('Failed to pin conversation.');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
+

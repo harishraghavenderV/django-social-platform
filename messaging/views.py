@@ -14,22 +14,32 @@ def inbox(request):
         last_msg_time=Max('messages__created_at')
     ).order_by('-last_msg_time')
 
-    conversation_data = []
+    pinned_conversations = []
+    unpinned_conversations = []
+
     for convo in conversations:
         other_user = convo.participants.exclude(id=request.user.id).first()
         if other_user and hasattr(request, 'all_blocked_ids') and other_user.id in request.all_blocked_ids:
             continue
         last_msg = convo.last_message()
         unread = convo.unread_count_for(request.user)
-        conversation_data.append({
+        is_pinned = convo.pinned_by.filter(id=request.user.id).exists()
+        
+        data = {
             'conversation': convo,
             'other_user': other_user,
             'last_message': last_msg,
             'unread_count': unread,
-        })
+            'is_pinned': is_pinned,
+        }
+        
+        if is_pinned:
+            pinned_conversations.append(data)
+        else:
+            unpinned_conversations.append(data)
 
     return render(request, 'messaging/inbox.html', {
-        'conversations': conversation_data,
+        'conversations': pinned_conversations + unpinned_conversations,
     })
 
 
@@ -154,3 +164,43 @@ def unread_messages_count(request):
     for convo in conversations:
         total += convo.unread_count_for(request.user)
     return JsonResponse({'unread_count': total})
+
+
+@login_required
+def toggle_pin_conversation(request, conversation_id):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    
+    convo = get_object_or_404(Conversation, id=conversation_id)
+    if not convo.participants.filter(id=request.user.id).exists():
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+        
+    if convo.pinned_by.filter(id=request.user.id).exists():
+        convo.pinned_by.remove(request.user)
+        pinned = False
+    else:
+        convo.pinned_by.add(request.user)
+        pinned = True
+        
+    return JsonResponse({'success': True, 'is_pinned': pinned})
+
+
+@login_required
+def change_chat_theme(request, conversation_id):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+        
+    convo = get_object_or_404(Conversation, id=conversation_id)
+    if not convo.participants.filter(id=request.user.id).exists():
+        return JsonResponse({'error': 'Forbidden'}, status=403)
+        
+    theme = request.POST.get('theme', 'default').strip()
+    valid_themes = ['default', 'sunset', 'ocean', 'emerald', 'crimson']
+    if theme not in valid_themes:
+        return JsonResponse({'error': 'Invalid theme'}, status=400)
+        
+    convo.theme = theme
+    convo.save(update_fields=['theme'])
+    
+    return JsonResponse({'success': True, 'theme': theme})
+

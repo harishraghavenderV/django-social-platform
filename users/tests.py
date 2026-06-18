@@ -168,4 +168,35 @@ class UsersViewsTestCase(TestCase):
         # Verify device deleted
         self.assertFalse(TOTPDevice.objects.filter(user=self.user).exists())
 
+    def test_profile_edit_interest_tags_valid(self):
+        """Test updating profile with valid interest tags (<= 5)."""
+        self.client.login(username='testuser', password='testpassword123')
+        data = {
+            'username': 'testuser',
+            'email': 'testuser@example.com',
+            'interest_tags': 'Python, Django, WebDev, Design, Testing'
+        }
+        response = self.client.post(reverse('profile_edit'), data=data)
+        self.assertRedirects(response, reverse('profile', kwargs={'username': 'testuser'}))
+        self.profile.refresh_from_db()
+        self.assertEqual(self.profile.interest_tags, 'Python, Django, WebDev, Design, Testing')
+
+    def test_profile_edit_interest_tags_invalid(self):
+        """Test that updating profile with > 5 interest tags fails validation."""
+        self.client.login(username='testuser', password='testpassword123')
+        data = {
+            'username': 'testuser',
+            'email': 'testuser@example.com',
+            'interest_tags': 'Python, Django, WebDev, Design, Testing, Overflow'
+        }
+        response = self.client.post(reverse('profile_edit'), data=data)
+        self.assertEqual(response.status_code, 200)
+        form = response.context['profile_form']
+        self.assertFalse(form.is_valid())
+        self.assertEqual(form.errors['interest_tags'], ['You can add up to 5 interest tags only.'])
+        self.profile.refresh_from_db()
+        self.assertNotEqual(self.profile.interest_tags, 'Python, Django, WebDev, Design, Testing, Overflow')
+
+
+
 

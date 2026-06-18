@@ -80,7 +80,7 @@ def home(request):
         ).values_list('following_id', flat=True)
 
         posts = Post.objects.filter(
-            (Q(author=request.user) | Q(author_id__in=following_ids)),
+            (Q(author=request.user) | Q(author_id__in=following_ids) | Q(co_authors=request.user)),
             group__isnull=True,
         ).exclude(author_id__in=request.all_blocked_ids).select_related('poll').prefetch_related('poll__options').distinct().order_by('-created_at')
 
@@ -92,6 +92,8 @@ def home(request):
         suggestions = User.objects.exclude(
             id=request.user.id
         ).exclude(id__in=following_ids).exclude(id__in=request.all_blocked_ids)[:5]
+
+        collab_users = User.objects.exclude(id=request.user.id).exclude(id__in=request.all_blocked_ids).order_by('username')
 
         unread_notifications_count = Notification.objects.filter(
             recipient=request.user, is_read=False
@@ -121,6 +123,7 @@ def home(request):
             'posts': posts,
             'shares': shares,
             'suggestions': suggestions,
+            'collab_users': collab_users,
             'unread_notifications_count': unread_notifications_count,
             'user_reactions': user_reactions,
             'bookmarked_ids': bookmarked_ids,
@@ -142,6 +145,22 @@ def post_create(request):
                 content=content or '',
                 image=image,
             )
+            
+            # Associate co-author if provided
+            co_author_id = request.POST.get('co_author_id')
+            if co_author_id:
+                try:
+                    co_author = User.objects.get(id=co_author_id)
+                    post.co_authors.add(co_author)
+                    Notification.objects.create(
+                        recipient=co_author,
+                        sender=request.user,
+                        notification_type='collab_invite',
+                        post=post,
+                    )
+                except User.DoesNotExist:
+                    pass
+
             apply_hashtags(post)
             notify_mentioned_users(post.content, request.user, post)
             

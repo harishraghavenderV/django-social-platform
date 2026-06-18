@@ -24,6 +24,8 @@ class Post(models.Model):
         blank=True, null=True
     )
     instagram_url = models.URLField(blank=True, null=True, max_length=500)
+    co_authors = models.ManyToManyField(User, blank=True, related_name='collaborative_posts', help_text='Co-authors who co-publish this post')
+
 
     class Meta:
         ordering = ['-created_at']

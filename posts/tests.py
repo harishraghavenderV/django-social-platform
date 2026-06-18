@@ -201,3 +201,46 @@ class PostsViewsTestCase(TestCase):
         self.assertTrue(Post.objects.filter(author__username='thanthitv').exists())
         post = Post.objects.filter(author__username='thanthitv').first()
         self.assertEqual(post.instagram_url, 'https://www.instagram.com/p/C_thanthitv/')
+
+    def test_post_create_collaborative(self):
+        """Test creating a post with a co-author and that notification is sent."""
+        self.client.login(username='user1', password='password123')
+        data = {
+            'content': 'Collab post content',
+            'co_author_id': self.user2.id
+        }
+        response = self.client.post(reverse('post_create'), data=data)
+        self.assertEqual(response.status_code, 302) # Redirect to home
+        self.assertEqual(Post.objects.count(), 2)
+        
+        post = Post.objects.filter(content='Collab post content').first()
+        self.assertIsNotNone(post)
+        self.assertIn(self.user2, post.co_authors.all())
+        
+        # Verify notification created
+        self.assertTrue(Notification.objects.filter(
+            recipient=self.user2,
+            sender=self.user1,
+            notification_type='collab_invite',
+            post=post
+        ).exists())
+
+    def test_collab_post_shows_in_both_feeds(self):
+        """Test that a co-authored post appears in the feed and profiles of both authors."""
+        collab_post = Post.objects.create(author=self.user1, content='Shared collab')
+        collab_post.co_authors.add(self.user2)
+        
+        # Check user1 profile views
+        self.client.login(username='user1', password='password123')
+        response = self.client.get(reverse('profile', kwargs={'username': 'user1'}))
+        self.assertIn(collab_post, response.context['posts'])
+        
+        # Check user2 profile views
+        self.client.login(username='user2', password='password123')
+        response = self.client.get(reverse('profile', kwargs={'username': 'user2'}))
+        self.assertIn(collab_post, response.context['posts'])
+        
+        # Check user2 home feed (since they are co-author, it must show up)
+        response = self.client.get(reverse('home'))
+        self.assertIn(collab_post, response.context['posts'])
+

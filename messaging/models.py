@@ -4,8 +4,11 @@ from django.contrib.auth.models import User
 
 class Conversation(models.Model):
     participants = models.ManyToManyField(User, related_name='conversations')
+    pinned_by = models.ManyToManyField(User, blank=True, related_name='pinned_conversations')
+    theme = models.CharField(max_length=50, default='default', help_text='CSS class/name representing the active chat theme')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
 
     class Meta:
         ordering = ['-updated_at']

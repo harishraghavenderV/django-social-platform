@@ -363,6 +363,17 @@
                         <span><i class="bi bi-calendar3 me-1"></i>Joined {{ profile.joined_date|date:"F Y" }}</span>
                     </div>
                     
+                    <!-- Interest Tags -->
+                    {% if interest_tags_list %}
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        {% for tag in interest_tags_list %}
+                            <span class="badge rounded-pill px-3 py-2" style="background: rgba(255, 255, 255, 0.04); color: var(--text-primary); border: 1px solid var(--border-color); font-weight: 500; font-size: 0.82rem;">
+                                <i class="bi bi-tag-fill me-1 text-secondary-custom" style="font-size: 0.75rem;"></i>{{ tag }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
                     <!-- Badge Showcase -->
                     {% if user_badges %}
                     <div class="badge-showcase">

@@ -39,10 +39,30 @@
     }
     .message-sent {
         align-self: flex-end;
-        background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
         color: white;
         border-bottom-right-radius: 4px;
     }
+    .theme-default .message-sent {
+        background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+    }
+    .theme-sunset .message-sent {
+        background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    }
+    .theme-ocean .message-sent {
+        background: linear-gradient(135deg, #0284c7, #0d9488);
+    }
+    .theme-emerald .message-sent {
+        background: linear-gradient(135deg, #059669, #10b981);
+    }
+    .theme-crimson .message-sent {
+        background: linear-gradient(135deg, #e11d48, #be123c);
+    }
+
+    .theme-sunset.chat-container { background-color: rgba(230, 104, 60, 0.02); }
+    .theme-ocean.chat-container { background-color: rgba(2, 132, 199, 0.02); }
+    .theme-emerald.chat-container { background-color: rgba(5, 150, 105, 0.02); }
+    .theme-crimson.chat-container { background-color: rgba(225, 29, 72, 0.02); }
+
     .message-received {
         align-self: flex-start;
         background-color: rgba(51, 65, 85, 0.6);
@@ -108,31 +128,49 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <div class="card chat-container">
+        <div class="card chat-container theme-{{ conversation.theme }}" id="chat-card-container">
             <!-- Chat Header -->
-            <div class="chat-header">
-                <a href="{% url 'inbox' %}" class="btn btn-link text-secondary-custom p-0 me-1">
-                    <i class="bi bi-arrow-left fs-5"></i>
-                </a>
-                <a href="{% url 'profile' username=other_user.username %}">
-                    {% if other_user.userprofile.profile_picture %}
-                        <img src="{{ other_user.userprofile.profile_picture.url }}"
-                             class="avatar-img" style="width:40px; height:40px;" alt="{{ other_user.username }}">
-                    {% else %}
-                        <div class="avatar-placeholder" style="width:40px; height:40px; font-size:0.9rem;">
-                            {{ other_user.username|slice:":1"|upper }}
-                        </div>
-                    {% endif %}
-                </a>
-                <div>
-                    <h6 class="mb-0 fw-bold text-light">
-                        <a href="{% url 'profile' username=other_user.username %}" class="text-decoration-none text-light">
-                            {{ other_user.username }}
-                        </a>
-                    </h6>
-                    <span class="text-secondary-custom small" id="chat-status">Online</span>
+            <div class="chat-header justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{% url 'inbox' %}" class="btn btn-link text-secondary-custom p-0 me-1">
+                        <i class="bi bi-arrow-left fs-5"></i>
+                    </a>
+                    <a href="{% url 'profile' username=other_user.username %}">
+                        {% if other_user.userprofile.profile_picture %}
+                            <img src="{{ other_user.userprofile.profile_picture.url }}"
+                                 class="avatar-img" style="width:40px; height:40px;" alt="{{ other_user.username }}">
+                        {% else %}
+                            <div class="avatar-placeholder" style="width:40px; height:40px; font-size:0.9rem;">
+                                {{ other_user.username|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+                    </a>
+                    <div>
+                        <h6 class="mb-0 fw-bold text-light">
+                            <a href="{% url 'profile' username=other_user.username %}" class="text-decoration-none text-light">
+                                {{ other_user.username }}
+                            </a>
+                        </h6>
+                        <span class="text-secondary-custom small" id="chat-status">Online</span>
+                    </div>
+                </div>
+                
+                <!-- Theme Selector Dropdown -->
+                <div class="dropdown">
+                    <button class="btn btn-link text-secondary-custom p-0" type="button" data-bs-toggle="dropdown" id="themeDropdown" aria-expanded="false">
+                        <i class="bi bi-palette-fill fs-5" style="color: var(--text-secondary);"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="themeDropdown">
+                        <li><h6 class="dropdown-header">Select Theme</h6></li>
+                        <li><a class="dropdown-item theme-select-item {% if conversation.theme == 'default' %}active{% endif %}" href="#" data-theme="default">Default Classic</a></li>
+                        <li><a class="dropdown-item theme-select-item {% if conversation.theme == 'sunset' %}active{% endif %}" href="#" data-theme="sunset">Sunset Glow</a></li>
+                        <li><a class="dropdown-item theme-select-item {% if conversation.theme == 'ocean' %}active{% endif %}" href="#" data-theme="ocean">Ocean Breeze</a></li>
+                        <li><a class="dropdown-item theme-select-item {% if conversation.theme == 'emerald' %}active{% endif %}" href="#" data-theme="emerald">Emerald Forest</a></li>
+                        <li><a class="dropdown-item theme-select-item {% if conversation.theme == 'crimson' %}active{% endif %}" href="#" data-theme="crimson">Crimson Rose</a></li>
+                    </ul>
                 </div>
             </div>
+
 
             <!-- Messages -->
             <div class="chat-messages" id="chat-messages">
@@ -308,5 +346,37 @@
             this.value = '';
         }
     });
+
+    // Change Theme handler
+    $('.theme-select-item').on('click', function(e) {
+        e.preventDefault();
+        var themeItem = $(this);
+        var selectedTheme = themeItem.data('theme');
+        
+        $.ajax({
+            url: '{% url "change_chat_theme" conversation_id=conversation.id %}',
+            type: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            data: { theme: selectedTheme },
+            success: function(data) {
+                if (data.success) {
+                    // Remove all theme classes and add new one
+                    var card = $('#chat-card-container');
+                    card.removeClass(function (index, className) {
+                        return (className.match (/(^|\s)theme-\S+/g) || []).join(' ');
+                    });
+                    card.addClass('theme-' + data.theme);
+                    
+                    // Update active dropdown item
+                    $('.theme-select-item').removeClass('active');
+                    themeItem.addClass('active');
+                }
+            },
+            error: function() {
+                alert('Failed to change chat theme.');
+            }
+        });
+    });
 </script>
 {% endblock %}
+

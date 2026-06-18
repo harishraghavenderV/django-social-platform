@@ -71,6 +71,13 @@ class UserProfile(models.Model):
         help_text='Per-type notification preferences'
     )
 
+    interest_tags = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='Comma-separated interest tags (max 5)'
+    )
+
+
     def __str__(self):
         return f"{self.user.username}'s Profile"
 

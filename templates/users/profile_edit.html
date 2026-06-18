@@ -109,6 +109,15 @@
                     <textarea name="bio" id="id_bio" class="form-control" rows="3">{{ profile_form.bio.value|default:'' }}</textarea>
                 </div>
 
+                <div class="mb-3">
+                    <label for="id_interest_tags">Interest Tags (comma-separated, max 5)</label>
+                    <input type="text" name="interest_tags" id="id_interest_tags" class="form-control" value="{{ profile_form.interest_tags.value|default:'' }}" placeholder="e.g. Design, Coding, Travel, Music, Photography">
+                    {% if profile_form.interest_tags.errors %}
+                        <div class="text-danger small mt-1">{{ profile_form.interest_tags.errors }}</div>
+                    {% endif %}
+                </div>
+
+
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label for="id_location">Location</label>
