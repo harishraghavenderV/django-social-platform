@@ -416,9 +416,10 @@
                         ? '<img src="' + u.avatar_url + '" class="story-img" alt="' + u.username + '">'
                         : '<div class="avatar-placeholder story-img" style="font-size: 1.2rem;">' + u.username.charAt(0).toUpperCase() + '</div>';
 
+                    var ringStyle = u.has_unviewed ? '' : ' style="background: var(--border-color) !important;"';
                     var html = '<a href="/stories/view/' + u.user_id + '/" class="text-decoration-none text-center" style="min-width: 75px;">' +
                         '<div class="position-relative mx-auto" style="width: 60px; height: 60px;">' +
-                        '<span class="story-ring">' + avatarHtml + '</span>' +
+                        '<span class="story-ring"' + ringStyle + '>' + avatarHtml + '</span>' +
                         '</div>' +
                         '<small class="text-secondary-custom d-block mt-1" style="font-size:0.75rem;">' + u.username + '</small></a>';
                     container.insertAdjacentHTML('beforeend', html);

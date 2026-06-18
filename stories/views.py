@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-from .models import Story
+from .models import Story, StoryView
 from friends.models import Follow
 
 
@@ -29,6 +29,10 @@ def view_stories(request, user_id):
     if not stories.exists():
         return redirect('home')
 
+    # Record views for these active stories
+    for story in stories:
+        StoryView.objects.get_or_create(story=story, viewer=request.user)
+
     return render(request, 'stories/story_viewer.html', {
         'story_user': story_user,
         'stories': stories,
@@ -52,10 +56,15 @@ def story_data(request):
 
     data = []
     for u in story_users:
+        # Check if user u has any active stories not yet viewed by request.user
+        active_stories = Story.objects.active().filter(author=u)
+        has_unviewed = active_stories.exclude(views__viewer=request.user).exists()
+
         data.append({
             'user_id': u.id,
             'username': u.username,
             'avatar_url': u.userprofile.profile_picture.url if u.userprofile.profile_picture else None,
+            'has_unviewed': has_unviewed,
         })
 
     return JsonResponse({'story_users': data})

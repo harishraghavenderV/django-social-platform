@@ -2,6 +2,34 @@
 
 {% block title %}Post Detail | ConnectSphere{% endblock %}
 
+{% block extra_css %}
+<style>
+    .ig-double-tap-heart {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) scale(0);
+        font-size: 5rem;
+        color: #fff;
+        text-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        pointer-events: none;
+        z-index: 10;
+        opacity: 0;
+        transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+    }
+    .ig-double-tap-heart.animate {
+        animation: heartBlast 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    @keyframes heartBlast {
+        0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+        15% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.9; }
+        30% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; }
+        80% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; }
+        100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
@@ -37,7 +65,10 @@
             <div class="card-body">
                 <p class="card-text fs-5">{{ post.content }}</p>
                 {% if post.image %}
-                    <img src="{{ post.image.url }}" class="img-fluid rounded w-100 mb-3" alt="Post media">
+                    <div class="ig-post-media-container position-relative overflow-hidden cursor-pointer mb-3" data-post-id="{{ post.id }}" style="background: #000; width: 100%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 8px;">
+                        <img src="{{ post.image.url }}" class="w-100 h-100" style="object-fit: cover;" alt="Post media">
+                        <i class="bi bi-heart-fill ig-double-tap-heart"></i>
+                    </div>
                 {% endif %}
                 <hr class="my-2" style="border-color: var(--border-color);">
                 <div class="d-flex justify-content-between align-items-center">
@@ -86,7 +117,7 @@
         e.preventDefault();
         var btn = $(this);
         var postId = btn.data('post-id');
-        var url = "/post/" + postId + "/like/";
+        var url = "/post/" + postId + "/react/";
         
         $.ajax({
             url: url,
@@ -94,18 +125,47 @@
             headers: {
                 "X-CSRFToken": "{{ csrf_token }}"
             },
+            data: { reaction_type: 'like' },
             success: function(data) {
                 var icon = btn.find('i');
                 var countSpan = btn.find('.like-count');
                 
-                countSpan.text(data.like_count);
-                if (data.liked) {
+                countSpan.text(data.reaction_count);
+                if (data.reacted) {
                     icon.removeClass('bi-heart').addClass('bi-heart-fill text-danger');
                 } else {
                     icon.removeClass('bi-heart-fill text-danger').addClass('bi-heart');
                 }
             }
         });
+    });
+
+    // Double click to like
+    $(document).on('dblclick', '.ig-post-media-container', function(e) {
+        var container = $(this);
+        var postId = container.data('post-id');
+        var heart = container.find('.ig-double-tap-heart');
+        var likeBtn = $('.like-btn');
+        
+        heart.addClass('animate');
+        setTimeout(function() {
+            heart.removeClass('animate');
+        }, 800);
+
+        if (!likeBtn.find('i').hasClass('bi-heart-fill')) {
+            $.ajax({
+                url: '/post/' + postId + '/react/',
+                type: 'POST',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                data: { reaction_type: 'like' },
+                success: function(data) {
+                    if (data.reacted) {
+                        likeBtn.find('i').removeClass('bi-heart').addClass('bi-heart-fill text-danger');
+                        $('.like-count').text(data.reaction_count);
+                    }
+                }
+            });
+        }
     });
 
     // Intercept comment form submission for real-time AJAX submission
