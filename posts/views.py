@@ -1,5 +1,6 @@
 import re
 import logging
+import threading
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -52,6 +53,28 @@ def apply_hashtags(post):
 
 def home(request):
     if request.user.is_authenticated:
+        # Check if Instagram auto-sync is enabled and needs sync (once per hour)
+        try:
+            account = request.user.instagram_account
+            if account.is_active and account.auto_sync:
+                from django.utils import timezone
+                # Sync if never synced, or last synced over 1 hour ago
+                if not account.last_synced or account.last_synced < timezone.now() - timezone.timedelta(hours=1):
+                    def bg_sync_task(u_id, account_id):
+                        try:
+                            from django.contrib.auth.models import User
+                            from users.models_instagram import InstagramAccount
+                            from users.views import _sync_instagram_account
+                            u = User.objects.get(id=u_id)
+                            acc = InstagramAccount.objects.get(id=account_id)
+                            _sync_instagram_account(u, acc)
+                        except Exception:
+                            logger.exception("Failed to run background Instagram sync")
+                    
+                    threading.Thread(target=bg_sync_task, args=(request.user.id, account.id)).start()
+        except Exception:
+            pass
+
         following_ids = Follow.objects.filter(
             follower=request.user
         ).values_list('following_id', flat=True)

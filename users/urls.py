@@ -18,4 +18,5 @@ urlpatterns = [
     path('instagram/callback/', views.instagram_callback, name='instagram_callback'),
     path('instagram/disconnect/', views.instagram_disconnect, name='instagram_disconnect'),
     path('instagram/sync/', views.instagram_sync_now, name='instagram_sync'),
+    path('instagram/toggle-autosync/', views.instagram_toggle_autosync, name='instagram_toggle_autosync'),
 ]

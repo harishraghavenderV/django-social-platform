@@ -1,3 +1,4 @@
+import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -15,6 +16,9 @@ from . import instagram_service
 from friends.models import FriendRequest, Follow
 from posts.models import Post
 from django.db.models import Q
+
+logger = logging.getLogger(__name__)
+
 
 
 def register(request):
@@ -343,6 +347,31 @@ def _sync_instagram_account(user, account):
             target_id=post.id,
         )
 
+        # Broadcast via WebSocket
+        try:
+            from asgiref.sync import async_to_sync
+            from channels.layers import get_channel_layer
+            from django.template.loader import render_to_string
+            
+            post_html = render_to_string('posts/_post_card_fragment.html', {
+                'posts': [post],
+                'user': user,
+                'user_reactions': {},
+                'bookmarked_ids': set(),
+            })
+            
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                'posts_feed',
+                {
+                    'type': 'new_post',
+                    'post_html': post_html,
+                    'author_username': user.username
+                }
+            )
+        except Exception:
+            logger.exception('Failed to broadcast synced Instagram post %s', post.id)
+
         created_count += 1
 
     # Update last synced timestamp
@@ -350,3 +379,17 @@ def _sync_instagram_account(user, account):
     account.save(update_fields=['last_synced'])
 
     return created_count
+
+
+@login_required
+def instagram_toggle_autosync(request):
+    """AJAX POST to toggle auto_sync parameter on the Instagram account connection."""
+    if request.method != 'POST':
+        return JsonResponse({'error': 'POST required'}, status=405)
+    try:
+        account = request.user.instagram_account
+        account.auto_sync = not account.auto_sync
+        account.save(update_fields=['auto_sync'])
+        return JsonResponse({'success': True, 'auto_sync': account.auto_sync})
+    except InstagramAccount.DoesNotExist:
+        return JsonResponse({'error': 'No Instagram account connected'}, status=400)

@@ -36,6 +36,10 @@ class InstagramAccount(models.Model):
         default=True,
         help_text='Whether this connection is active',
     )
+    auto_sync = models.BooleanField(
+        default=True,
+        help_text='Enable automatic background sync on feed load',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

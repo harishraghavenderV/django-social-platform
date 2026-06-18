@@ -229,6 +229,14 @@
                     </div>
                 </div>
 
+                <!-- Auto sync toggle -->
+                <div class="form-check form-switch mb-3 p-0 d-flex align-items-center gap-2">
+                    <input class="form-check-input ms-0" type="checkbox" role="switch" id="ig-autosync-toggle" {% if account.auto_sync %}checked{% endif %} style="cursor: pointer; width: 2.2em; height: 1.2em;">
+                    <label class="form-check-label text-light fw-semibold mb-0" for="ig-autosync-toggle" style="cursor: pointer;">
+                        Enable background sync on feed load (updates once per hour)
+                    </label>
+                </div>
+
                 <!-- Sync stats -->
                 <p class="text-secondary-custom small mb-0">
                     <i class="bi bi-info-circle me-1"></i>
@@ -269,4 +277,32 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#ig-autosync-toggle').on('change', function() {
+            var checkbox = $(this);
+            checkbox.prop('disabled', true);
+            
+            $.ajax({
+                url: "{% url 'instagram_toggle_autosync' %}",
+                type: "POST",
+                headers: { "X-CSRFToken": "{{ csrf_token }}" },
+                success: function(data) {
+                    checkbox.prop('disabled', false);
+                    if (data.success) {
+                        checkbox.prop('checked', data.auto_sync);
+                    }
+                },
+                error: function(xhr) {
+                    checkbox.prop('disabled', false);
+                    checkbox.prop('checked', !checkbox.is(':checked'));
+                    alert(xhr.responseJSON?.error || 'Failed to toggle auto sync. Please try again.');
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

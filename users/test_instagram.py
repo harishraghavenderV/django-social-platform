@@ -128,6 +128,91 @@ class InstagramViewsTestCase(TestCase):
             self.assertEqual(post.instagram_url, 'https://instagram.com/p/1/')
             self.assertEqual(post.content, 'Cool sync post #awesome')
 
+    def test_instagram_toggle_autosync(self):
+        account = InstagramAccount.objects.create(
+            user=self.user,
+            ig_user_id='123',
+            ig_username='test_user_ig',
+            access_token='test_token',
+            is_active=True,
+            auto_sync=True
+        )
+        
+        # Toggle auto-sync off
+        response = self.client.post(reverse('instagram_toggle_autosync'))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['success'])
+        self.assertFalse(data['auto_sync'])
+        
+        # Verify db updated
+        account.refresh_from_db()
+        self.assertFalse(account.auto_sync)
+
+        # Toggle auto-sync back on
+        response = self.client.post(reverse('instagram_toggle_autosync'))
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['success'])
+        self.assertTrue(data['auto_sync'])
+        
+        # Verify db updated
+        account.refresh_from_db()
+        self.assertTrue(account.auto_sync)
+
+    @patch('posts.views.threading.Thread')
+    def test_home_feed_triggers_auto_sync(self, mock_thread_class):
+        InstagramAccount.objects.create(
+            user=self.user,
+            ig_user_id='123',
+            ig_username='test_user_ig',
+            access_token='test_token',
+            is_active=True,
+            auto_sync=True,
+            last_synced=None
+        )
+        mock_thread_instance = MagicMock()
+        mock_thread_class.return_value = mock_thread_instance
+
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+
+        mock_thread_class.assert_called_once()
+        self.assertEqual(mock_thread_class.call_args[1]['args'], (self.user.id, self.user.instagram_account.id))
+        mock_thread_instance.start.assert_called_once()
+
+    @patch('posts.views.threading.Thread')
+    def test_home_feed_does_not_trigger_auto_sync_if_disabled(self, mock_thread_class):
+        InstagramAccount.objects.create(
+            user=self.user,
+            ig_user_id='123',
+            ig_username='test_user_ig',
+            access_token='test_token',
+            is_active=True,
+            auto_sync=False,
+            last_synced=None
+        )
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        mock_thread_class.assert_not_called()
+
+    @patch('posts.views.threading.Thread')
+    def test_home_feed_does_not_trigger_auto_sync_if_recent(self, mock_thread_class):
+        from django.utils import timezone
+        InstagramAccount.objects.create(
+            user=self.user,
+            ig_user_id='123',
+            ig_username='test_user_ig',
+            access_token='test_token',
+            is_active=True,
+            auto_sync=True,
+            last_synced=timezone.now() - timezone.timedelta(minutes=30)
+        )
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
+        mock_thread_class.assert_not_called()
+
+
 
 @override_settings(INSTAGRAM_USERNAME='test_user_ig_real', INSTAGRAM_PASSWORD='test_password')
 class InstagramCommandsTestCase(TestCase):
