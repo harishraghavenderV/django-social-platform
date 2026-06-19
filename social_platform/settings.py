@@ -35,6 +35,12 @@ ALLOWED_HOSTS = [
     if h.strip()
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    h.strip()
+    for h in os.environ.get('CSRF_TRUSTED_ORIGINS', 'https://django-social-platform-production.up.railway.app').split(',')
+    if h.strip()
+]
+
 
 # Application definition
 
