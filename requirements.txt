@@ -14,5 +14,8 @@ pyjwt>=2.13.0
 django-storages>=1.14.4
 boto3>=1.34.0
 instagrapi>=2.1.5
+dj-database-url>=2.1.0
+psycopg2-binary>=2.9.9
+channels-redis>=4.2.0
 
 
