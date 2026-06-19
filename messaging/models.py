@@ -34,7 +34,9 @@ class Message(models.Model):
     content = models.TextField(blank=True)
     image = models.ImageField(upload_to='message_images/', blank=True, null=True)
     is_read = models.BooleanField(default=False)
+    read_by = models.ManyToManyField(User, related_name='read_messages', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(blank=True, null=True)  # Timestamp when message was read
 
     class Meta:
         ordering = ['created_at']

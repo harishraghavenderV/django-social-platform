@@ -2,8 +2,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.db.models import Q
-from posts.models import Post, Reaction
+from django.db.models import Q, Count
+from posts.models import Post, Reaction, HashTag
 from users.models import UserProfile
 from notifications.models import Notification
 from friends.models import Follow, FriendRequest
@@ -97,6 +97,49 @@ class UserProfileViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'user__username'
+
+    @action(detail=False, methods=['get'], url_path='mentions/autocomplete')
+    def mentions_autocomplete(self, request):
+        """Get users for mention autocomplete - filters by query parameter 'q'"""
+        query = request.query_params.get('q', '')
+        if len(query) < 1:
+            return Response([])
+        
+        from django.contrib.auth.models import User
+        users = User.objects.filter(
+            Q(username__icontains=query) | Q(first_name__icontains=query) | Q(last_name__icontains=query)
+        ).exclude(id=request.user.id)[:10]  # Limit to 10 results
+        
+        data = [
+            {
+                'id': user.id,
+                'username': user.username,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'avatar': user.userprofile.profile_picture.url if user.userprofile.profile_picture else None,
+            }
+            for user in users
+        ]
+        return Response(data)
+
+    @action(detail=False, methods=['get'], url_path='hashtags/suggestions')
+    def hashtag_suggestions(self, request):
+        """Get hashtag suggestions based on search query parameter 'q'"""
+        from posts.models import HashTag
+        query = request.query_params.get('q', '')
+        if len(query) < 1:
+            return Response([])
+        
+        hashtags = HashTag.objects.filter(name__icontains=query).order_by('-posts__count')[:10]
+        data = [
+            {
+                'id': tag.id,
+                'name': tag.name,
+                'post_count': tag.posts.count(),
+            }
+            for tag in hashtags
+        ]
+        return Response(data)
 
     @action(detail=True, methods=['post'], url_path='follow')
     def follow(self, request, user__username=None):

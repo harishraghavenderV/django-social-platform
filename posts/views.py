@@ -82,6 +82,7 @@ def home(request):
         posts = Post.objects.filter(
             (Q(author=request.user) | Q(author_id__in=following_ids) | Q(co_authors=request.user)),
             group__isnull=True,
+            status='published',  # Only show published posts
         ).exclude(author_id__in=request.all_blocked_ids).select_related('poll').prefetch_related('poll__options').distinct().order_by('-created_at')
 
         # Get shares from self and followed users

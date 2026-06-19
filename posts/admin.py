@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Post, Comment, Poll, PollOption, PollVote
+from .models import Post, Comment, Poll, PollOption, PollVote, Reaction, CommentReaction, Share, HashTag, PostMedia
 
 class PollOptionInline(admin.TabularInline):
     model = PollOption
@@ -42,4 +42,35 @@ class PollOptionAdmin(admin.ModelAdmin):
 @admin.register(PollVote)
 class PollVoteAdmin(admin.ModelAdmin):
     list_display = ('user', 'poll', 'option', 'created_at')
+
+@admin.register(Reaction)
+class ReactionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'post', 'reaction_type', 'created_at')
+    list_filter = ('reaction_type', 'created_at')
+    search_fields = ('user__username', 'post__content')
+
+@admin.register(CommentReaction)
+class CommentReactionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'comment', 'reaction_type', 'created_at')
+    list_filter = ('reaction_type', 'created_at')
+    search_fields = ('user__username', 'comment__content')
+
+@admin.register(Share)
+class ShareAdmin(admin.ModelAdmin):
+    list_display = ('user', 'original_post', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('user__username', 'original_post__content')
+
+@admin.register(HashTag)
+class HashTagAdmin(admin.ModelAdmin):
+    list_display = ('name', 'created_at')
+    search_fields = ('name',)
+
+@admin.register(PostMedia)
+class PostMediaAdmin(admin.ModelAdmin):
+    list_display = ('post', 'media_type', 'order', 'created_at')
+    list_filter = ('media_type', 'created_at')
+    search_fields = ('post__content', 'post__author__username')
+
+
 

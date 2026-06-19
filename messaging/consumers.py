@@ -35,25 +35,48 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        message_content = data.get('message', '')
+        message_type = data.get('type', 'message')
 
-        if not message_content.strip():
-            return
+        if message_type == 'typing':
+            # Broadcast typing indicator
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'typing_indicator',
+                    'user_id': self.user.id,
+                    'username': self.user.username,
+                    'is_typing': data.get('is_typing', True),
+                }
+            )
+        else:
+            # Handle message
+            message_content = data.get('message', '')
+            if not message_content.strip():
+                return
 
-        message_data = await self.save_message(message_content)
+            message_data = await self.save_message(message_content)
 
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': message_data,
-            }
-        )
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message_data,
+                }
+            )
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
             'type': 'chat_message',
             'message': event['message'],
+        }))
+
+    async def typing_indicator(self, event):
+        """Broadcast typing indicator to all users in the conversation"""
+        await self.send(text_data=json.dumps({
+            'type': 'typing_indicator',
+            'user_id': event['user_id'],
+            'username': event['username'],
+            'is_typing': event['is_typing'],
         }))
 
     @database_sync_to_async
