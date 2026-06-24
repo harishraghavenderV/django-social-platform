@@ -4,46 +4,9 @@
 
 {% block extra_css %}
 <style>
-    .chat-container {
-        display: flex;
-        flex-direction: column;
-        height: calc(100vh - 140px);
-        max-height: 700px;
-    }
-    .chat-header {
-        padding: 1rem 1.25rem;
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-    .chat-messages {
-        flex: 1;
-        overflow-y: auto;
-        padding: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-    }
-    .message-bubble {
-        max-width: 70%;
-        padding: 0.75rem 1rem;
-        border-radius: 18px;
-        position: relative;
-        word-break: break-word;
-        animation: msgFadeIn 0.3s ease;
-    }
-    @keyframes msgFadeIn {
-        from { opacity: 0; transform: translateY(8px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .message-sent {
-        align-self: flex-end;
-        color: white;
-        border-bottom-right-radius: 4px;
-    }
+    /* Theme Gradient Configurations for Sent Message Bubbles */
     .theme-default .message-sent {
-        background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+        background: linear-gradient(135deg, var(--color-primary), #d97d43);
     }
     .theme-sunset .message-sent {
         background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
@@ -58,158 +21,136 @@
         background: linear-gradient(135deg, #e11d48, #be123c);
     }
 
-    .theme-sunset.chat-container { background-color: rgba(230, 104, 60, 0.02); }
-    .theme-ocean.chat-container { background-color: rgba(2, 132, 199, 0.02); }
-    .theme-emerald.chat-container { background-color: rgba(5, 150, 105, 0.02); }
-    .theme-crimson.chat-container { background-color: rgba(225, 29, 72, 0.02); }
-
-    .message-received {
-        align-self: flex-start;
-        background-color: rgba(51, 65, 85, 0.6);
-        color: var(--text-primary);
-        border-bottom-left-radius: 4px;
-    }
-    .message-time {
-        font-size: 0.65rem;
-        opacity: 0.7;
-        margin-top: 0.25rem;
-    }
-    .message-sent .message-time {
-        text-align: right;
-        color: rgba(255, 255, 255, 0.8);
-    }
-    .message-received .message-time {
-        color: var(--text-secondary);
-    }
-    .chat-input-area {
-        border-top: 1px solid var(--border-color);
-        padding: 1rem 1.25rem;
-        display: flex;
-        gap: 0.75rem;
-        align-items: center;
-    }
-    .chat-input-area input[type="text"] {
-        flex: 1;
-        border-radius: 24px;
-        padding: 0.6rem 1.2rem;
-    }
-    .chat-input-area .btn-send {
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
-        border: none;
-        color: white;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .chat-input-area .btn-send:hover {
-        transform: scale(1.08);
-        box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
-    }
-    .message-image {
-        max-width: 100%;
-        border-radius: 12px;
-        margin-bottom: 0.25rem;
-    }
-    .typing-indicator {
-        display: none;
-        color: var(--text-secondary);
-        font-size: 0.8rem;
-        padding: 0 1.5rem 0.5rem;
-        font-style: italic;
-    }
+    /* Container Backgrounds for different chat themes */
+    .theme-sunset.chat-messages { background-color: rgba(230, 104, 60, 0.03); }
+    .theme-ocean.chat-messages { background-color: rgba(2, 132, 199, 0.03); }
+    .theme-emerald.chat-messages { background-color: rgba(5, 150, 105, 0.03); }
+    .theme-crimson.chat-messages { background-color: rgba(225, 29, 72, 0.03); }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card chat-container theme-{{ conversation.theme }}" id="chat-card-container">
-            <!-- Chat Header -->
-            <div class="chat-header justify-content-between">
-                <div class="d-flex align-items-center gap-2">
-                    <a href="{% url 'inbox' %}" class="btn btn-link text-secondary-custom p-0 me-1">
-                        <i class="bi bi-arrow-left fs-5"></i>
-                    </a>
-                    <a href="{% url 'profile' username=other_user.username %}">
+<div class="max-w-4xl mx-auto">
+    <!-- Chat Card Container -->
+    <div class="bg-surface-container-lowest border border-surface-container-highest rounded-2xl shadow-[0_4px_20px_-4px_rgba(194,101,42,0.04)] overflow-hidden flex flex-col h-[calc(100vh-11rem)] md:h-[650px]" id="chat-card-container">
+        
+        <!-- Chat Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-surface-container-high bg-surface-container-lowest/85 backdrop-blur-md sticky top-0 z-10">
+            <div class="flex items-center gap-4">
+                <!-- Back to Inbox -->
+                <a href="{% url 'inbox' %}" class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all flex items-center justify-center">
+                    <span class="material-symbols-outlined text-xl">arrow_back</span>
+                </a>
+                
+                <!-- Avatar & Username -->
+                <a href="{% url 'profile' username=other_user.username %}" class="relative flex-shrink-0 block">
+                    <div class="w-11 h-11 rounded-full overflow-hidden border border-outline-variant/60 bg-surface-container-low flex items-center justify-center">
                         {% if other_user.userprofile.profile_picture %}
-                            <img src="{{ other_user.userprofile.profile_picture.url }}"
-                                 class="avatar-img" style="width:40px; height:40px;" alt="{{ other_user.username }}">
+                            <img src="{{ other_user.userprofile.profile_picture.url }}" class="w-full h-full object-cover" alt="{{ other_user.username }}">
                         {% else %}
-                            <div class="avatar-placeholder" style="width:40px; height:40px; font-size:0.9rem;">
+                            <span class="font-bold text-base text-on-surface-variant/75">
                                 {{ other_user.username|slice:":1"|upper }}
-                            </div>
+                            </span>
                         {% endif %}
+                    </div>
+                </a>
+
+                <div>
+                    <h3 class="font-bold text-on-surface text-sm flex items-center gap-1.5">
+                        <a href="{% url 'profile' username=other_user.username %}" class="hover:text-primary transition-colors">
+                            {{ other_user.username }}
+                        </a>
+                        {% if other_user.userprofile.is_verified %}
+                            <span class="material-symbols-outlined text-primary text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>
+                        {% endif %}
+                    </h3>
+                    <span class="text-[10px] text-primary font-bold uppercase tracking-widest block mt-0.5" id="chat-status">Online</span>
+                </div>
+            </div>
+
+            <!-- Dynamic Custom Theme Selector (Drop-up/dropdown styled) -->
+            <div class="relative">
+                <button class="dropdown-toggle-btn p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-low hover:text-primary transition-all cursor-pointer flex items-center" type="button">
+                    <span class="material-symbols-outlined text-xl">palette</span>
+                </button>
+                <div class="dropdown-menu-list hidden absolute right-0 mt-2 w-48 bg-surface-container-lowest border border-surface-container-highest rounded-xl shadow-xl p-2 z-50">
+                    <h6 class="text-[10px] uppercase tracking-wider text-outline/80 px-3 py-2 font-bold font-body">Select Theme</h6>
+                    <a class="theme-select-item flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-container-low text-xs font-semibold text-on-surface transition-colors {% if conversation.theme == 'default' %}bg-primary-container/20 text-primary{% endif %}" href="#" data-theme="default">
+                        Default Classic
                     </a>
-                    <div>
-                        <h6 class="mb-0 fw-bold text-light">
-                            <a href="{% url 'profile' username=other_user.username %}" class="text-decoration-none text-light">
-                                {{ other_user.username }}
-                            </a>
-                        </h6>
-                        <span class="text-secondary-custom small" id="chat-status">Online</span>
+                    <a class="theme-select-item flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-container-low text-xs font-semibold text-on-surface transition-colors {% if conversation.theme == 'sunset' %}bg-primary-container/20 text-primary{% endif %}" href="#" data-theme="sunset">
+                        Sunset Glow
+                    </a>
+                    <a class="theme-select-item flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-container-low text-xs font-semibold text-on-surface transition-colors {% if conversation.theme == 'ocean' %}bg-primary-container/20 text-primary{% endif %}" href="#" data-theme="ocean">
+                        Ocean Breeze
+                    </a>
+                    <a class="theme-select-item flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-container-low text-xs font-semibold text-on-surface transition-colors {% if conversation.theme == 'emerald' %}bg-primary-container/20 text-primary{% endif %}" href="#" data-theme="emerald">
+                        Emerald Forest
+                    </a>
+                    <a class="theme-select-item flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-container-low text-xs font-semibold text-on-surface transition-colors {% if conversation.theme == 'crimson' %}bg-primary-container/20 text-primary{% endif %}" href="#" data-theme="crimson">
+                        Crimson Rose
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Bubbles Scroll Area -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6 theme-{{ conversation.theme }} chat-messages flex flex-col" id="chat-messages">
+            {% for msg in messages %}
+                <div class="flex gap-3 max-w-[75%] {% if msg.sender == user %}ml-auto flex-row-reverse{% endif %}">
+                    <div class="space-y-1.5 {% if msg.sender == user %}text-right{% endif %}">
+                        <!-- Content Bubble -->
+                        <div class="{% if msg.sender == user %}message-sent text-on-primary{% else %}message-received bg-surface-container-high text-on-surface{% endif %} p-4 rounded-2xl {% if msg.sender == user %}rounded-tr-none shadow-[0_4px_16px_rgba(194,101,42,0.15)]{% else %}rounded-tl-none shadow-[0_2px_12px_rgba(58,48,42,0.02)]{% endif %} text-sm leading-relaxed">
+                            {% if msg.image %}
+                                <img src="{{ msg.image.url }}" class="rounded-xl border border-outline-variant/60 max-w-full mb-2 block" alt="Shared attachment">
+                            {% endif %}
+                            {% if msg.content %}
+                                <div class="break-words">{{ msg.content }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Time -->
+                        <span class="text-[9px] text-on-surface-variant/65 mt-1 select-none font-medium block {% if msg.sender == user %}mr-1{% else %}ml-1{% endif %}">
+                            {{ msg.created_at|date:"M d, h:i A" }}
+                        </span>
                     </div>
                 </div>
-                
-                <!-- Theme Selector Dropdown -->
-                <div class="dropdown">
-                    <button class="btn btn-link text-secondary-custom p-0" type="button" data-bs-toggle="dropdown" id="themeDropdown" aria-expanded="false">
-                        <i class="bi bi-palette-fill fs-5" style="color: var(--text-secondary);"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end" aria-labelledby="themeDropdown">
-                        <li><h6 class="dropdown-header">Select Theme</h6></li>
-                        <li><a class="dropdown-item theme-select-item {% if conversation.theme == 'default' %}active{% endif %}" href="#" data-theme="default">Default Classic</a></li>
-                        <li><a class="dropdown-item theme-select-item {% if conversation.theme == 'sunset' %}active{% endif %}" href="#" data-theme="sunset">Sunset Glow</a></li>
-                        <li><a class="dropdown-item theme-select-item {% if conversation.theme == 'ocean' %}active{% endif %}" href="#" data-theme="ocean">Ocean Breeze</a></li>
-                        <li><a class="dropdown-item theme-select-item {% if conversation.theme == 'emerald' %}active{% endif %}" href="#" data-theme="emerald">Emerald Forest</a></li>
-                        <li><a class="dropdown-item theme-select-item {% if conversation.theme == 'crimson' %}active{% endif %}" href="#" data-theme="crimson">Crimson Rose</a></li>
-                    </ul>
+            {% empty %}
+                <div class="text-center py-16 px-6 space-y-4 flex flex-col items-center justify-center my-auto">
+                    <span class="material-symbols-outlined text-5xl text-on-surface-variant/35 animate-bounce">wave</span>
+                    <p class="text-on-surface-variant/80 text-sm max-w-xs leading-relaxed">Say hello to {{ other_user.username }}! Start a chat conversation.</p>
                 </div>
-            </div>
+            {% endfor %}
+        </div>
 
+        <!-- Typing Indicator -->
+        <div class="typing-indicator text-[11px] text-on-surface-variant/75 italic px-6 py-2 bg-surface/40 border-t border-surface-container-high" id="typing-indicator">
+            {{ other_user.username }} is typing...
+        </div>
 
-            <!-- Messages -->
-            <div class="chat-messages" id="chat-messages">
-                {% for msg in messages %}
-                <div class="message-bubble {% if msg.sender == user %}message-sent{% else %}message-received{% endif %}">
-                    {% if msg.image %}
-                        <img src="{{ msg.image.url }}" class="message-image" alt="Shared image">
-                    {% endif %}
-                    {% if msg.content %}
-                        <div>{{ msg.content }}</div>
-                    {% endif %}
-                    <div class="message-time">{{ msg.created_at|date:"M d, h:i A" }}</div>
-                </div>
-                {% empty %}
-                <div class="text-center py-4">
-                    <i class="bi bi-hand-wave fs-1 text-secondary-custom"></i>
-                    <p class="text-secondary-custom mt-2">Say hello to {{ other_user.username }}!</p>
-                </div>
-                {% endfor %}
-            </div>
-
-            <!-- Typing indicator -->
-            <div class="typing-indicator" id="typing-indicator">
-                {{ other_user.username }} is typing...
-            </div>
-
-            <!-- Input Area -->
-            <div class="chat-input-area">
-                <label for="msg-image-upload" class="btn btn-outline-secondary rounded-circle p-0"
-                       style="width:42px; height:42px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
-                    <i class="bi bi-image"></i>
-                </label>
-                <input id="msg-image-upload" type="file" accept="image/*" class="d-none">
-                <input type="text" class="form-control" id="chat-input" placeholder="Type a message..."
-                       autocomplete="off">
-                <button class="btn-send" id="send-btn" type="button">
-                    <i class="bi bi-send-fill"></i>
-                </button>
-            </div>
+        <!-- Message Send Input Controls -->
+        <div class="p-4 bg-surface-container-low border-t border-surface-container-high flex items-center gap-3">
+            <!-- Image Attachment upload trigger -->
+            <label for="msg-image-upload" 
+                   class="w-12 h-12 rounded-xl border border-outline-variant/60 bg-surface-container-lowest hover:bg-surface-container-high flex items-center justify-center cursor-pointer text-on-surface-variant hover:text-primary transition-colors flex-shrink-0"
+                   title="Attach Image">
+                <span class="material-symbols-outlined text-xl">image</span>
+            </label>
+            <input id="msg-image-upload" type="file" accept="image/*" class="hidden">
+            
+            <!-- Message text input -->
+            <input type="text" 
+                   class="flex-grow bg-surface-container-lowest border border-outline-variant/60 rounded-xl px-4 py-3.5 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all placeholder:text-outline/65" 
+                   id="chat-input" 
+                   placeholder="Type your message..."
+                   autocomplete="off">
+            
+            <!-- Submit Send button -->
+            <button class="w-12 h-12 bg-primary text-on-primary rounded-xl flex items-center justify-center shadow-md hover:opacity-90 active:scale-95 transition-all flex-shrink-0" 
+                    id="send-btn" 
+                    type="button">
+                <span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">send</span>
+            </button>
         </div>
     </div>
 </div>
@@ -224,13 +165,13 @@
     var chatInput = document.getElementById('chat-input');
     var sendBtn = document.getElementById('send-btn');
 
-    // Scroll to bottom
+    // Scroll to bottom helper
     function scrollToBottom() {
         chatMessages.scrollTop = chatMessages.scrollHeight;
     }
     scrollToBottom();
 
-    // WebSocket Connection
+    // WebSocket Setup
     var wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
     var chatSocket = null;
 
@@ -247,40 +188,49 @@
         };
 
         chatSocket.onclose = function(e) {
-            // Reconnect after 3 seconds
+            // Automatically reconnect after 3 seconds
             setTimeout(connectWebSocket, 3000);
         };
 
         chatSocket.onerror = function(e) {
-            console.log('WebSocket error, falling back to AJAX');
+            console.log('WebSocket connection error, fallback to AJAX is active.');
         };
     }
 
     try {
         connectWebSocket();
     } catch(e) {
-        console.log('WebSocket not available, using AJAX fallback');
+        console.log('WebSocket context not available, AJAX fallback is active.');
     }
 
     function appendMessage(msg) {
-        // Remove empty state if present
-        var emptyState = chatMessages.querySelector('.text-center.py-4');
+        // Remove empty state placeholder if it exists
+        var emptyState = chatMessages.querySelector('.text-center');
         if (emptyState) emptyState.remove();
 
         var isSent = msg.sender_id === currentUserId;
         var bubble = document.createElement('div');
-        bubble.className = 'message-bubble ' + (isSent ? 'message-sent' : 'message-received');
+        bubble.className = 'flex gap-3 max-w-[75%] ' + (isSent ? 'ml-auto flex-row-reverse' : '');
 
         var html = '';
+        html += '<div class="space-y-1.5 ' + (isSent ? 'text-right' : '') + '">';
+        
+        // Content bubble
+        html += '<div class="' + (isSent ? 'message-sent text-on-primary' : 'message-received bg-surface-container-high text-on-surface') + ' p-4 rounded-2xl ' + (isSent ? 'rounded-tr-none shadow-[0_4px_16px_rgba(194,101,42,0.15)]' : 'rounded-tl-none shadow-[0_2px_12px_rgba(58,48,42,0.02)]') + ' text-sm leading-relaxed">';
+        
         if (msg.image_url) {
-            html += '<img src="' + msg.image_url + '" class="message-image" alt="Shared image">';
+            html += '<img src="' + msg.image_url + '" class="rounded-xl border border-outline-variant/60 max-w-full mb-2 block" alt="Shared attachment">';
         }
         if (msg.content) {
-            html += '<div>' + escapeHtml(msg.content) + '</div>';
+            html += '<div class="break-words">' + escapeHtml(msg.content) + '</div>';
         }
-        html += '<div class="message-time">' + msg.created_at + '</div>';
+        html += '</div>';
+        
+        // Time Stamp
+        html += '<span class="text-[9px] text-on-surface-variant/65 mt-1 select-none font-medium block ' + (isSent ? 'mr-1' : 'ml-1') + '">' + msg.created_at + '</span>';
+        html += '</div>';
+        
         bubble.innerHTML = html;
-
         chatMessages.appendChild(bubble);
         scrollToBottom();
     }
@@ -291,18 +241,17 @@
         return div.innerHTML;
     }
 
-    // Send message
+    // Send text message
     function sendMessage() {
         var content = chatInput.value.trim();
         if (!content) return;
 
-        // Try WebSocket first
         if (chatSocket && chatSocket.readyState === WebSocket.OPEN) {
             chatSocket.send(JSON.stringify({ 'message': content }));
             chatInput.value = '';
             chatInput.focus();
         } else {
-            // AJAX fallback
+            // AJAX Fallback
             $.ajax({
                 url: '{% url "send_message" conversation_id=conversation.id %}',
                 type: 'POST',
@@ -325,7 +274,7 @@
         }
     });
 
-    // Image upload via AJAX
+    // Image Upload via AJAX
     document.getElementById('msg-image-upload').addEventListener('change', function() {
         if (this.files && this.files[0]) {
             var formData = new FormData();
@@ -347,7 +296,7 @@
         }
     });
 
-    // Change Theme handler
+    // Theme selector change
     $('.theme-select-item').on('click', function(e) {
         e.preventDefault();
         var themeItem = $(this);
@@ -360,23 +309,22 @@
             data: { theme: selectedTheme },
             success: function(data) {
                 if (data.success) {
-                    // Remove all theme classes and add new one
-                    var card = $('#chat-card-container');
-                    card.removeClass(function (index, className) {
+                    // Update main chat message wrapper style classes
+                    var chatDiv = $('#chat-messages');
+                    chatDiv.removeClass(function (index, className) {
                         return (className.match (/(^|\s)theme-\S+/g) || []).join(' ');
                     });
-                    card.addClass('theme-' + data.theme);
+                    chatDiv.addClass('theme-' + data.theme);
                     
-                    // Update active dropdown item
-                    $('.theme-select-item').removeClass('active');
-                    themeItem.addClass('active');
+                    // Update selector state
+                    $('.theme-select-item').removeClass('active bg-primary-container/20 text-primary');
+                    themeItem.addClass('active bg-primary-container/20 text-primary');
                 }
             },
             error: function() {
-                alert('Failed to change chat theme.');
+                alert('Failed to update chat layout theme. Please try again.');
             }
         });
     });
 </script>
 {% endblock %}
-

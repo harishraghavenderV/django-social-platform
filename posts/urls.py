@@ -18,5 +18,4 @@ urlpatterns = [
     path('explore/', views.explore, name='explore'),
     path('hashtag/<str:tag>/', views.hashtag_feed, name='hashtag_feed'),
     path('api/feed/', views.home_feed_api, name='home_feed_api'),
-    path('post/import-instagram/', views.import_instagram, name='import_instagram'),
 ]

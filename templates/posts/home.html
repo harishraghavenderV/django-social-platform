@@ -5,308 +5,196 @@
 
 {% block extra_css %}
 <style>
-    /* Reaction Picker */
-    .reaction-wrapper { position: relative; display: inline-block; }
-    .reaction-picker {
-        position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
-        display: none; background: rgba(19, 28, 49, 0.96); backdrop-filter: blur(16px);
-        border: 1px solid var(--border-color); border-radius: 28px;
-        padding: .35rem .5rem; white-space: nowrap; z-index: 10;
-        box-shadow: 0 8px 28px rgba(0,0,0,.4);
-        animation: pickerIn .2s ease-out;
-    }
-    @keyframes pickerIn { from { opacity:0; transform: translateX(-50%) translateY(8px) scale(.9); } to { opacity:1; transform: translateX(-50%) translateY(0) scale(1); } }
-    .reaction-wrapper:hover .reaction-picker,
-    .reaction-wrapper:focus-within .reaction-picker { display: flex; gap: .15rem; }
-    .reaction-emoji {
-        font-size: 1.35rem; cursor: pointer; padding: .25rem .35rem;
-        border-radius: 50%; transition: transform .15s;
-        border: none; background: none; line-height: 1;
-    }
-    .reaction-emoji:hover { transform: scale(1.4); }
-
-    .bookmark-btn { transition: color .2s, transform .2s; }
-    .bookmark-btn:hover { transform: scale(1.15); }
-    .bookmark-btn.active { color: var(--accent-color) !important; }
-
-    /* Creator Tabs */
-    #creator-tabs .nav-link {
-        transition: all 0.3s;
-    }
-    #creator-tabs .nav-link.active {
-        background: rgba(0, 149, 246, 0.10) !important;
-        color: #fff !important;
-    }
-    [data-theme="light"] #creator-tabs .nav-link.active {
-        color: var(--accent-color) !important;
-    }
-    
-    /* Poll Progress styling */
-    .poll-container {
-        transition: border-color 0.3s;
-    }
-    .poll-container:hover {
-        border-color: var(--accent-hover) !important;
-    }
-    .progress-bar {
-        background-color: var(--accent-color);
-        background-image: linear-gradient(45deg, rgba(255,255,255,.15) 25%, transparent 25%, transparent 50%, rgba(255,255,255,.15) 50%, rgba(255,255,255,.15) 75%, transparent 75%, transparent);
-        background-size: 1rem 1rem;
-    }
-
-    /* Stories Tray Styles */
-    #story-circles {
-        scrollbar-width: none;
-    }
-    #story-circles::-webkit-scrollbar {
-        display: none;
-    }
-    .story-ring {
-        background: var(--brand-gradient);
-        padding: 2px;
-        border-radius: 50%;
-        display: inline-block;
-        transition: transform 0.2s ease;
-    }
-    .story-ring:hover {
-        transform: scale(1.04);
-    }
-    .story-img {
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid var(--bg-surface);
-    }
-    .ig-feed-shell {
-        max-width: 470px;
-        margin-inline: auto;
-    }
-    .ig-composer {
-        border-radius: 8px;
-    }
-    .ig-composer textarea,
-    .ig-composer input {
-        background: transparent !important;
-        color: var(--text-primary) !important;
-        border-color: var(--border-color) !important;
-    }
-    .ig-composer textarea::placeholder,
-    .ig-composer input::placeholder {
-        color: var(--text-secondary);
-    }
-    .ig-side-rail {
-        max-width: 320px;
-        position: sticky;
-        top: 24px;
+    /* Custom tab active class overrides */
+    .tab-btn.active {
+        background-color: var(--color-primary) !important;
+        color: var(--color-on-primary) !important;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center g-4 align-items-start">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
     {% if user.is_authenticated %}
-        <!-- Center Content: Feed + Stories Tray + Creator Card -->
-        <div class="col-12 col-lg-7 col-xl-6">
-        <div class="ig-feed-shell">
-            <!-- Story Bar -->
-            <div class="card p-3 mb-4" id="story-bar">
-                <div class="d-flex gap-3 overflow-auto pb-1" id="story-circles">
-                    <!-- Create Story -->
-                    <a href="{% url 'create_story' %}" class="text-decoration-none text-center" style="min-width: 75px;">
-                        <div class="position-relative mx-auto" style="width: 60px; height: 60px;">
-                            <span class="story-ring" style="background: var(--border-color);">
+        <!-- Left/Center Column: Feed + Stories Tray + Creator Card -->
+        <div class="col-span-1 lg:col-span-8 flex flex-col gap-6">
+            
+            <!-- Stories Row (Oasis Ring Layout) -->
+            <div class="sahara-card rounded-xl p-4">
+                <div class="flex items-center gap-6 overflow-x-auto pb-2 custom-scrollbar hide-scrollbar" id="story-circles">
+                    <!-- Create Story circle -->
+                    <a href="{% url 'create_story' %}" class="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer text-decoration-none">
+                        <div class="w-16 h-16 rounded-full p-[3px] border border-outline-variant/60 group-hover:scale-105 transition-transform relative">
+                            <div class="w-full h-full rounded-full overflow-hidden border-2 border-white bg-surface-container flex items-center justify-center">
                                 {% if user.userprofile.profile_picture %}
-                                    <img src="{{ user.userprofile.profile_picture.url }}" class="story-img" alt="You">
+                                    <img src="{{ user.userprofile.profile_picture.url }}" class="w-full h-full object-cover rounded-full" alt="You">
                                 {% else %}
-                                    <div class="avatar-placeholder story-img" style="font-size: 1.2rem; background: var(--card-bg); color: var(--text-secondary); border: 2px solid var(--bg-surface);">
+                                    <div class="w-full h-full rounded-full bg-surface-container flex items-center justify-center text-sm font-bold text-on-surface-variant">
                                         {{ user.username|slice:":1"|upper }}
                                     </div>
                                 {% endif %}
-                            </span>
-                            <div class="position-absolute bottom-0 end-0" style="width:20px;height:20px;border-radius:50%;background:var(--accent-color);display:flex;align-items:center;justify-content:center;border:2px solid var(--bg-surface);">
-                                <i class="bi bi-plus text-white" style="font-size:0.9rem; font-weight:bold;"></i>
+                            </div>
+                            <div class="absolute bottom-0 right-0 w-5 h-5 bg-primary text-on-primary flex items-center justify-center rounded-full border-2 border-white">
+                                <span class="material-symbols-outlined text-[12px] font-bold">add</span>
                             </div>
                         </div>
-                        <small class="text-secondary-custom d-block mt-1" style="font-size:0.75rem;">Your Story</small>
+                        <span class="text-[10px] font-bold text-on-surface-variant/80 uppercase tracking-wider">Your Story</span>
                     </a>
                 </div>
             </div>
 
-            <!-- Create Content Card (Tabs for Post and Poll) -->
-            <div class="card p-3 mb-4 ig-composer" id="create-post-target">
-                <ul class="nav nav-tabs border-bottom-0 mb-3" id="creator-tabs" role="tablist" style="gap: 10px;">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active fw-semibold py-1 px-3 text-light" id="post-tab" data-bs-toggle="tab" data-bs-target="#post-creator-pane" type="button" role="tab" style="background: rgba(128,128,128,0.08); border: none; border-radius: 8px;">
-                            <i class="bi bi-pencil-square me-1"></i> Post
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-semibold py-1 px-3 text-light" id="poll-tab" data-bs-toggle="tab" data-bs-target="#poll-creator-pane" type="button" role="tab" style="background: rgba(128,128,128,0.08); border: none; border-radius: 8px;">
-                            <i class="bi bi-bar-chart-line-fill me-1"></i> Poll
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link fw-semibold py-1 px-3 text-light" id="instagram-tab" data-bs-toggle="tab" data-bs-target="#instagram-creator-pane" type="button" role="tab" style="background: rgba(128,128,128,0.08); border: none; border-radius: 8px;">
-                            <i class="bi bi-instagram me-1"></i> Instagram
-                        </button>
-                    </li>
-                </ul>
+            <!-- Create Content Card (Tabs for Post and Poll and Instagram sync) -->
+            <div class="sahara-card rounded-xl p-6" id="create-post-target">
+                <!-- Creator Tab Headers -->
+                <div class="flex gap-3 mb-6 border-b border-surface-container-highest pb-4 overflow-x-auto no-scrollbar">
+                    <button class="tab-btn active px-4 py-2 bg-surface-container hover:bg-surface-container-high rounded-lg text-xs font-bold uppercase tracking-wider text-on-surface-variant transition-all flex items-center gap-2" id="post-tab" data-bs-toggle="tab" data-bs-target="#post-creator-pane">
+                        <span class="material-symbols-outlined text-sm">edit</span>Post
+                    </button>
+                    <button class="tab-btn px-4 py-2 bg-surface-container hover:bg-surface-container-high rounded-lg text-xs font-bold uppercase tracking-wider text-on-surface-variant transition-all flex items-center gap-2" id="poll-tab" data-bs-toggle="tab" data-bs-target="#poll-creator-pane">
+                        <span class="material-symbols-outlined text-sm">bar_chart</span>Poll
+                    </button>
+                </div>
                 
                 <div class="tab-content" id="creator-tabs-content">
                     <!-- Standard Post Pane -->
-                    <div class="tab-pane fade show active" id="post-creator-pane" role="tabpanel" aria-labelledby="post-tab">
-                        <form action="{% url 'post_create' %}" method="POST" enctype="multipart/form-data">
+                    <div class="tab-pane block" id="post-creator-pane">
+                        <form action="{% url 'post_create' %}" method="POST" enctype="multipart/form-data" class="space-y-4">
                             {% csrf_token %}
-                            <div class="mb-3">
-                                <textarea class="form-control" name="content" rows="3" placeholder="Share a photo, thought, @mention, or #hashtag..." style="border-radius: 8px;"></textarea>
+                            <div>
+                                <textarea class="w-full p-4 bg-surface-container border border-outline-variant/60 rounded-xl focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all text-sm text-on-surface placeholder:text-outline-variant/80 font-body" name="content" rows="3" placeholder="Share a photo, thought, @mention, or #hashtag..."></textarea>
                             </div>
-                            <div class="mb-3">
-                                <label for="co-author-select" class="form-label text-secondary-custom small fw-semibold">Add Co-Author (Optional)</label>
-                                <select name="co_author_id" id="co-author-select" class="form-select form-select-sm" style="border-radius: 8px; background: rgba(255,255,255,0.02); color: var(--text-primary); border-color: var(--border-color);">
+                            <div class="group">
+                                <label for="co-author-select" class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Add Co-Author (Optional)</label>
+                                <select name="co_author_id" id="co-author-select" class="w-full p-3 bg-surface-container border border-outline-variant/60 rounded-xl text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none text-on-surface font-body">
                                     <option value="">-- Select Co-Author --</option>
                                     {% for collab in collab_users %}
                                         <option value="{{ collab.id }}">@{{ collab.username }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="d-flex justify-content-between align-items-center">
+                            <div class="flex justify-between items-center">
                                 <div>
-                                    <label for="post-image-upload" class="btn btn-outline-secondary btn-sm" style="cursor: pointer;">
-                                        <i class="bi bi-image me-1"></i> Add Photo
+                                    <label for="post-image-upload" class="px-4 py-2 border border-outline-variant/60 hover:bg-surface-container-low rounded-lg text-xs font-bold uppercase tracking-wider text-on-surface cursor-pointer inline-flex items-center gap-2 transition-all">
+                                        <span class="material-symbols-outlined text-base">image</span>Add Photo
                                     </label>
-                                    <input id="post-image-upload" type="file" name="image" accept="image/*" class="d-none" onchange="previewImage(this)">
+                                    <input id="post-image-upload" type="file" name="image" accept="image/*" class="hidden" onchange="previewImage(this)">
                                 </div>
-                                <button type="submit" class="btn btn-primary px-4">Share</button>
+                                <button type="submit" class="px-5 py-2.5 bg-primary text-on-primary rounded-lg text-sm font-semibold hover:opacity-90 shadow-md transition-all">Share</button>
                             </div>
-                            <div id="image-preview-container" class="mt-3 d-none">
-                                <img id="image-preview" src="#" alt="Post image preview" class="img-fluid rounded" style="max-height: 200px;">
-                                <button type="button" class="btn btn-sm btn-danger mt-1 d-block" onclick="removeSelectedImage()">Remove</button>
+                            <div id="image-preview-container" class="mt-3 hidden relative rounded-xl overflow-hidden border border-surface-container-highest max-w-xs">
+                                <img id="image-preview" src="#" alt="Post image preview" class="w-full object-contain max-h-56 bg-surface-container">
+                                <button type="button" class="absolute top-2 right-2 p-1 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors" onclick="removeSelectedImage()">
+                                    <span class="material-symbols-outlined text-sm">close</span>
+                                </button>
                             </div>
                         </form>
                     </div>
                     
                     <!-- Poll Creator Pane -->
-                    <div class="tab-pane fade" id="poll-creator-pane" role="tabpanel" aria-labelledby="poll-tab">
-                        <form action="{% url 'create_poll' %}" method="POST">
+                    <div class="tab-pane hidden" id="poll-creator-pane">
+                        <form action="{% url 'create_poll' %}" method="POST" class="space-y-4">
                             {% csrf_token %}
-                            <div class="mb-3">
-                                <textarea class="form-control" name="content" rows="2" placeholder="Describe your poll (optional)..." style="border-radius: 8px;"></textarea>
+                            <div>
+                                <textarea class="w-full p-4 bg-surface-container border border-outline-variant/60 rounded-xl focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all text-sm text-on-surface placeholder:text-outline-variant/80 font-body" name="content" rows="2" placeholder="Describe your poll (optional)..."></textarea>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label text-secondary-custom fw-semibold">Question</label>
-                                <input type="text" class="form-control" name="question" placeholder="Ask a question..." required style="border-radius: 8px;">
+                            <div class="group">
+                                <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Question</label>
+                                <input type="text" class="w-full p-3 bg-surface-container border border-outline-variant/60 rounded-xl text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none text-on-surface font-body" name="question" placeholder="Ask a question..." required>
                             </div>
-                            <div class="mb-3">
-                                <label class="form-label text-secondary-custom fw-semibold">Options</label>
-                                <div id="poll-options-inputs">
-                                    <div class="mb-2">
-                                        <input type="text" class="form-control" name="options" placeholder="Option 1" required style="border-radius: 8px;">
+                            <div class="group">
+                                <label class="block text-xs font-semibold text-on-surface-variant uppercase tracking-wider mb-2">Options</label>
+                                <div id="poll-options-inputs" class="space-y-2">
+                                    <div>
+                                        <input type="text" class="w-full p-3 bg-surface-container border border-outline-variant/60 rounded-lg text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none text-on-surface font-body" name="options" placeholder="Option 1" required>
                                     </div>
-                                    <div class="mb-2">
-                                        <input type="text" class="form-control" name="options" placeholder="Option 2" required style="border-radius: 8px;">
+                                    <div>
+                                        <input type="text" class="w-full p-3 bg-surface-container border border-outline-variant/60 rounded-lg text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none text-on-surface font-body" name="options" placeholder="Option 2" required>
                                     </div>
                                 </div>
-                                <button type="button" class="btn btn-link text-decoration-none text-secondary-custom p-0 small fw-semibold mt-1" id="add-option-field-btn">
-                                    <i class="bi bi-plus-lg me-1"></i> Add Option
+                                <button type="button" class="mt-2 text-xs font-bold text-primary uppercase tracking-wider flex items-center gap-1.5 hover:underline" id="add-option-field-btn">
+                                    <span class="material-symbols-outlined text-sm font-bold">add</span>Add Option
                                 </button>
                             </div>
-                            <div class="d-flex justify-content-end">
-                                <button type="submit" class="btn btn-primary px-4">Create Poll</button>
-                            </div>
-                        </form>
-                    </div>
-                    
-                    <!-- Instagram Creator Pane -->
-                    <div class="tab-pane fade" id="instagram-creator-pane" role="tabpanel" aria-labelledby="instagram-tab">
-                        <form id="instagram-import-form" action="{% url 'import_instagram' %}" method="POST">
-                            {% csrf_token %}
-                            <div class="mb-3">
-                                <label class="form-label text-secondary-custom fw-semibold">Instagram Post URL</label>
-                                <input type="url" class="form-control" name="url" id="instagram-url-input" placeholder="https://www.instagram.com/p/..." required style="border-radius: 8px;">
-                            </div>
-                            <div class="d-flex justify-content-end align-items-center gap-2">
-                                <span id="instagram-import-status" class="text-secondary-custom small d-none">
-                                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Importing...
-                                </span>
-                                <button type="submit" class="btn btn-primary px-4" id="instagram-import-btn">Import</button>
+                            <div class="flex justify-end pt-2">
+                                <button type="submit" class="px-5 py-2.5 bg-primary text-on-primary rounded-lg text-sm font-semibold hover:opacity-90 shadow-md transition-all">Create Poll</button>
                             </div>
                         </form>
                     </div>
                 </div>
             </div>
 
-            <!-- Posts List -->
-            <div id="post-feed" class="d-flex flex-column gap-3">
+            <!-- Posts Feed container -->
+            <div id="post-feed" class="flex flex-col gap-6">
                 {% include 'posts/_post_card_fragment.html' %}
             </div>
         </div>
-        </div>
 
-        <!-- Right Sidebar: Current User Info + Follow Suggestions -->
-        <div class="col-lg-4 col-xl-3 d-none d-lg-block">
-            <div class="ig-side-rail">
-            <!-- Current User profile card -->
-            <div class="d-flex align-items-center justify-content-between mb-4 px-2">
-                <div class="d-flex align-items-center">
-                    <a href="{% url 'profile' username=user.username %}">
-                        {% if user.userprofile.profile_picture %}
-                            <img src="{{ user.userprofile.profile_picture.url }}" class="rounded-circle" style="width: 56px; height: 56px; object-fit: cover; border: 1px solid var(--border-color);" alt="{{ user.username }}">
-                        {% else %}
-                            <div class="avatar-placeholder" style="width: 56px; height: 56px; font-size: 1.25rem;">
-                                {{ user.username|slice:":1"|upper }}
-                            </div>
-                        {% endif %}
-                    </a>
-                    <div class="ms-3">
-                        <h6 class="mb-0 fw-bold"><a href="{% url 'profile' username=user.username %}" class="text-decoration-none text-light">{{ user.username }}</a></h6>
-                        <span class="text-secondary-custom small">@{{ user.username }}</span>
-                    </div>
-                </div>
-                <a href="{% url 'profile_edit' %}" class="btn btn-link text-decoration-none fw-semibold small p-0" style="color: var(--accent-color);">Switch</a>
-            </div>
-
-            <!-- Suggestions -->
-            <div class="card p-3 border-0" style="background: transparent;">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <span class="fw-bold text-secondary-custom small">Suggested for you</span>
-                    <a href="{% url 'explore' %}" class="text-decoration-none text-light small fw-semibold">See All</a>
-                </div>
-                <div class="d-flex flex-column gap-3">
-                    {% for suggestion in suggestions %}
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div class="d-flex align-items-center">
-                            <a href="{% url 'profile' username=suggestion.username %}">
-                                {% if suggestion.userprofile.profile_picture %}
-                                    <img src="{{ suggestion.userprofile.profile_picture.url }}" class="rounded-circle" style="width: 38px; height: 38px; object-fit: cover; border: 1px solid var(--border-color);" alt="{{ suggestion.username }}">
-                                {% else %}
-                                    <div class="avatar-placeholder" style="width: 38px; height: 38px; font-size: 0.9rem;">
-                                        {{ suggestion.username|slice:":1"|upper }}
-                                    </div>
-                                {% endif %}
-                            </a>
-                            <div class="ms-3">
-                                <h6 class="mb-0 fw-bold small"><a href="{% url 'profile' username=suggestion.username %}" class="text-decoration-none text-light">{{ suggestion.username }}</a></h6>
-                                <span class="text-secondary-custom small" style="font-size: 0.75rem;">Suggested</span>
-                            </div>
+        <!-- Right Column: Sidebar (Suggestions & Current User profile card) -->
+        <div class="col-span-1 lg:col-span-4 hidden lg:block">
+            <div class="sticky top-24 flex flex-col gap-6">
+                
+                <!-- Current User Profile Card -->
+                <div class="flex align-items-center justify-between p-4 bg-surface-container-lowest border border-surface-container-highest rounded-xl">
+                    <div class="flex items-center gap-3">
+                        <a href="{% url 'profile' username=user.username %}">
+                            {% if user.userprofile.profile_picture %}
+                                <img src="{{ user.userprofile.profile_picture.url }}" class="w-12 h-12 rounded-full object-cover border border-surface-container-high" alt="{{ user.username }}">
+                            {% else %}
+                                <div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-base text-on-surface-variant">
+                                    {{ user.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        </a>
+                        <div>
+                            <h6 class="font-body text-sm font-bold text-on-surface mb-0.5"><a href="{% url 'profile' username=user.username %}" class="hover:text-primary transition-colors">{{ user.username }}</a></h6>
+                            <span class="text-on-surface-variant text-xs font-semibold">@{{ user.username }}</span>
                         </div>
-                        <a href="{% url 'follow_user' user_id=suggestion.id %}" class="btn btn-link btn-sm text-decoration-none px-0 py-1" style="font-size: 0.75rem; font-weight: 700; color: var(--accent-color);">Follow</a>
                     </div>
-                    {% empty %}
-                    <p class="text-secondary-custom small">No suggestions right now.</p>
-                    {% endfor %}
+                    <a href="{% url 'profile_edit' %}" class="text-xs font-bold text-primary hover:underline uppercase tracking-wider">Settings</a>
                 </div>
-            </div>
+
+                <!-- Suggestions Panel -->
+                <div class="sahara-card rounded-xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <span class="text-[11px] font-bold text-on-surface-variant/70 uppercase tracking-[0.2em]">Suggestions</span>
+                        <a href="{% url 'explore' %}" class="text-[11px] font-bold text-primary uppercase tracking-wider hover:underline">See All</a>
+                    </div>
+                    <div class="flex flex-col gap-5">
+                        {% for suggestion in suggestions %}
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <a href="{% url 'profile' username=suggestion.username %}">
+                                    {% if suggestion.userprofile.profile_picture %}
+                                        <img src="{{ suggestion.userprofile.profile_picture.url }}" class="w-9 h-9 rounded-full object-cover border border-surface-container-high" alt="{{ suggestion.username }}">
+                                    {% else %}
+                                        <div class="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-sm text-on-surface-variant">
+                                            {{ suggestion.username|slice:":1"|upper }}
+                                        </div>
+                                    {% endif %}
+                                </a>
+                                <div>
+                                    <h6 class="font-body text-xs font-bold text-on-surface mb-0.5"><a href="{% url 'profile' username=suggestion.username %}" class="hover:text-primary transition-colors">{{ suggestion.username }}</a></h6>
+                                    <span class="text-on-surface-variant text-[10px] font-semibold">Followed by Studs</span>
+                                </div>
+                            </div>
+                            <a href="{% url 'follow_user' user_id=suggestion.id %}" class="text-[11px] font-bold text-primary uppercase tracking-wider hover:underline">Follow</a>
+                        </div>
+                        {% empty %}
+                        <p class="text-on-surface-variant text-xs font-medium">No suggestions right now.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
             </div>
         </div>
     {% else %}
-        <!-- Welcome Landing for Guest -->
-        <div class="col-12 text-center py-5">
-            <h1 class="fw-bold mb-3" style="font-size: 3rem; background: var(--brand-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Connect. Share. Grow.</h1>
-            <p class="lead text-secondary-custom mb-4">Welcome to ConnectSphere. Connect with developers and creators worldwide.</p>
-            <div class="d-flex justify-content-center gap-3">
-                <a href="{% url 'login' %}" class="btn btn-outline-light rounded-pill px-4 btn-lg">Login</a>
-                <a href="{% url 'register' %}" class="btn btn-primary rounded-pill px-4 btn-lg">Join Now</a>
+        <!-- Welcome Landing for Guests -->
+        <div class="col-span-12 text-center py-20 max-w-2xl mx-auto space-y-6">
+            <h1 class="font-headline text-5xl md:text-6xl text-primary font-bold tracking-tight">Connect. Share. Grow.</h1>
+            <p class="font-body text-on-surface-variant text-lg leading-relaxed">Welcome to ConnectSphere. Connect with developers and creators worldwide in a warm minimal digital sanctuary.</p>
+            <div class="flex justify-center gap-4 pt-4">
+                <a href="{% url 'login' %}" class="px-8 py-3.5 border border-outline-variant/60 rounded-lg text-sm font-semibold hover:bg-surface-container-low transition-all">Sign In</a>
+                <a href="{% url 'register' %}" class="px-8 py-3.5 bg-primary text-on-primary rounded-lg text-sm font-semibold hover:opacity-90 shadow-md transition-all">Join ConnectSphere</a>
             </div>
         </div>
     {% endif %}
@@ -315,6 +203,21 @@
 
 {% block extra_js %}
 <script>
+    // Tab switching vanilla jQuery logic to avoid Bootstrap JS imports
+    $(document).on('click', '[data-bs-toggle="tab"]', function(e) {
+        e.preventDefault();
+        var btn = $(this);
+        var targetId = btn.data('bs-target');
+        
+        // Remove active state on tabs
+        btn.closest('div').find('.tab-btn').removeClass('active');
+        btn.addClass('active');
+        
+        // Toggle tabs visibility
+        btn.closest('#create-post-target').find('.tab-pane').addClass('hidden').removeClass('block');
+        $(targetId).removeClass('hidden').addClass('block');
+    });
+
     function previewImage(input) {
         var container = $('#image-preview-container');
         var preview = $('#image-preview');
@@ -322,7 +225,7 @@
             var reader = new FileReader();
             reader.onload = function(e) {
                 preview.attr('src', e.target.result);
-                container.removeClass('d-none');
+                container.removeClass('hidden');
             }
             reader.readAsDataURL(input.files[0]);
         }
@@ -332,10 +235,10 @@
         var input = $('#post-image-upload');
         var container = $('#image-preview-container');
         input.val('');
-        container.addClass('d-none');
+        container.addClass('hidden');
     }
 
-    // Reaction handler — clicking an emoji in the picker
+    // Reaction handler — clicking an emoji in the picker (if present)
     $(document).on('click', '.reaction-emoji', function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -356,9 +259,9 @@
                 count.text(data.reaction_count);
                 if (data.reacted) {
                     var emojiMap = {like:'👍', love:'❤️', haha:'😂', wow:'😮', sad:'😢', fire:'🔥'};
-                    display.replaceWith('<span class="reaction-display me-1 fs-5">' + emojiMap[data.reaction_type] + '</span>');
+                    display.replaceWith('<span class="reaction-display me-1 text-base">' + emojiMap[data.reaction_type] + '</span>');
                 } else {
-                    display.replaceWith('<i class="bi bi-heart me-1 fs-5 reaction-display"></i>');
+                    display.replaceWith('<span class="material-symbols-outlined text-2xl reaction-display mr-1">favorite</span>');
                 }
             }
         });
@@ -380,38 +283,15 @@
                 var count = btn.find('.reaction-count');
                 count.text(data.reaction_count);
                 if (data.reacted) {
-                    display.replaceWith('<span class="reaction-display me-1 fs-5">👍</span>');
+                    display.replaceWith('<span class="reaction-display me-1 text-base">👍</span>');
                 } else {
-                    display.replaceWith('<i class="bi bi-heart me-1 fs-5 reaction-display"></i>');
+                    display.replaceWith('<span class="material-symbols-outlined text-2xl reaction-display mr-1">favorite</span>');
                 }
             }
         });
     });
 
-    // Bookmark handler
-    $(document).on('click', '.bookmark-btn', function(e) {
-        e.preventDefault();
-        var btn = $(this);
-        var postId = btn.data('post-id');
-        var icon = btn.find('i');
-
-        $.ajax({
-            url: '/post/' + postId + '/bookmark/',
-            type: 'POST',
-            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-            success: function(data) {
-                if (data.bookmarked) {
-                    icon.removeClass('bi-bookmark').addClass('bi-bookmark-fill');
-                    btn.addClass('active');
-                } else {
-                    icon.removeClass('bi-bookmark-fill').addClass('bi-bookmark');
-                    btn.removeClass('active');
-                }
-            }
-        });
-    });
-
-    // Load story circles
+    // Load story circles dynamically
     $.ajax({
         url: '{% url "story_data" %}',
         type: 'GET',
@@ -422,15 +302,15 @@
                 data.story_users.forEach(function(u) {
                     if (u.user_id === {{ user.id }}) return;
                     var avatarHtml = u.avatar_url
-                        ? '<img src="' + u.avatar_url + '" class="story-img" alt="' + u.username + '">'
-                        : '<div class="avatar-placeholder story-img" style="font-size: 1.2rem;">' + u.username.charAt(0).toUpperCase() + '</div>';
+                        ? '<img src="' + u.avatar_url + '" class="w-full h-full object-cover rounded-full" alt="' + u.username + '">'
+                        : '<div class="w-full h-full rounded-full bg-surface-container flex items-center justify-center font-bold text-sm text-on-surface-variant">' + u.username.charAt(0).toUpperCase() + '</div>';
 
-                    var ringStyle = u.has_unviewed ? '' : ' style="background: var(--border-color) !important;"';
-                    var html = '<a href="/stories/view/' + u.user_id + '/" class="text-decoration-none text-center" style="min-width: 75px;">' +
-                        '<div class="position-relative mx-auto" style="width: 60px; height: 60px;">' +
-                        '<span class="story-ring"' + ringStyle + '>' + avatarHtml + '</span>' +
+                    var ringClass = u.has_unviewed ? 'border-primary' : 'border-outline-variant/60';
+                    var html = '<a href="/stories/view/' + u.user_id + '/" class="flex-shrink-0 flex flex-col items-center gap-2 group cursor-pointer text-decoration-none" style="min-width: 75px;">' +
+                        '<div class="w-16 h-16 rounded-full p-[3px] border-2 ' + ringClass + ' group-hover:scale-105 transition-transform">' +
+                        '<div class="w-full h-full rounded-full border-2 border-white overflow-hidden shadow-sm bg-surface-container flex items-center justify-center">' + avatarHtml + '</div>' +
                         '</div>' +
-                        '<small class="text-secondary-custom d-block mt-1" style="font-size:0.75rem;">' + u.username + '</small></a>';
+                        '<small class="text-on-surface-variant text-[10px] font-medium">' + u.username + '</small></a>';
                     container.insertAdjacentHTML('beforeend', html);
                 });
             }
@@ -447,9 +327,9 @@
         }
         optionCount++;
         const optionHtml = `
-            <div class="input-group mb-2 option-input-item" id="option-field-${optionCount}">
-                <input type="text" class="form-control" name="options" placeholder="Option ${optionCount}" required style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-color); color: #fff; border-radius: 12px 0 0 12px;">
-                <button class="btn btn-outline-danger remove-option-btn" type="button" data-id="${optionCount}"><i class="bi bi-x-lg"></i></button>
+            <div class="flex items-center gap-2 option-input-item" id="option-field-${optionCount}">
+                <input type="text" class="w-full p-3 bg-surface-container border border-outline-variant/60 rounded-lg text-sm focus:ring-1 focus:ring-primary focus:border-primary outline-none text-on-surface font-body" name="options" placeholder="Option ${optionCount}" required>
+                <button class="p-2 border border-error/40 hover:bg-error-container/20 text-error rounded-lg remove-option-btn flex items-center" type="button" data-id="${optionCount}"><span class="material-symbols-outlined text-sm font-bold">close</span></button>
             </div>
         `;
         $('#poll-options-inputs').append(optionHtml);
@@ -495,27 +375,26 @@
                     data.options.forEach(opt => {
                         const isVoted = opt.id == selectedOption;
                         resultsHtml += `
-                            <div class="poll-option-result mb-2">
-                                <div class="d-flex justify-content-between small mb-1">
-                                    <span class="fw-semibold ${isVoted ? 'text-accent' : ''}" ${isVoted ? 'style="color: var(--accent-color);"' : ''}>
-                                        ${opt.text} ${isVoted ? '<i class="bi bi-check-circle-fill"></i>' : ''}
+                            <div class="poll-option-result">
+                                <div class="flex justify-between text-xs font-semibold mb-1">
+                                    <span class="${isVoted ? 'text-primary' : 'text-on-surface'}">
+                                        ${opt.text} ${isVoted ? '<span class="material-symbols-outlined text-[10px]" style="font-variation-settings: \'FILL\' 1;">check_circle</span>' : ''}
                                     </span>
-                                    <span class="text-secondary-custom">${opt.votes} votes</span>
+                                    <span class="text-on-surface-variant">${opt.votes} votes</span>
                                 </div>
-                                <div class="progress" style="height: 8px; background: rgba(255,255,255,0.08);">
-                                    <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%; transition: width 0.8s ease;" data-votes="${opt.votes}"></div>
+                                <div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+                                    <div class="h-full bg-primary rounded-full transition-all duration-700" style="width: 0%;" data-votes="${opt.votes}"></div>
                                 </div>
                             </div>
                         `;
                     });
                     
-                    resultsHtml += `<div class="text-secondary-custom small mt-2 total-votes-label">${data.total_votes} votes total</div>`;
+                    resultsHtml += `<div class="text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold mt-2 total-votes-label">${data.total_votes} votes total</div>`;
                     
                     const wrapper = form.closest('.poll-options-wrapper');
                     wrapper.attr('data-total-votes', data.total_votes);
                     wrapper.html(resultsHtml);
                     
-                    // Animate the newly inserted bars after a short delay
                     setTimeout(() => {
                         animatePollBars();
                     }, 50);
@@ -533,7 +412,7 @@
             const wrapper = $(this);
             const totalVotes = parseInt(wrapper.attr('data-total-votes')) || 0;
             
-            wrapper.find('.progress-bar').each(function() {
+            wrapper.find('[data-votes]').each(function() {
                 const votes = parseInt($(this).attr('data-votes')) || 0;
                 const pct = totalVotes > 0 ? (votes / totalVotes * 100) : 0;
                 $(this).css('width', pct + '%');
@@ -554,20 +433,18 @@
     var sentinel = document.createElement('div');
     sentinel.id = 'scroll-sentinel';
     sentinel.innerHTML = `
-        <div class="text-center py-4 d-none" id="feed-loader">
-            <div class="d-flex flex-column gap-3">
-                <div class="card" style="animation: pulse 1.5s ease-in-out infinite;">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div style="width:45px;height:45px;border-radius:50%;background:var(--border-color);"></div>
-                            <div class="ms-2" style="flex:1;">
-                                <div style="width:120px;height:12px;background:var(--border-color);border-radius:6px;"></div>
-                                <div class="mt-1" style="width:80px;height:10px;background:var(--border-color);border-radius:6px;"></div>
-                            </div>
+        <div class="text-center py-4 hidden" id="feed-loader">
+            <div class="flex flex-col gap-4">
+                <div class="sahara-card rounded-xl p-6" style="animation: pulse 1.5s ease-in-out infinite;">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-surface-container border border-surface-container-high"></div>
+                        <div class="ml-3 space-y-1">
+                            <div class="w-28 h-3 bg-surface-container border border-surface-container-high rounded"></div>
+                            <div class="w-20 h-2 bg-surface-container border border-surface-container-high rounded"></div>
                         </div>
-                        <div style="width:100%;height:14px;background:var(--border-color);border-radius:6px;margin-bottom:8px;"></div>
-                        <div style="width:70%;height:14px;background:var(--border-color);border-radius:6px;"></div>
                     </div>
+                    <div class="w-full h-4 bg-surface-container border border-surface-container-high rounded mb-2"></div>
+                    <div class="w-3/4 h-4 bg-surface-container border border-surface-container-high rounded"></div>
                 </div>
             </div>
         </div>
@@ -579,7 +456,7 @@
     function loadMorePosts() {
         if (loading || !hasMore) return;
         loading = true;
-        document.getElementById('feed-loader').classList.remove('d-none');
+        document.getElementById('feed-loader').classList.remove('hidden');
 
         fetch('{% url "home_feed_api" %}?page=' + nextPage, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -592,11 +469,11 @@
             hasMore = data.has_next;
             if (data.next_page) nextPage = data.next_page;
             loading = false;
-            document.getElementById('feed-loader').classList.add('d-none');
+            document.getElementById('feed-loader').classList.add('hidden');
         })
         .catch(() => {
             loading = false;
-            document.getElementById('feed-loader').classList.add('d-none');
+            document.getElementById('feed-loader').classList.add('hidden');
         });
     }
 
@@ -610,39 +487,7 @@
         observer.observe(sentinel);
     }
 
-    // Instagram URL Import submission via AJAX
-    $(document).on('submit', '#instagram-import-form', function(e) {
-        e.preventDefault();
-        const form = $(this);
-        const urlInput = $('#instagram-url-input');
-        const statusEl = $('#instagram-import-status');
-        const importBtn = $('#instagram-import-btn');
-        
-        statusEl.removeClass('d-none');
-        importBtn.prop('disabled', true);
-        
-        $.ajax({
-            url: form.attr('action'),
-            type: 'POST',
-            data: form.serialize(),
-            success: function(data) {
-                statusEl.addClass('d-none');
-                importBtn.prop('disabled', false);
-                urlInput.val('');
-                
-                // Switch back to the standard post tab to show the feed
-                const postTabEl = document.querySelector('#post-tab');
-                if (postTabEl) {
-                    postTabEl.click();
-                }
-            },
-            error: function(xhr) {
-                statusEl.addClass('d-none');
-                importBtn.prop('disabled', false);
-                alert(xhr.responseJSON?.error || 'Failed to import post. Please try again.');
-            }
-        });
-    });
+
 
     // Feed WebSocket connection
     $(document).ready(function() {
@@ -654,26 +499,20 @@
             const data = JSON.parse(e.data);
             
             if (data.type === 'new_post') {
-                // Parse the new post element
                 const newPostEl = $(data.post_html);
                 const postId = newPostEl.attr('id');
                 
-                // Only prepend if it doesn't already exist in the DOM
                 if (postId && $('#' + postId).length === 0) {
                     newPostEl.hide().prependTo('#post-feed').slideDown(500);
                 }
             } else if (data.type === 'post_like_update') {
-                // Update reaction/like count text on feed
                 $('.reaction-count-' + data.post_id).text(data.like_count);
             } else if (data.type === 'post_comment_update') {
-                // Update comments count on feed
                 $('.comment-count-' + data.post_id).text(data.comment_count);
                 
-                // Show comments link if it was hidden
                 const link = $('#comments-link-' + data.post_id);
                 if (link.length) {
-                    link.removeClass('d-none');
-                    // Update singular/plural text
+                    link.removeClass('hidden');
                     link.html('View all <span class="comment-count-' + data.post_id + '">' + data.comment_count + '</span> comment' + (data.comment_count > 1 ? 's' : ''));
                 }
             }

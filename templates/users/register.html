@@ -1,318 +1,253 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>Register | ConnectSphere</title>
-    <meta name="description" content="Join ConnectSphere — create your account and connect with developers and creators worldwide.">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- Google Fonts: EB Garamond & Manrope -->
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#c2652a",
+                        "on-primary": "#ffffff",
+                        "primary-container": "#e08850",
+                        "on-primary-container": "#fbe8d8",
+                        "secondary": "#78706a",
+                        "on-secondary": "#ffffff",
+                        "secondary-container": "#eae2da",
+                        "on-secondary-container": "#605850",
+                        "tertiary": "#8c3c3c",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#d47070",
+                        "on-tertiary-container": "#3a2020",
+                        "error": "#c0392b",
+                        "on-error": "#ffffff",
+                        "error-container": "#fce4e0",
+                        "on-error-container": "#7a1a10",
+                        "background": "#faf5ee",
+                        "on-background": "#3a302a",
+                        "surface": "#faf5ee",
+                        "on-surface": "#3a302a",
+                        "surface-variant": "#ece6dc",
+                        "on-surface-variant": "#605850",
+                        "outline": "#9a9088",
+                        "outline-variant": "#d8d0c8",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f6f0e8",
+                        "surface-container": "#f2ece4",
+                        "surface-container-high": "#ece6dc",
+                        "surface-container-highest": "#e6e0d6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["EB Garamond", "serif"],
+                        "display": ["EB Garamond", "serif"],
+                        "body": ["Manrope", "sans-serif"],
+                        "label": ["Manrope", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --bg-deep: #060b18;
-            --card-bg: rgba(20, 30, 58, 0.55);
-            --border: rgba(99, 102, 241, 0.18);
-            --accent: #6366f1;
-            --accent-glow: rgba(99, 102, 241, 0.35);
-            --text-primary: #f1f5f9;
-            --text-muted: #94a3b8;
-            --input-bg: rgba(15, 23, 42, 0.65);
-            --danger: #f43f5e;
-        }
-
         body {
-            font-family: 'Outfit', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg-deep);
-            color: var(--text-primary);
-            overflow-x: hidden;
-            position: relative;
+            background-color: #faf5ee;
+            color: #3a302a;
+            font-family: 'Manrope', sans-serif;
         }
-
-        .bg-mesh {
-            position: fixed; inset: 0; z-index: 0;
-            background:
-                radial-gradient(ellipse 80% 60% at 20% 30%, rgba(99,102,241,.18), transparent 60%),
-                radial-gradient(ellipse 70% 50% at 80% 70%, rgba(236,72,153,.12), transparent 60%),
-                radial-gradient(ellipse 60% 45% at 50% 50%, rgba(56,189,248,.08), transparent 60%);
-            animation: meshShift 12s ease-in-out infinite alternate;
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
-        @keyframes meshShift {
-            0%   { filter: hue-rotate(0deg); transform: scale(1); }
-            100% { filter: hue-rotate(25deg); transform: scale(1.08); }
-        }
-
-        .orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(80px);
-            opacity: .35;
-            animation: float 18s ease-in-out infinite alternate;
-            z-index: 0;
-        }
-        .orb-1 { width: 420px; height: 420px; background: var(--accent); top: -10%; right: -8%; animation-duration: 20s; }
-        .orb-2 { width: 340px; height: 340px; background: #ec4899; bottom: -8%; left: -6%; animation-delay: 4s; animation-duration: 16s; }
-        .orb-3 { width: 220px; height: 220px; background: #38bdf8; top: 40%; left: 50%; animation-delay: 8s; }
-        @keyframes float {
-            0%   { transform: translate(0, 0) scale(1); }
-            50%  { transform: translate(30px, -20px) scale(1.05); }
-            100% { transform: translate(-20px, 15px) scale(.95); }
-        }
-
-        .register-card {
-            position: relative; z-index: 1;
-            width: 100%; max-width: 480px;
-            background: var(--card-bg);
-            backdrop-filter: blur(24px) saturate(1.6);
-            -webkit-backdrop-filter: blur(24px) saturate(1.6);
-            border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 2.5rem 2.5rem 2rem;
-            box-shadow:
-                0 8px 32px rgba(0,0,0,.35),
-                inset 0 1px 0 rgba(255,255,255,.05);
-            animation: cardIn .7s cubic-bezier(.22,1,.36,1) forwards;
-            opacity: 0;
-            transform: translateY(24px);
-            margin: 2rem 1rem;
-        }
-        @keyframes cardIn {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: .6rem;
-            margin-bottom: 1rem;
-        }
-        .brand i { font-size: 1.7rem; color: var(--accent); }
-        .brand span { font-weight: 700; font-size: 1.5rem; letter-spacing: -.5px; }
-
-        .tagline {
-            text-align: center;
-            color: var(--text-muted);
-            font-size: .92rem;
-            margin-bottom: 1.75rem;
-        }
-
-        /* ---- progress indicator ---- */
-        .steps {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: .5rem;
-            margin-bottom: 1.75rem;
-        }
-        .step-dot {
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            background: var(--border);
-            transition: all .3s;
-        }
-        .step-dot.active {
-            background: var(--accent);
-            box-shadow: 0 0 8px var(--accent-glow);
-            width: 28px;
-            border-radius: 5px;
-        }
-
-        .field { margin-bottom: 1.15rem; position: relative; }
-        .field label {
-            display: block;
-            font-size: .82rem;
-            font-weight: 500;
-            color: var(--text-muted);
-            margin-bottom: .35rem;
-            letter-spacing: .02em;
-        }
-        .field input {
-            width: 100%;
-            padding: .72rem 1rem .72rem 2.6rem;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--input-bg);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: .95rem;
+        input:focus {
             outline: none;
-            transition: border-color .25s, box-shadow .25s;
+            border-color: #c2652a !important;
+            ring-color: #c2652a !important;
         }
-        .field input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px var(--accent-glow);
-        }
-        .field .field-icon {
-            position: absolute;
-            bottom: .75rem;
-            left: .9rem;
-            color: var(--text-muted);
-            font-size: 1rem;
-            pointer-events: none;
-            transition: color .25s;
-        }
-        .field input:focus ~ .field-icon,
-        .field input:not(:placeholder-shown) ~ .field-icon { color: var(--accent); }
-
-        .field-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: .75rem;
-        }
-
-        .help-text {
-            font-size: .75rem;
-            color: var(--text-muted);
-            margin-top: .3rem;
-            line-height: 1.35;
-        }
-
-        .btn-register {
-            display: block;
-            width: 100%;
-            padding: .82rem;
-            border: none;
-            border-radius: 14px;
-            background: linear-gradient(135deg, var(--accent), #818cf8);
-            color: #fff;
-            font-family: inherit;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: transform .2s, box-shadow .3s;
-            margin-top: .75rem;
-        }
-        .btn-register:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 24px var(--accent-glow);
-        }
-        .btn-register:active { transform: translateY(0); }
-
-        .footer-link {
-            text-align: center;
-            margin-top: 1.25rem;
-            font-size: .9rem;
-            color: var(--text-muted);
-        }
-        .footer-link a {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 600;
-            transition: color .2s;
-        }
-        .footer-link a:hover { color: #818cf8; }
-
-        .errors {
-            background: rgba(244, 63, 94, .12);
-            border: 1px solid rgba(244, 63, 94, .3);
-            border-radius: 10px;
-            padding: .75rem 1rem;
-            margin-bottom: 1.15rem;
-            font-size: .83rem;
-            color: #fda4af;
-        }
-        .errors ul { list-style: none; padding: 0; margin: 0; }
-        .errors li { margin-bottom: .25rem; }
-        .errors li::before { content: '⚠ '; }
-
-        @media (max-width: 540px) {
-            .register-card { padding: 2rem 1.5rem; }
-            .field-row { grid-template-columns: 1fr; }
-        }
+        /* Custom scrollbar for warm aesthetic */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #faf5ee; }
+        ::-webkit-scrollbar-thumb { background: #d8d0c8; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #c2652a; }
     </style>
 </head>
-<body>
-    <div class="bg-mesh"></div>
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
-    <div class="orb orb-3"></div>
-
-    <div class="register-card">
-        <div class="brand">
-            <i class="bi bi-grid-fill"></i>
-            <span>ConnectSphere</span>
+<body class="font-body selection:bg-primary/20 selection:text-primary min-h-screen">
+<main class="flex min-h-screen">
+    
+    <!-- Left Side: Visual Narrative (Hidden on Mobile) -->
+    <section class="hidden lg:flex w-1/2 relative overflow-hidden bg-surface-container-low p-16 flex-col justify-between">
+        <div class="z-10">
+            <h1 class="font-display text-primary text-4xl font-bold tracking-tight">ConnectSphere</h1>
+            <p class="font-body text-secondary mt-2 tracking-wide uppercase text-xs">Sahara Premium Experience</p>
         </div>
-        <p class="tagline">Create your account — it only takes a moment</p>
-
-        <div class="steps">
-            <div class="step-dot active"></div>
-            <div class="step-dot"></div>
-            <div class="step-dot"></div>
+        <div class="z-10 max-w-md">
+            <h2 class="font-display text-on-surface text-6xl leading-tight mb-6">Start your journey in the golden hour.</h2>
+            <p class="font-body text-on-surface-variant text-lg leading-relaxed">
+                Join a curated community where simplicity meets luxury. Connect with intention, share with grace, and rediscover the warmth of human interaction.
+            </p>
         </div>
+        <div class="absolute inset-0 z-0">
+            <div class="absolute inset-0 bg-gradient-to-tr from-surface to-transparent opacity-60"></div>
+            <img class="w-full h-full object-cover mix-blend-overlay transition-transform duration-1000" id="hero-bg-img" alt="Sahara Landscape" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYj7NussWB6qaE7DfRuQKKMHdaa-1ZVYH6VO9EKiAKDXgyhCDINjpr9p9ILI1b05OoJKLAANO28ECSn3_-sD9DzDmiSEvkizkJnjsz9zTRlp4-NjyqNuVfwPM7XES4JwC4SkwufZnQ3M1Y9L8qtWKCsCcEDRsa622Ai6OOWd8xx05jz7Cu6dIvnbdjlPyB5Pug9s66z6JrOkvCehaVAa9iqMVRgQu4IYU-M1zLQMPY8-FwOm9LA8wZOh1Qt6GIkt1Nuk8elDCjzdI"/>
+        </div>
+        <div class="z-10 flex items-center space-x-4">
+            <div class="flex -space-x-2">
+                <img class="w-8 h-8 rounded-full border-2 border-surface object-cover" alt="Member 1" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnNVm1g1lDN_8Qdp4-KE4x0PO4rPi7fzjwvNtXPlp1GX04UyxLm7MojXgMJkC8VwxEY62BZyHuGKWUEY9KPU7myS4-xlWuELXGaYw1dBIdA5YGgKHi-rpLzlzBakbPqpB77k3pm1ERbYNxD643e5numOS5GakhYs26HOxOst2pma2-Z5BAX90fHqU5vq4vz2eMfhCvkbgmAlyL3ZEEI_FATdE21Gl7JynP1GZuWCtMb6jD6JhI1WDc5cvZDp5Ad1QkvYgD4YBuplA"/>
+                <img class="w-8 h-8 rounded-full border-2 border-surface object-cover" alt="Member 2" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC3xA3DEdKkqWJVnFRlP-exH5TTAQgydG4tMMGa4jTC3OPc2Q_5dosq0z5kzOyBONRNd2-P20ipE2fr4w9bRe831pCw_GFnKLlTzXigJ0tKLab9ZyisJVz0GNPEQxnKo_HkVr88wkR8abzCA-i409HXre4q2f2SgTABWxriN4GnLQk4_dtsM2qrbH2obR-OXn0IOUhrJ2gmITmrsChuVJYFlZHoDu9hyBIXSzE_MbLYutQKTtch5x1jV7pB8trFuoS_H4dN-CPjYIs"/>
+                <img class="w-8 h-8 rounded-full border-2 border-surface object-cover" alt="Member 3" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmYu5AzgWg_mxqbLAAU2U-l4Z6-uCYuXEFlrhju9wbxsF9lL8JCLrrqqAjM0a6TyhEB80C2j8eyuYfgF4WI-AdR4nqg5ZYTYD1XAsBixUuqR3JBnLqBS3LwxkcMuMhl0w9yuXQvjkY9EDHiN8HkraT7yksvFGayrXqYgcAIkNMS3diP7P0jcIvQMrZmswnDZxd4SQiEdsPp2WaTRGr-u6yyf_tG7q7wU1WcflOOd8OIRA6yU1ggc_XKF1Vz609Ph-8KRUBBn8L5d8"/>
+            </div>
+            <span class="text-on-surface-variant text-sm font-medium">Joined by 10k+ creators</span>
+        </div>
+    </section>
 
-        {% if form.errors %}
-        <div class="errors">
-            <ul>
-            {% for field in form %}
-                {% for error in field.errors %}
-                <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+    <!-- Right Side: Registration Form -->
+    <section class="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-24 bg-surface">
+        <div class="w-full max-w-md space-y-10">
+            <!-- Header -->
+            <header class="space-y-3">
+                <div class="lg:hidden mb-8">
+                    <span class="font-display text-primary text-3xl font-bold">ConnectSphere</span>
+                </div>
+                <h2 class="font-display text-on-surface text-4xl lg:text-5xl">Create Account</h2>
+                <p class="text-on-surface-variant font-body">Begin your journey within our sun-baked sanctuary.</p>
+            </header>
+
+            <!-- Steps Indicators -->
+            <div class="flex items-center gap-2">
+                <div class="step-dot w-2 h-2 rounded-full bg-outline-variant transition-all active-step w-6 rounded-md bg-primary" id="step-0"></div>
+                <div class="step-dot w-2 h-2 rounded-full bg-outline-variant transition-all" id="step-1"></div>
+                <div class="step-dot w-2 h-2 rounded-full bg-outline-variant transition-all" id="step-2"></div>
+            </div>
+
+            <!-- Errors Box -->
+            {% if form.errors %}
+            <div class="p-4 bg-error-container/30 border border-error/20 rounded-xl text-xs text-error font-body">
+                <ul class="space-y-1">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                    <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">warning</span><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
                 {% endfor %}
-            {% endfor %}
-            {% for error in form.non_field_errors %}
-                <li>{{ error }}</li>
-            {% endfor %}
-            </ul>
+                {% for error in form.non_field_errors %}
+                    <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">warning</span>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Form -->
+            <form class="space-y-6" method="POST" id="register-form">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    
+                    <!-- Username Field -->
+                    <div class="group">
+                        <label class="block text-xs font-label font-bold uppercase tracking-widest text-secondary mb-2 transition-colors group-focus-within:text-primary" for="id_username">Username</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors">alternate_email</span>
+                            <input class="w-full pl-12 pr-4 py-4 bg-surface-container-lowest border border-outline-variant/60 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-outline/50 font-body text-on-surface" id="id_username" name="username" placeholder="e.g., aurelius_sphere" type="text" autocomplete="username" required value="{{ form.username.value|default:'' }}"/>
+                        </div>
+                    </div>
+
+                    <!-- Email Field -->
+                    <div class="group">
+                        <label class="block text-xs font-label font-bold uppercase tracking-widest text-secondary mb-2 transition-colors group-focus-within:text-primary" for="id_email">Email</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors">mail</span>
+                            <input class="w-full pl-12 pr-4 py-4 bg-surface-container-lowest border border-outline-variant/60 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-outline/50 font-body text-on-surface" id="id_email" name="email" placeholder="aurelius@connectsphere.com" type="email" autocomplete="email" required value="{{ form.email.value|default:'' }}"/>
+                        </div>
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="group">
+                        <label class="block text-xs font-label font-bold uppercase tracking-widest text-secondary mb-2 transition-colors group-focus-within:text-primary" for="id_password1">Password</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors">lock</span>
+                            <input class="w-full pl-12 pr-4 py-4 bg-surface-container-lowest border border-outline-variant/60 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-outline/50 font-body text-on-surface" id="id_password1" name="password1" placeholder="••••••••••••" type="password" autocomplete="new-password" required/>
+                        </div>
+                        <p class="text-[10px] text-outline mt-1.5 font-medium leading-relaxed">At least 8 characters, not too common, must not match username.</p>
+                    </div>
+
+                    <!-- Confirm Password Field -->
+                    <div class="group">
+                        <label class="block text-xs font-label font-bold uppercase tracking-widest text-secondary mb-2 transition-colors group-focus-within:text-primary" for="id_password2">Confirm password</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline-variant group-focus-within:text-primary transition-colors">lock_clock</span>
+                            <input class="w-full pl-12 pr-4 py-4 bg-surface-container-lowest border border-outline-variant/60 rounded-lg focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all placeholder:text-outline/50 font-body text-on-surface" id="id_password2" name="password2" placeholder="••••••••••••" type="password" autocomplete="new-password" required/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms -->
+                <div class="flex items-start space-x-3 py-2">
+                    <div class="flex items-center h-5">
+                        <input class="w-5 h-5 rounded border-outline-variant text-primary focus:ring-primary/20 cursor-pointer" id="terms" type="checkbox" required/>
+                    </div>
+                    <label class="text-xs text-on-surface-variant font-body leading-relaxed cursor-pointer" for="terms">
+                        I agree to the <a class="text-primary hover:underline underline-offset-4 decoration-1 font-bold" href="#">Terms and Conditions</a> and understand the <a class="text-primary hover:underline underline-offset-4 decoration-1 font-bold" href="#">Privacy Policy</a>.
+                    </label>
+                </div>
+
+                <!-- Action Button -->
+                <button type="submit" class="w-full py-4 bg-primary text-white font-label font-bold uppercase tracking-widest rounded-lg shadow-[0_2px_16px_rgba(194,101,42,0.2)] hover:shadow-[0_4px_20px_rgba(194,101,42,0.3)] hover:-translate-y-0.5 active:scale-95 transition-all duration-300">
+                    Create Account
+                </button>
+
+                <!-- Footer Link -->
+                <p class="text-center text-on-surface-variant font-body text-sm mt-8">
+                    Already have an account? <a class="text-primary font-bold hover:underline underline-offset-4 decoration-2 transition-all" href="{% url 'login' %}">Log In</a>
+                </p>
+            </form>
         </div>
-        {% endif %}
+    </section>
+</main>
 
-        <form method="POST" id="register-form">
-            {% csrf_token %}
-
-            <div class="field">
-                <label for="id_username">Username</label>
-                <input type="text" name="username" id="id_username" placeholder=" " autocomplete="username" required
-                       value="{{ form.username.value|default:'' }}">
-                <i class="bi bi-at field-icon"></i>
-            </div>
-
-            <div class="field">
-                <label for="id_email">Email</label>
-                <input type="email" name="email" id="id_email" placeholder=" " autocomplete="email"
-                       value="{{ form.email.value|default:'' }}">
-                <i class="bi bi-envelope field-icon"></i>
-            </div>
-
-            <div class="field">
-                <label for="id_password1">Password</label>
-                <input type="password" name="password1" id="id_password1" placeholder=" " autocomplete="new-password" required>
-                <i class="bi bi-shield-lock field-icon"></i>
-                <p class="help-text">At least 8 characters, not too common</p>
-            </div>
-
-            <div class="field">
-                <label for="id_password2">Confirm password</label>
-                <input type="password" name="password2" id="id_password2" placeholder=" " autocomplete="new-password" required>
-                <i class="bi bi-shield-check field-icon"></i>
-            </div>
-
-            <button type="submit" class="btn-register">Create Account</button>
-        </form>
-
-        <p class="footer-link">
-            Already have an account? <a href="{% url 'login' %}">Sign in</a>
-        </p>
-    </div>
-
-    <script>
-        // Animate step dots on form interaction
-        const fields = document.querySelectorAll('#register-form input');
+<!-- Interactive script for progress dots & movement -->
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const fields = document.querySelectorAll('#register-form input[type="text"], #register-form input[type="email"], #register-form input[type="password"]');
         const dots = document.querySelectorAll('.step-dot');
-        const fieldGroups = [[0], [1], [2, 3]]; // username, email, passwords
 
         fields.forEach((field, idx) => {
             field.addEventListener('focus', () => {
                 const step = idx <= 0 ? 0 : idx <= 1 ? 1 : 2;
-                dots.forEach((d, i) => {
-                    d.classList.toggle('active', i === step);
+                dots.forEach((dot, dIdx) => {
+                    if (dIdx === step) {
+                        dot.className = "step-dot w-6 h-2 rounded-md bg-primary transition-all";
+                    } else {
+                        dot.className = "step-dot w-2 h-2 rounded-full bg-outline-variant transition-all";
+                    }
                 });
             });
         });
-    </script>
+
+        // Hover movement effect
+        const heroSection = document.querySelector('section.hidden.lg\\:flex');
+        const heroImg = document.getElementById('hero-bg-img');
+        if (heroSection && heroImg) {
+            heroSection.addEventListener("mousemove", function(e) {
+                const { clientX, clientY } = e;
+                const moveX = (clientX / window.innerWidth - 0.5) * 12;
+                const moveY = (clientY / window.innerHeight - 0.5) * 12;
+                heroImg.style.transform = `scale(1.06) translate(${moveX}px, ${moveY}px)`;
+                heroImg.style.transition = "transform 0.2s ease-out";
+            });
+        }
+    });
+</script>
 </body>
 </html>

@@ -1,912 +1,400 @@
 {% load socialaccount %}
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | ConnectSphere</title>
-    <meta name="description" content="Sign in to ConnectSphere — connect with friends and creators worldwide.">
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="{{ request.build_absolute_uri }}">
-    <meta property="og:title" content="Login | ConnectSphere">
-    <meta property="og:description" content="Sign in to ConnectSphere — connect with friends and creators worldwide.">
-    <!-- Google Fonts: Outfit -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ConnectSphere | Sign In</title>
     
+    <!-- Google Fonts: Serif for Headlines, Sans for Body -->
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "primary": "#c2652a",
+                "on-primary": "#ffffff",
+                "primary-container": "#e08850",
+                "on-primary-container": "#fbe8d8",
+                "secondary": "#78706a",
+                "on-secondary": "#ffffff",
+                "secondary-container": "#eae2da",
+                "on-secondary-container": "#605850",
+                "tertiary": "#8c3c3c",
+                "on-tertiary": "#ffffff",
+                "tertiary-container": "#d47070",
+                "on-tertiary-container": "#3a2020",
+                "error": "#c0392b",
+                "on-error": "#ffffff",
+                "error-container": "#fce4e0",
+                "on-error-container": "#7a1a10",
+                "background": "#faf5ee",
+                "on-background": "#3a302a",
+                "surface": "#faf5ee",
+                "on-surface": "#3a302a",
+                "surface-variant": "#ece6dc",
+                "on-surface-variant": "#605850",
+                "outline": "#9a9088",
+                "outline-variant": "#d8d0c8",
+                "surface-container-lowest": "#ffffff",
+                "surface-container-low": "#f6f0e8",
+                "surface-container": "#f2ece4",
+                "surface-container-high": "#ece6dc",
+                "surface-container-highest": "#e6e0d6"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+            },
+            "fontFamily": {
+                "headline": ["EB Garamond", "serif"],
+                "display": ["EB Garamond", "serif"],
+                "body": ["Manrope", "sans-serif"],
+                "label": ["Manrope", "sans-serif"]
+            }
+          },
+        },
+      }
+    </script>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --bg-deep: #0a0e17;
-            --card-bg: #121824;
-            --border-color: #242f48;
-            --border-hover: #3d4f75;
-            --accent-blue: #0095f6;
-            --accent-blue-hover: #18a3ff;
-            --text-primary: #f8fafc;
-            --text-secondary: #8e9cb2;
-            --danger: #f43f5e;
-            
-            /* Custom Instagram-inspired gradient (Sunset Coral to Gold - Color Ban Compliant) */
-            --instagram-gradient: linear-gradient(45deg, #f0932b 0%, #e65c00 30%, #ff5252 60%, #ff7979 100%);
+        body { font-family: 'Manrope', sans-serif; background-color: #faf5ee; color: #3a302a; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
         }
-
-        body {
-            font-family: 'Outfit', sans-serif;
-            min-height: 100vh;
-            background-color: var(--bg-deep);
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow-x: hidden;
-            position: relative;
+        .editorial-shadow {
+            box-shadow: 0 4px 20px -4px rgba(194, 101, 42, 0.08);
         }
-
-        /* Ambient grid pattern background */
-        .grid-bg {
-            position: fixed;
-            inset: 0;
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-            background-size: 40px 40px;
-            z-index: 0;
-            pointer-events: none;
+        input:focus {
+            outline: none;
+            border-color: #c2652a !important;
+            ring-color: #c2652a !important;
         }
-
-        /* Layout Split Wrapper */
-        .split-container {
-            width: 100%;
-            max-width: 1100px;
-            margin: 2rem;
-            display: grid;
-            grid-template-cols: 1fr;
-            gap: 4rem;
-            align-items: center;
-            z-index: 1;
-        }
-
-        @media (min-width: 992px) {
-            .split-container {
-                grid-template-columns: 1.1fr 0.9fr;
-            }
-        }
-
-        /* ==================== LEFT SIDE: COLLAGE ==================== */
-        .collage-side {
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            position: relative;
-        }
-
-        @media (min-width: 992px) {
-            .collage-side {
-                display: flex;
-            }
-        }
-
-        .collage-brand {
-            margin-bottom: 2rem;
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-
-        .collage-brand i {
-            font-size: 2.2rem;
-            background: var(--instagram-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .collage-brand span {
-            font-size: 2rem;
-            font-weight: 700;
-            letter-spacing: -0.8px;
-        }
-
-        .collage-heading {
-            font-size: 2.6rem;
-            font-weight: 700;
-            line-height: 1.25;
-            margin-bottom: 3.5rem;
-            max-width: 480px;
-        }
-
-        .collage-heading span.highlight {
-            background: var(--instagram-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Mockup Area */
-        .mockups-wrapper {
-            position: relative;
-            height: 480px;
-            width: 100%;
-            margin-top: 1rem;
-        }
-
-        /* Base Phone Frame styling */
-        .phone-mockup {
-            position: absolute;
-            background-color: #000;
-            border: 8px solid #20242b;
-            border-radius: 36px;
-            box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
-            overflow: hidden;
-            width: 220px;
-            height: 380px;
-            will-change: transform;
-            transition: transform 0.5s ease-out;
-        }
-
-        .phone-mockup img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.95;
-        }
-
-        /* Decorative features inside mockups */
-        .phone-notch {
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 14px;
-            background: #20242b;
-            border-bottom-left-radius: 10px;
-            border-bottom-right-radius: 10px;
-            z-index: 10;
-        }
-
-        .phone-indicator {
-            position: absolute;
-            padding: 4px 8px;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(8px);
-            border-radius: 12px;
-            font-size: 0.75rem;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            z-index: 5;
-        }
-
-        /* Left Phone (Curly Hair Person) */
-        .mockup-left {
-            left: 0;
-            bottom: 30px;
-            transform: rotate(-8deg);
-            animation: floatLeft 8s ease-in-out infinite alternate;
-            z-index: 1;
-        }
-
-        /* Right Phone (Guitar) */
-        .mockup-right {
-            right: 40px;
-            bottom: 60px;
-            transform: rotate(10deg);
-            animation: floatRight 9s ease-in-out infinite alternate;
-            z-index: 2;
-        }
-
-        /* Center Phone (Sunset Scenery - Foreground) */
-        .mockup-center {
-            left: 130px;
-            bottom: 0;
-            transform: rotate(-3deg) scale(1.08);
-            border-color: #2d333f;
-            animation: floatCenter 7s ease-in-out infinite alternate;
-            z-index: 3;
-        }
-
-        /* Animations */
-        @keyframes floatLeft {
-            0% { transform: translateY(0px) rotate(-8deg); }
-            100% { transform: translateY(-12px) rotate(-6deg); }
-        }
-        @keyframes floatRight {
-            0% { transform: translateY(0px) rotate(10deg); }
-            100% { transform: translateY(-16px) rotate(8deg); }
-        }
-        @keyframes floatCenter {
-            0% { transform: translateY(0px) rotate(-3deg) scale(1.08); }
-            100% { transform: translateY(-10px) rotate(-4deg) scale(1.08); }
-        }
-
-        /* Interactive Widgets on Collage */
-        .collage-badge-heart {
-            position: absolute;
-            left: -15px;
-            top: 120px;
-            background: var(--instagram-gradient);
-            padding: 10px;
-            border-radius: 50%;
-            font-size: 1.1rem;
-            color: #fff;
-            box-shadow: 0 8px 16px rgba(230,92,0,0.3);
-            z-index: 10;
-            animation: pulseWidget 4s ease-in-out infinite alternate;
-        }
-
-        .collage-badge-stars {
-            position: absolute;
-            right: 15px;
-            top: 90px;
-            background: rgba(18, 24, 36, 0.85);
-            backdrop-filter: blur(8px);
-            border: 1px solid var(--border-color);
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            z-index: 10;
-        }
-
-        @keyframes pulseWidget {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.1); }
-        }
-
-
-        /* ==================== RIGHT SIDE: PANEL ==================== */
-        .panel-side {
-            display: flex;
-            justify-content: center;
-        }
-
-        .login-card {
-            width: 100%;
-            max-width: 420px;
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 28px;
-            padding: 3rem 2.25rem 2.5rem;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
-            position: relative;
-            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-
-        .login-card:hover {
-            border-color: var(--border-hover);
-        }
-
-        /* Settings Gear Icon */
-        .settings-btn {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            background: transparent;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: color 0.25s, transform 0.3s;
-            z-index: 10;
-        }
-        
-        .settings-btn:hover {
-            color: var(--text-primary);
-            transform: rotate(45deg);
-        }
-
-        /* Screen States */
-        .login-screen {
-            display: none;
-            opacity: 0;
-            transform: scale(0.95);
+        .screen-transition {
             transition: opacity 0.3s ease, transform 0.3s ease;
         }
-
-        .login-screen.active {
+        .screen-hidden {
+            display: none;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        .screen-active {
             display: block;
             opacity: 1;
-            transform: scale(1);
-        }
-
-        /* Saved Profile Screen Layout */
-        .saved-account-header {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 2.25rem;
-        }
-
-        /* Avatar Container with Wavy Ring */
-        .avatar-outer-ring {
-            width: 116px;
-            height: 116px;
-            border-radius: 50%;
-            padding: 3px;
-            background: var(--instagram-gradient);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.25rem;
-            position: relative;
-        }
-
-        .avatar-inner {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background-color: var(--card-bg);
-            padding: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .avatar-inner img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
-        .saved-username {
-            font-size: 1.35rem;
-            font-weight: 600;
-            color: var(--text-primary);
-            letter-spacing: -0.3px;
-        }
-
-        /* Brand Headers (when in default standard login) */
-        .brand-header {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .brand-header i {
-            font-size: 1.6rem;
-            background: var(--instagram-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .brand-header span {
-            font-size: 1.5rem;
-            font-weight: 700;
-            letter-spacing: -0.6px;
-        }
-
-        .tagline {
-            text-align: center;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            margin-bottom: 2.25rem;
-        }
-
-
-        /* ==================== BUTTONS & INPUTS ==================== */
-        
-        .btn-blue {
-            display: block;
-            width: 100%;
-            padding: 0.8rem 1rem;
-            background-color: var(--accent-blue);
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            font-family: inherit;
-            font-weight: 600;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: background-color 0.2s, transform 0.1s;
-            text-align: center;
-            text-decoration: none;
-        }
-
-        .btn-blue:hover {
-            background-color: var(--accent-blue-hover);
-        }
-
-        .btn-blue:active {
-            transform: scale(0.98);
-        }
-
-        .btn-outline {
-            display: block;
-            width: 100%;
-            padding: 0.8rem 1rem;
-            background-color: transparent;
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            font-family: inherit;
-            font-weight: 500;
-            font-size: 0.95rem;
-            cursor: pointer;
-            transition: border-color 0.25s, background-color 0.25s;
-            text-align: center;
-            text-decoration: none;
-            margin-top: 0.85rem;
-        }
-
-        .btn-outline:hover {
-            border-color: var(--text-secondary);
-            background-color: rgba(255, 255, 255, 0.02);
-        }
-
-        /* Form styling */
-        .form-group {
-            margin-bottom: 1.25rem;
-            position: relative;
-        }
-
-        .form-label-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.4rem;
-        }
-
-        .form-group label {
-            font-size: 0.82rem;
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.6rem;
-            background-color: rgba(10, 14, 23, 0.5);
-            border: 1px solid var(--border-color);
-            color: var(--text-primary);
-            font-family: inherit;
-            font-size: 0.95rem;
-            border-radius: 12px;
-            outline: none;
-            transition: border-color 0.25s, box-shadow 0.25s;
-        }
-
-        .form-group input:focus {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 3px rgba(0, 149, 246, 0.2);
-        }
-
-        .form-group i.field-icon {
-            position: absolute;
-            left: 14px;
-            bottom: 12px;
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            pointer-events: none;
-        }
-
-        /* Sub-login link settings */
-        .forgot-link {
-            font-size: 0.8rem;
-            color: var(--accent-blue);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .forgot-link:hover {
-            text-decoration: underline;
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 1.75rem 0;
-            color: var(--text-secondary);
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .divider::before, .divider::after {
-            content: '';
-            flex-grow: 1;
-            height: 1px;
-            background-color: var(--border-color);
-        }
-
-        .divider span {
-            padding: 0 0.8rem;
-        }
-
-        /* OAuth Provider Buttons */
-        .oauth-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .oauth-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            width: 100%;
-            padding: 0.75rem;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            background: rgba(255, 255, 255, 0.01);
-            color: var(--text-primary);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: background 0.2s, border-color 0.2s;
-        }
-
-        .oauth-btn:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: var(--border-hover);
-        }
-
-        /* Card footer */
-        .card-footer {
-            margin-top: 1.75rem;
-            text-align: center;
-            font-size: 0.88rem;
-            color: var(--text-secondary);
-        }
-
-        .card-footer a {
-            color: var(--accent-blue);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .card-footer a:hover {
-            text-decoration: underline;
-        }
-
-        /* Meta Branding at bottom */
-        .meta-brand {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 4px;
-            color: var(--text-secondary);
-            font-size: 0.7rem;
-            margin-top: 2rem;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-        }
-
-        /* Inline Slide-Down Password Prompt for Saved User */
-        .saved-password-prompt {
-            display: none;
-            width: 100%;
-            margin-top: 1rem;
-            animation: slideDown 0.3s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Form Errors UI */
-        .errors-box {
-            background-color: rgba(244, 63, 94, 0.08);
-            border: 1px solid rgba(244, 63, 94, 0.25);
-            border-radius: 12px;
-            padding: 0.8rem 1rem;
-            margin-bottom: 1.25rem;
-            font-size: 0.82rem;
-            color: #fda4af;
-        }
-
-        .errors-box ul {
-            list-style: none;
-            padding-left: 0;
-            margin-bottom: 0;
-        }
-
-        .errors-box li::before {
-            content: '⚠️ ';
-            margin-right: 4px;
+            transform: translateY(0);
         }
     </style>
 </head>
-<body>
-    <div class="grid-bg"></div>
-
-    <div class="split-container">
-        <!-- ==================== LEFT COLUMN: COLLAGE ==================== -->
-        <div class="collage-side">
-            <div class="collage-brand">
-                <i class="bi bi-grid-fill"></i>
-                <span>ConnectSphere</span>
+<body class="bg-background text-on-background min-h-screen">
+<main class="min-h-screen flex">
+    
+    <!-- Left Side: Aesthetic Background (Suppressed Shell for transactional screen) -->
+    <section class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-surface-container-high">
+        <div class="absolute inset-0 z-0">
+            <img class="w-full h-full object-cover transition-transform duration-1000" id="hero-bg-img" alt="Sahara Oasis" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgHZdjvtbXHCG-JwDGbZyZKRDyV6RyEamDYeP8R7i1enKMHp2sMB3UZyJSAG5EXi_rOqbM4s4fJk_fE4f6Wo-Z1HgLsYxyIJ4Xt6MXVpHJBs9MCJrS9rP2FI7lqk9AIqr78b3Hy94MDSpAJhN6VaUUTn0Dk4kYl8uDswVpJefEL7_--AGZ4n0f1M7QmWZeRwwqVngVkLa326gk3rFMilCRJ8mvYWwb5qrQ27ZRjP6c1Fcp4Th7_Dp0qZjawyDAluU1p5n3iGepnZ4"/>
+        </div>
+        <!-- Branding Overlay -->
+        <div class="relative z-10 p-16 flex flex-col justify-between h-full w-full bg-gradient-to-t from-on-surface/50 to-transparent">
+            <div>
+                <h1 class="font-headline text-5xl font-bold text-surface-container-lowest tracking-tight">ConnectSphere</h1>
             </div>
-            
-            <h1 class="collage-heading">
-                See everyday moments from your <span class="highlight">close friends</span>.
-            </h1>
-
-            <div class="mockups-wrapper">
-                <!-- Heart Reaction Badge -->
-                <div class="collage-badge-heart">
-                    <i class="bi bi-heart-fill"></i>
-                </div>
-                <!-- Close Friends star badge -->
-                <div class="collage-badge-stars">
-                    <i class="bi bi-star-fill" style="color: #00e676;"></i>
-                    <span>Close Friends</span>
-                </div>
-
-                <!-- Left Phone Mockup -->
-                <div class="phone-mockup mockup-left">
-                    <div class="phone-notch"></div>
-                    <div class="phone-indicator" style="top: 25px; left: 15px;">
-                        <i class="bi bi-eye-fill"></i> 142
-                    </div>
-                    <img src="/media/landing/story_collage_1.png" alt="Story Close-up">
-                </div>
-
-                <!-- Right Phone Mockup -->
-                <div class="phone-mockup mockup-right">
-                    <div class="phone-notch"></div>
-                    <div class="phone-indicator" style="top: 25px; left: 15px;">
-                        <i class="bi bi-play-fill"></i> Live
-                    </div>
-                    <img src="/media/landing/story_collage_3.png" alt="Story Music">
-                </div>
-
-                <!-- Center Phone Mockup (Foreground) -->
-                <div class="phone-mockup mockup-center">
-                    <div class="phone-notch"></div>
-                    <div class="phone-indicator" style="bottom: 20px; left: 50%; transform: translateX(-50%); width: 85%;">
-                        <i class="bi bi-chat-fill me-1"></i> Send a message...
-                    </div>
-                    <img src="/media/landing/story_collage_2.png" alt="Story Sunset">
-                </div>
+            <div class="max-w-md">
+                <p class="font-headline text-3xl text-surface leading-snug mb-4">A digital sanctuary for meaningful connection.</p>
+                <p class="font-body text-surface-variant/90 text-lg">Join a community of curious minds in an environment designed for sun-baked simplicity and editorial clarity.</p>
             </div>
         </div>
+    </section>
 
-        <!-- ==================== RIGHT COLUMN: LOGIN PANEL ==================== -->
-        <div class="panel-side">
-            <div class="login-card">
-                <!-- Settings gear resets saved account for testing -->
-                <button type="button" class="settings-btn" id="btn-reset-saved" title="Reset Saved Profile">
-                    <i class="bi bi-gear-fill"></i>
-                </button>
+    <!-- Right Side: Login Panel -->
+    <section class="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 md:p-16 lg:p-24 bg-background relative">
+        
+        <!-- Saved Account Reset (Settings Gear in Top Right) -->
+        <button type="button" class="absolute top-8 right-8 text-outline hover:text-primary transition-colors" id="btn-reset-saved" title="Reset Saved Profile">
+            <span class="material-symbols-outlined text-xl">settings</span>
+        </button>
 
-                <!-- ==================== SCREEN A: SAVED PROFILE VIEW ==================== -->
-                <div class="login-screen" id="screen-saved">
-                    <div class="saved-account-header">
-                        <div class="avatar-outer-ring">
-                            <div class="avatar-inner">
-                                <img src="/media/landing/harish_dhoni_avatar.png" id="saved-avatar-img" alt="Saved Profile">
-                            </div>
+        <div class="w-full max-w-[440px]">
+            <!-- Mobile Branding (Hidden on Desktop) -->
+            <div class="lg:hidden mb-12">
+                <h1 class="font-headline text-4xl font-bold text-primary tracking-tight">ConnectSphere</h1>
+            </div>
+
+            <!-- Error Messages Box -->
+            {% if form.errors %}
+            <div class="mb-6 p-4 bg-error-container/30 border border-error/20 rounded-xl text-xs text-error font-body">
+                <ul class="space-y-1">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                    <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">warning</span>{{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li class="flex items-center gap-1.5"><span class="material-symbols-outlined text-sm">warning</span>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- ==================== SCREEN A: SAVED PROFILE VIEW ==================== -->
+            <div class="screen-transition screen-hidden" id="screen-saved">
+                <header class="mb-10 text-center">
+                    <div class="inline-block relative mb-6">
+                        <div class="w-24 h-24 rounded-full p-[3px] border border-primary/40 bg-surface-container-lowest">
+                            <img src="/media/landing/harish_dhoni_avatar.png" id="saved-avatar-img" class="w-full h-full object-cover rounded-full" alt="Saved Profile">
                         </div>
-                        <h2 class="saved-username" id="saved-username-txt">harishraghav_21</h2>
                     </div>
+                    <h2 class="font-headline text-3xl text-on-surface font-semibold mb-2" id="saved-username-txt">harishraghav_21</h2>
+                    <p class="font-body text-secondary text-sm">Welcome back. Access your sanctuary.</p>
+                </header>
 
-                    <!-- Primary Continue Button -->
-                    <button type="button" class="btn-blue" id="btn-continue-login">Continue</button>
+                <div class="space-y-4">
+                    <!-- Continue primary button -->
+                    <button class="w-full bg-primary text-on-primary font-body font-bold py-4 rounded-lg editorial-shadow hover:bg-primary/90 active:scale-[0.98] transition-all duration-200" id="btn-continue-login">
+                        Continue
+                    </button>
 
-                    <!-- Slide down password input -->
-                    <div class="saved-password-prompt" id="saved-password-container">
-                        <form method="POST" id="saved-login-form" action="{% url 'login' %}">
+                    <!-- Hidden Password Prompt Form -->
+                    <div class="screen-hidden" id="saved-password-container">
+                        <form method="POST" id="saved-login-form" action="{% url 'login' %}" class="space-y-4 mt-4">
                             {% csrf_token %}
-                            <!-- Hidden input populated by JS -->
                             <input type="hidden" name="username" id="saved-username-hidden">
-                            
-                            <div class="form-group" style="margin-top: 0.5rem;">
-                                <input type="password" name="password" id="saved-password-input" placeholder="Enter your password" required>
-                                <i class="bi bi-lock field-icon" style="bottom: 11px;"></i>
+                            <div class="space-y-2">
+                                <label class="block font-label text-sm font-semibold text-on-surface-variant uppercase tracking-wider" for="saved-password-input">Password</label>
+                                <div class="relative group">
+                                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">lock</span>
+                                    <input class="w-full pl-12 pr-4 py-4 bg-surface-container-lowest border border-outline-variant/60 rounded-lg font-body text-on-surface placeholder:text-outline/50 transition-all focus:ring-1 focus:ring-primary" id="saved-password-input" name="password" placeholder="••••••••" type="password" required/>
+                                </div>
                             </div>
-                            <button type="submit" class="btn-blue">Log In</button>
+                            <button class="w-full bg-primary text-on-primary font-body font-bold py-4 rounded-lg editorial-shadow hover:bg-primary/90 active:scale-[0.98] transition-all duration-200" type="submit">
+                                Sign In
+                            </button>
                         </form>
                     </div>
 
-                    <button type="button" class="btn-outline" id="btn-use-other">Use another profile</button>
-                    
-                    <a href="{% url 'register' %}" class="btn-outline" style="margin-top: 0.85rem;">Create new account</a>
-
-                    <div class="meta-brand">
-                        <i class="bi bi-infinity"></i> Meta
-                    </div>
-                </div>
-
-                <!-- ==================== SCREEN B: STANDARD LOGIN VIEW ==================== -->
-                <div class="login-screen" id="screen-standard">
-                    <div class="brand-header">
-                        <i class="bi bi-grid-fill"></i>
-                        <span>ConnectSphere</span>
-                    </div>
-                    <p class="tagline">Sign in to connect with friends & creators</p>
-
-                    <!-- Error messages container -->
-                    {% if form.errors %}
-                    <div class="errors-box">
-                        <ul>
-                        {% for field in form %}
-                            {% for error in field.errors %}
-                            <li>{{ error }}</li>
-                            {% endfor %}
-                        {% endfor %}
-                        {% for error in form.non_field_errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-
-                    <!-- Main Login Form -->
-                    <form method="POST" id="standard-login-form-el" action="{% url 'login' %}">
-                        {% csrf_token %}
-                        <div class="form-group">
-                            <label for="id_username">Username</label>
-                            <input type="text" name="username" id="id_username" placeholder="Enter username" autocomplete="username" required>
-                            <i class="bi bi-person field-icon"></i>
-                        </div>
-
-                        <div class="form-group">
-                            <div class="form-label-row">
-                                <label for="id_password">Password</label>
-                                <a href="{% url 'password_reset' %}" class="forgot-link">Forgot password?</a>
-                            </div>
-                            <input type="password" name="password" id="id_password" placeholder="Enter password" autocomplete="current-password" required>
-                            <i class="bi bi-lock field-icon"></i>
-                        </div>
-
-                        <button type="submit" class="btn-blue" style="margin-top: 0.5rem;">Sign In</button>
-                    </form>
-
-                    <!-- Back to Saved Profile (only shows if a saved profile actually exists) -->
-                    <button type="button" class="btn-outline" id="btn-back-to-saved" style="display: none;">
-                        <i class="bi bi-arrow-left me-2"></i>Back to Saved Profile
+                    <button class="w-full py-4 border border-outline-variant/60 rounded-lg font-body font-bold text-on-surface hover:bg-surface-container-low transition-colors" id="btn-use-other">
+                        Use another profile
                     </button>
 
-                    <div class="divider">
-                        <span>or continue with</span>
-                    </div>
-
-                    <!-- Social Login Buttons -->
-                    <div class="oauth-buttons">
-                        <a href="{% provider_login_url 'google' %}" class="oauth-btn">
-                            <i class="bi bi-google" style="color: #ea4335;"></i>
-                            <span>Google</span>
-                        </a>
-                        <a href="{% provider_login_url 'github' %}" class="oauth-btn">
-                            <i class="bi bi-github" style="color: #f0f6fc;"></i>
-                            <span>GitHub</span>
-                        </a>
-                    </div>
-
-                    <p class="card-footer">
-                        Don't have an account? <a href="{% url 'register' %}">Create one</a>
-                    </p>
+                    <a class="block text-center py-4 border border-dashed border-outline-variant/60 rounded-lg font-body font-bold text-secondary hover:text-primary hover:border-primary transition-colors" href="{% url 'register' %}">
+                        Create new account
+                    </a>
                 </div>
 
+                <footer class="mt-16 text-center text-xs tracking-widest text-outline uppercase font-semibold">
+                    ConnectSphere
+                </footer>
             </div>
+
+            <!-- ==================== SCREEN B: STANDARD LOGIN VIEW ==================== -->
+            <div class="screen-transition screen-hidden" id="screen-standard">
+                <header class="mb-10">
+                    <h2 class="font-headline text-4xl text-on-surface font-semibold mb-2">Welcome Back</h2>
+                    <p class="font-body text-secondary text-base">Enter your details to access your curated feed.</p>
+                </header>
+
+                <form class="space-y-6" method="POST" id="standard-login-form-el" action="{% url 'login' %}">
+                    {% csrf_token %}
+                    <!-- Username Field -->
+                    <div class="space-y-2">
+                        <label class="block font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider" for="id_username">Username</label>
+                        <div class="relative group">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">person</span>
+                            <input class="w-full pl-12 pr-4 py-4 bg-surface-container-lowest border border-outline-variant/60 rounded-lg font-body text-on-surface placeholder:text-outline/50 transition-all focus:ring-1 focus:ring-primary" id="id_username" name="username" placeholder="e.g., alexandra" type="text" autocomplete="username" required value="{{ form.username.value|default:'' }}"/>
+                        </div>
+                    </div>
+                    <!-- Password Field -->
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <label class="block font-label text-xs font-bold text-on-surface-variant uppercase tracking-wider" for="id_password">Password</label>
+                            <a class="text-xs font-label font-bold text-primary hover:underline transition-all" href="{% url 'password_reset' %}">Forgot Password?</a>
+                        </div>
+                        <div class="relative group">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors">lock</span>
+                            <input class="w-full pl-12 pr-12 py-4 bg-surface-container-lowest border border-outline-variant/60 rounded-lg font-body text-on-surface placeholder:text-outline/50 transition-all focus:ring-1 focus:ring-primary" id="id_password" name="password" placeholder="••••••••" type="password" autocomplete="current-password" required/>
+                            <button class="absolute right-4 top-1/2 -translate-y-1/2 text-outline hover:text-secondary" type="button" id="toggle-password-vis">
+                                <span class="material-symbols-outlined" id="password-vis-icon">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Submit Button -->
+                    <button class="w-full bg-primary text-on-primary font-body font-bold py-4 rounded-lg editorial-shadow hover:bg-primary/90 active:scale-[0.98] transition-all duration-200" type="submit">
+                        Sign In
+                    </button>
+                </form>
+
+                <!-- Back to Saved Profile (shows only if a profile is saved) -->
+                <button type="button" class="w-full mt-4 py-4 border border-outline-variant/60 rounded-lg font-body font-bold text-on-surface hover:bg-surface-container-low transition-colors" id="btn-back-to-saved" style="display: none;">
+                    <span class="flex items-center justify-center gap-2"><span class="material-symbols-outlined">arrow_back</span>Back to Saved Profile</span>
+                </button>
+
+                <!-- Divider -->
+                <div class="relative my-8">
+                    <div aria-hidden="true" class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-outline-variant/60"></div>
+                    </div>
+                    <div class="relative flex justify-center text-sm">
+                        <span class="px-4 bg-background font-label text-secondary uppercase tracking-widest text-[10px]">Or continue with</span>
+                    </div>
+                </div>
+
+                <!-- Social Options -->
+                <div class="grid grid-cols-2 gap-4">
+                    <a href="{% provider_login_url 'google' %}" class="flex items-center justify-center gap-3 py-3 border border-outline-variant/60 rounded-lg hover:bg-surface-container-low transition-colors group">
+                        <span class="material-symbols-outlined text-secondary group-hover:text-primary transition-colors">mail</span>
+                        <span class="font-body text-sm font-semibold text-on-surface">Google</span>
+                    </a>
+                    <a href="{% provider_login_url 'github' %}" class="flex items-center justify-center gap-3 py-3 border border-outline-variant/60 rounded-lg hover:bg-surface-container-low transition-colors group">
+                        <span class="material-symbols-outlined text-secondary group-hover:text-primary transition-colors">face_nod</span>
+                        <span class="font-body text-sm font-semibold text-on-surface">GitHub</span>
+                    </a>
+                </div>
+
+                <!-- Footer Sign Up -->
+                <footer class="mt-10 text-center">
+                    <p class="font-body text-secondary text-sm">
+                        New to ConnectSphere? 
+                        <a class="font-bold text-primary hover:underline underline-offset-4 decoration-2" href="{% url 'register' %}">Create Account</a>
+                    </p>
+                </footer>
+            </div>
+
         </div>
-    </div>
+    </section>
+</main>
 
-    <!-- JavaScript logic to manage screen state and LocalStorage -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const screenSaved = document.getElementById("screen-saved");
-            const screenStandard = document.getElementById("screen-standard");
-            const btnUseOther = document.getElementById("btn-use-other");
-            const btnBackToSaved = document.getElementById("btn-back-to-saved");
-            const btnResetSaved = document.getElementById("btn-reset-saved");
-            const btnContinueLogin = document.getElementById("btn-continue-login");
-            const savedPasswordContainer = document.getElementById("saved-password-container");
-            const savedUsernameHidden = document.getElementById("saved-username-hidden");
-            const savedPasswordInput = document.getElementById("saved-password-input");
-            
-            const savedUsernameTxt = document.getElementById("saved-username-txt");
-            const savedAvatarImg = document.getElementById("saved-avatar-img");
-            
-            // Check if Django form returned errors. If errors exist, always default to standard screen to show them.
-            const hasErrors = {% if form.errors %}true{% else %}false{% endif %};
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const screenSaved = document.getElementById("screen-saved");
+        const screenStandard = document.getElementById("screen-standard");
+        const btnUseOther = document.getElementById("btn-use-other");
+        const btnBackToSaved = document.getElementById("btn-back-to-saved");
+        const btnResetSaved = document.getElementById("btn-reset-saved");
+        const btnContinueLogin = document.getElementById("btn-continue-login");
+        const savedPasswordContainer = document.getElementById("saved-password-container");
+        const savedUsernameHidden = document.getElementById("saved-username-hidden");
+        const savedPasswordInput = document.getElementById("saved-password-input");
+        
+        const savedUsernameTxt = document.getElementById("saved-username-txt");
+        const savedAvatarImg = document.getElementById("saved-avatar-img");
+        
+        const hasErrors = {% if form.errors %}true{% else %}false{% endif %};
 
-            // Initialize or retrieve saved account from LocalStorage
-            let savedUsername = localStorage.getItem("cs_saved_username");
-            let savedAvatar = localStorage.getItem("cs_saved_avatar");
+        // Initialize saved account from LocalStorage
+        let savedUsername = localStorage.getItem("cs_saved_username");
+        let savedAvatar = localStorage.getItem("cs_saved_avatar");
 
-            // Mock default if localStorage is empty to populate the specific UI screenshot look (harishraghav_21)
-            if (!savedUsername) {
-                savedUsername = "harishraghav_21";
-                savedAvatar = "/media/landing/harish_dhoni_avatar.png";
-            }
+        // Mock default if localStorage is empty to show specific profile screenshot look
+        if (!savedUsername) {
+            savedUsername = "harishraghav_21";
+            savedAvatar = "/media/landing/harish_dhoni_avatar.png";
+        }
 
-            // Sync text and avatar
-            if (savedUsernameTxt) savedUsernameTxt.textContent = savedUsername;
-            if (savedAvatarImg && savedAvatar) savedAvatarImg.src = savedAvatar;
-            if (savedUsernameHidden) savedUsernameHidden.value = savedUsername;
+        // Sync text and avatar
+        if (savedUsernameTxt) savedUsernameTxt.textContent = savedUsername;
+        if (savedAvatarImg && savedAvatar) savedAvatarImg.src = savedAvatar;
+        if (savedUsernameHidden) savedUsernameHidden.value = savedUsername;
 
-            function showScreen(screenId) {
-                if (screenId === "saved") {
-                    screenStandard.classList.remove("active");
-                    setTimeout(() => {
-                        screenStandard.style.display = "none";
-                        screenSaved.style.display = "block";
-                        setTimeout(() => screenSaved.classList.add("active"), 50);
-                    }, 300);
-                } else {
-                    screenSaved.classList.remove("active");
-                    setTimeout(() => {
-                        screenSaved.style.display = "none";
-                        screenStandard.style.display = "block";
-                        setTimeout(() => screenStandard.classList.add("active"), 50);
-                    }, 300);
-                    
-                    // Show back button only if we have a saved profile
-                    if (localStorage.getItem("cs_saved_username")) {
-                        btnBackToSaved.style.display = "block";
-                    }
-                }
-            }
-
-            // Route initially
-            if (hasErrors) {
-                // Show standard form screen to display error messages
-                screenSaved.style.display = "none";
-                screenStandard.style.display = "block";
-                screenStandard.classList.add("active");
+        function showScreen(screen) {
+            if (screen === "saved") {
+                screenStandard.classList.add("screen-hidden");
+                screenStandard.classList.remove("screen-active");
+                
+                screenSaved.classList.remove("screen-hidden");
+                screenSaved.classList.add("screen-active");
+            } else {
+                screenSaved.classList.add("screen-hidden");
+                screenSaved.classList.remove("screen-active");
+                
+                screenStandard.classList.remove("screen-hidden");
+                screenStandard.classList.add("screen-active");
+                
                 if (localStorage.getItem("cs_saved_username")) {
                     btnBackToSaved.style.display = "block";
                 }
-            } else {
-                // Show saved account screen
-                screenStandard.style.display = "none";
-                screenSaved.style.display = "block";
-                screenSaved.classList.add("active");
             }
+        }
 
-            // Toggle handlers
-            btnUseOther.addEventListener("click", function() {
-                showScreen("standard");
-            });
+        // Init screen view
+        if (hasErrors) {
+            showScreen("standard");
+        } else {
+            showScreen("saved");
+        }
 
-            btnBackToSaved.addEventListener("click", function() {
-                showScreen("saved");
-            });
-
-            // Gear Icon resets saved profile & resets page
-            btnResetSaved.addEventListener("click", function() {
-                if (confirm("Reset and clear saved accounts?")) {
-                    localStorage.removeItem("cs_saved_username");
-                    localStorage.removeItem("cs_saved_avatar");
-                    window.location.reload();
-                }
-            });
-
-            // Continue clicks slides down password input inline
-            btnContinueLogin.addEventListener("click", function() {
-                if (savedPasswordContainer.style.display === "block") {
-                    savedPasswordContainer.style.display = "none";
-                } else {
-                    savedPasswordContainer.style.display = "block";
-                    savedPasswordInput.focus();
-                }
-            });
-
-            // On successful form submit of standard login form, capture username for next load
-            const standardForm = document.getElementById("standard-login-form-el");
-            standardForm.addEventListener("submit", function() {
-                const usernameVal = document.getElementById("id_username").value;
-                if (usernameVal) {
-                    localStorage.setItem("cs_saved_username", usernameVal);
-                    // Set default avatar placeholder or standard avatar path
-                    localStorage.setItem("cs_saved_avatar", "/media/landing/harish_dhoni_avatar.png");
-                }
-            });
+        // Toggle handlers
+        btnUseOther.addEventListener("click", function() {
+            showScreen("standard");
         });
-    </script>
+
+        btnBackToSaved.addEventListener("click", function() {
+            showScreen("saved");
+        });
+
+        // Reset saved profile
+        btnResetSaved.addEventListener("click", function() {
+            if (confirm("Reset and clear saved accounts?")) {
+                localStorage.removeItem("cs_saved_username");
+                localStorage.removeItem("cs_saved_avatar");
+                window.location.reload();
+            }
+        });
+
+        // Continue slides password prompt
+        btnContinueLogin.addEventListener("click", function() {
+            if (savedPasswordContainer.classList.contains("screen-active")) {
+                savedPasswordContainer.classList.remove("screen-active");
+                savedPasswordContainer.classList.add("screen-hidden");
+            } else {
+                savedPasswordContainer.classList.remove("screen-hidden");
+                savedPasswordContainer.classList.add("screen-active");
+                savedPasswordInput.focus();
+            }
+        });
+
+        // Save username on form submit success
+        const standardForm = document.getElementById("standard-login-form-el");
+        standardForm.addEventListener("submit", function() {
+            const usernameVal = document.getElementById("id_username").value;
+            if (usernameVal) {
+                localStorage.setItem("cs_saved_username", usernameVal);
+                localStorage.setItem("cs_saved_avatar", "/media/landing/harish_dhoni_avatar.png");
+            }
+        });
+
+        // Password visibility toggle
+        const toggleVisBtn = document.getElementById("toggle-password-vis");
+        const passwordInput = document.getElementById("id_password");
+        const passwordVisIcon = document.getElementById("password-vis-icon");
+        
+        if (toggleVisBtn && passwordInput) {
+            toggleVisBtn.addEventListener("click", function() {
+                const isPassword = passwordInput.type === "password";
+                passwordInput.type = isPassword ? "text" : "password";
+                passwordVisIcon.textContent = isPassword ? "visibility_off" : "visibility";
+            });
+        }
+
+        // Move background image slowly on mouse movements
+        const heroSection = document.querySelector('section.lg\\:flex');
+        const heroImg = document.getElementById('hero-bg-img');
+        if (heroSection && heroImg) {
+            heroSection.addEventListener("mousemove", function(e) {
+                const { clientX, clientY } = e;
+                const moveX = (clientX / window.innerWidth - 0.5) * 12;
+                const moveY = (clientY / window.innerHeight - 0.5) * 12;
+                heroImg.style.transform = `scale(1.06) translate(${moveX}px, ${moveY}px)`;
+                heroImg.style.transition = "transform 0.2s ease-out";
+            });
+        }
+    });
+</script>
 </body>
 </html>

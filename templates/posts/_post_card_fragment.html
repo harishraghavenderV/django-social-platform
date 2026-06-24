@@ -2,52 +2,6 @@
 {% load post_extras %}
 
 <style>
-    .ig-post-card {
-        background: var(--card-bg-solid);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        overflow: hidden;
-        margin-bottom: 1rem;
-    }
-    .ig-post-header {
-        padding: 0.75rem 1rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-    .ig-post-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 1px solid var(--border-color);
-    }
-    .ig-post-username {
-        font-weight: 600;
-        font-size: 0.92rem;
-        color: var(--text-primary);
-        text-decoration: none;
-    }
-    .ig-post-username:hover {
-        color: var(--text-primary);
-        opacity: 0.8;
-    }
-    .ig-post-media-container {
-        position: relative;
-        overflow: hidden;
-        background: #000;
-        width: 100%;
-        aspect-ratio: 1 / 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-    }
-    .ig-post-media {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
     .ig-double-tap-heart {
         position: absolute;
         top: 50%;
@@ -71,256 +25,170 @@
         80% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; }
         100% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
     }
-    .ig-post-actions {
-        padding: 0.75rem 1rem 0.5rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+    .liked {
+        color: var(--color-error) !important;
     }
-    .ig-action-left {
-        display: flex;
-        align-items: center;
-        gap: 1.10rem;
-    }
-    .ig-action-btn {
-        color: var(--text-primary) !important;
-        background: none;
-        border: none;
-        padding: 0;
-        font-size: 1.45rem;
-        cursor: pointer;
-        transition: transform 0.15s ease, color 0.15s;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .ig-action-btn:hover {
-        transform: scale(1.1);
-    }
-    .ig-action-btn:active {
-        transform: scale(0.95);
-    }
-    .ig-action-btn.liked {
-        color: var(--danger-color) !important;
-    }
-    .ig-post-details {
-        padding: 0 1rem 1rem;
-    }
-    .ig-likes-count {
-        font-weight: 700;
-        font-size: 0.88rem;
-        margin-bottom: 0.35rem;
-        color: var(--text-primary);
-    }
-    .ig-caption {
-        font-size: 0.92rem;
-        line-height: 1.45;
-        margin-bottom: 0.35rem;
-        color: var(--text-primary);
-    }
-    .ig-caption-username {
-        font-weight: 700;
-        margin-right: 0.5rem;
-        color: var(--text-primary);
-        text-decoration: none;
-    }
-    .ig-view-comments {
-        color: var(--text-secondary);
-        font-size: 0.85rem;
-        text-decoration: none;
-        display: block;
-        margin-top: 0.25rem;
-    }
-    .ig-post-time {
-        font-size: 0.72rem;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        margin-top: 0.5rem;
-    }
-    .social-token {
-        color: var(--accent-color);
-        font-weight: 600;
-        text-decoration: none;
-    }
-    .social-token:hover {
-        color: var(--accent-hover);
-        text-decoration: underline;
-    }
-    .ig-inline-comment {
-        border-top: 1px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        padding: 0.7rem 1rem;
-    }
-    .ig-inline-comment input {
-        border: 0;
-        background: transparent;
-        color: var(--text-primary);
-        flex: 1;
-        outline: none;
-        min-width: 0;
-    }
-    .ig-inline-comment input::placeholder {
-        color: var(--text-secondary);
-    }
-    .ig-inline-comment button {
-        border: 0;
-        background: transparent;
-        color: var(--accent-color);
-        font-weight: 700;
-        padding: 0;
-    }
-    .ig-inline-comment button:hover {
-        color: var(--accent-hover);
+    .liked-icon {
+        font-variation-settings: 'FILL' 1, 'wght' 400;
     }
 </style>
 
 {% for post in posts %}
-<div class="ig-post-card" id="post-card-{{ post.id }}">
+<div class="sahara-card rounded-xl overflow-hidden mb-6 bg-surface-container-lowest border border-surface-container-highest" id="post-card-{{ post.id }}">
     <!-- Header -->
-    <div class="ig-post-header">
-        <div class="d-flex align-items-center">
+    <div class="flex items-center justify-between p-4 bg-surface-container-lowest">
+        <div class="flex items-center gap-3">
             <a href="{% url 'profile' username=post.author.username %}">
                 {% if post.author.userprofile.profile_picture %}
-                    <img src="{{ post.author.userprofile.profile_picture.url }}" class="ig-post-avatar me-2" alt="{{ post.author.username }}">
+                    <img src="{{ post.author.userprofile.profile_picture.url }}" class="w-9 h-9 rounded-full object-cover border border-surface-container-high" alt="{{ post.author.username }}">
                 {% else %}
-                    <div class="avatar-placeholder me-2" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                    <div class="w-9 h-9 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-sm text-on-surface-variant border border-surface-container-highest">
                         {{ post.author.username|slice:":1"|upper }}
                     </div>
                 {% endif %}
             </a>
             <div>
-                <a href="{% url 'profile' username=post.author.username %}" class="ig-post-username">{{ post.author.username }}</a>
-                {% if post.author.userprofile.is_verified %}
-                    <i class="bi bi-patch-check-fill text-primary" style="font-size: 0.85rem; margin-left: 2px;"></i>
-                {% endif %}
-                {% if post.co_authors.exists %}
-                    <span class="text-secondary-custom mx-1" style="font-size: 0.88rem;">and</span>
-                    {% for co_author in post.co_authors.all %}
-                        <a href="{% url 'profile' username=co_author.username %}" class="ig-post-username">{{ co_author.username }}</a>
-                        {% if co_author.userprofile.is_verified %}
-                            <i class="bi bi-patch-check-fill text-primary" style="font-size: 0.85rem; margin-left: 2px;"></i>
-                        {% endif %}
-                    {% endfor %}
-                {% endif %}
+                <div class="flex items-center gap-1">
+                    <a href="{% url 'profile' username=post.author.username %}" class="font-body text-sm font-bold text-on-surface hover:text-primary transition-colors">{{ post.author.username }}</a>
+                    {% if post.author.userprofile.is_verified %}
+                        <span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+                    {% endif %}
+                    {% if post.co_authors.exists %}
+                        <span class="text-on-surface-variant text-[11px] font-medium mx-0.5">and</span>
+                        {% for co_author in post.co_authors.all %}
+                            <a href="{% url 'profile' username=co_author.username %}" class="font-body text-sm font-bold text-on-surface hover:text-primary transition-colors">{{ co_author.username }}</a>
+                            {% if co_author.userprofile.is_verified %}
+                                <span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">verified</span>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <p class="text-[10px] text-on-surface-variant uppercase tracking-widest font-medium">Reykjavik, Iceland</p>
             </div>
-
         </div>
         
-        <!-- Post Settings Menu -->
-        <div class="dropdown">
-            <button class="btn btn-link text-secondary-custom p-0" type="button" data-bs-toggle="dropdown">
-                <i class="bi bi-three-dots"></i>
+        <!-- Post Settings Menu (Custom Dropdown) -->
+        <div class="relative">
+            <button class="dropdown-toggle-btn text-on-surface-variant hover:text-primary transition-colors p-1 rounded-full cursor-pointer flex items-center" type="button">
+                <span class="material-symbols-outlined text-xl">more_horiz</span>
             </button>
-            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+            <div class="dropdown-menu-list hidden absolute right-0 mt-2 w-48 bg-surface-container-lowest border border-surface-container-highest rounded-xl shadow-xl p-2 z-50">
                 {% if post.author == user %}
-                    <li><a class="dropdown-item" href="{% url 'post_edit' pk=post.id %}"><i class="bi bi-pencil-fill me-2"></i>Edit</a></li>
-                    <li><a class="dropdown-item text-danger" href="{% url 'post_delete' pk=post.id %}"><i class="bi bi-trash-fill me-2"></i>Delete</a></li>
+                    <a class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-container-low text-xs font-semibold text-on-surface transition-colors" href="{% url 'post_edit' pk=post.id %}">
+                        <span class="material-symbols-outlined text-base">edit</span>Edit
+                    </a>
+                    <a class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-error-container/20 text-xs font-semibold text-error transition-colors" href="{% url 'post_delete' pk=post.id %}">
+                        <span class="material-symbols-outlined text-base">delete</span>Delete
+                    </a>
                 {% else %}
-                    <li><a class="dropdown-item report-trigger" href="#" data-type="post" data-id="{{ post.id }}"><i class="bi bi-flag-fill me-2"></i>Report Post</a></li>
-                    <li><a class="dropdown-item block-toggle-btn text-danger" href="#" data-username="{{ post.author.username }}"><i class="bi bi-slash-circle-fill me-2"></i>Block @{{ post.author.username }}</a></li>
+                    <button class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant transition-colors w-full text-left report-trigger" data-type="post" data-id="{{ post.id }}">
+                        <span class="material-symbols-outlined text-base">flag</span>Report Post
+                    </button>
+                    <button class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-error-container/20 text-xs font-semibold text-error transition-colors w-full text-left block-toggle-btn" data-username="{{ post.author.username }}">
+                        <span class="material-symbols-outlined text-base">block</span>Block @{{ post.author.username }}
+                    </button>
                 {% endif %}
-            </ul>
+            </div>
         </div>
     </div>
 
     <!-- Media (Image or Iframe) -->
     {% if post.instagram_url %}
-        <div class="ig-embed-container" style="position: relative; width: 100%; aspect-ratio: 1; border-bottom: 1px solid var(--border-color); background: #000;">
-            <iframe src="{{ post.instagram_url }}embed/" class="w-100 h-100" style="border: none; display: block;" scrolling="no" allowtransparency="true"></iframe>
+        <div class="w-full aspect-square relative bg-black border-y border-surface-container-highest">
+            <iframe src="{{ post.instagram_url }}embed/" class="w-full h-full border-none block" scrolling="no" allowtransparency="true"></iframe>
         </div>
     {% elif post.image %}
-        <div class="ig-post-media-container" data-post-id="{{ post.id }}">
-            <img src="{{ post.image.url }}" class="ig-post-media" alt="Post media" loading="lazy">
-            <i class="bi bi-heart-fill ig-double-tap-heart"></i>
+        <div class="w-full aspect-[4/5] relative overflow-hidden group cursor-zoom-in bg-surface-container-low ig-post-media-container" data-post-id="{{ post.id }}">
+            <img src="{{ post.image.url }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Post media" loading="lazy">
+            <span class="material-symbols-outlined ig-double-tap-heart" style="font-variation-settings: 'FILL' 1;">favorite</span>
         </div>
     {% endif %}
 
     <!-- Actions Row -->
-    <div class="ig-post-actions">
-        <div class="ig-action-left">
+    <div class="flex items-center justify-between p-4 bg-surface-container-lowest">
+        <div class="flex items-center gap-6">
             <!-- Like reaction -->
             {% with user_reaction=user_reactions|get_item:post.id %}
-            <button class="ig-action-btn ig-like-btn {% if user_reaction == 'like' %}liked{% endif %}" data-post-id="{{ post.id }}">
-                <i class="bi {% if user_reaction == 'like' %}bi-heart-fill{% else %}bi-heart{% endif %}"></i>
+            <button class="text-on-surface-variant hover:text-primary transition-all active:scale-125 ig-like-btn {% if user_reaction == 'like' %}liked{% endif %}" data-post-id="{{ post.id }}">
+                <span class="material-symbols-outlined text-2xl {% if user_reaction == 'like' %}liked-icon{% endif %}" id="like-icon-{{ post.id }}">favorite</span>
             </button>
             {% endwith %}
 
             <!-- Comment -->
-            <a href="{% url 'post_detail' pk=post.id %}" class="ig-action-btn">
-                <i class="bi bi-chat"></i>
+            <a href="{% url 'post_detail' pk=post.id %}" class="text-on-surface-variant hover:text-primary transition-all active:scale-125 flex items-center">
+                <span class="material-symbols-outlined text-2xl">mode_comment</span>
             </a>
 
             <!-- Share -->
-            <form action="{% url 'post_share' pk=post.id %}" method="POST" class="d-inline">
+            <form action="{% url 'post_share' pk=post.id %}" method="POST" class="inline">
                 {% csrf_token %}
-                <button type="submit" class="ig-action-btn">
-                    <i class="bi bi-send"></i>
+                <button type="submit" class="text-on-surface-variant hover:text-primary transition-all active:scale-125 flex items-center">
+                    <span class="material-symbols-outlined text-2xl">send</span>
                 </button>
             </form>
         </div>
 
         <!-- Bookmark/Save -->
-        <button class="ig-action-btn ig-bookmark-btn {% if post.id in bookmarked_ids %}text-warning{% endif %}" data-post-id="{{ post.id }}">
-            <i class="bi {% if post.id in bookmarked_ids %}bi-bookmark-fill{% else %}bi-bookmark{% endif %}"></i>
+        <button class="text-on-surface-variant hover:text-primary transition-all active:scale-125 ig-bookmark-btn {% if post.id in bookmarked_ids %}text-warning{% endif %}" data-post-id="{{ post.id }}">
+            <span class="material-symbols-outlined text-2xl" id="bookmark-icon-{{ post.id }}" {% if post.id in bookmarked_ids %}style="font-variation-settings: 'FILL' 1;"{% endif %}>bookmark</span>
         </button>
     </div>
 
     <!-- Details/Caption/Comments -->
-    <div class="ig-post-details">
+    <div class="p-4 pt-0 font-body">
         <!-- Likes count -->
-        <div class="ig-likes-count">
+        <div class="font-bold text-sm text-on-surface mb-2">
             <span class="reaction-count-{{ post.id }}">{{ post.reaction_count }}</span> likes
         </div>
 
         <!-- Caption text -->
         {% if post.content %}
-            <div class="ig-caption">
-                <a href="{% url 'profile' username=post.author.username %}" class="ig-caption-username">{{ post.author.username }}</a>
-                {{ post.content|social_text|linebreaksbr }}
+            <div class="text-sm leading-relaxed text-on-surface">
+                <a href="{% url 'profile' username=post.author.username %}" class="font-bold mr-1.5 text-on-surface">{{ post.author.username }}</a>
+                <span class="text-on-surface/90">{{ post.content|social_text|linebreaksbr }}</span>
             </div>
             {% if post.is_edited %}
-                <span class="text-secondary-custom small d-block" style="font-size: 0.72rem; opacity: 0.8;">(edited)</span>
+                <span class="text-on-surface-variant/60 text-[10px] uppercase mt-1 tracking-wider block font-medium">(edited)</span>
             {% endif %}
         {% endif %}
 
         <!-- Poll Section if attached -->
         {% if post.poll %}
-            <div class="poll-container my-3 p-3 rounded" style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-color);" id="poll-container-{{ post.poll.id }}">
-                <h6 class="fw-bold mb-3"><i class="bi bi-bar-chart-fill me-2 text-accent" style="color: var(--accent-color);"></i>{{ post.poll.question }}</h6>
+            <div class="poll-container my-3 p-4 rounded-xl border border-surface-container-highest bg-surface-container-low" id="poll-container-{{ post.poll.id }}">
+                <h6 class="font-bold text-sm text-on-surface mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings: 'FILL' 1;">bar_chart</span>
+                    {{ post.poll.question }}
+                </h6>
                 
                 {% with voted_option_id=user_votes|get_item:post.poll.id %}
-                <div class="poll-options-wrapper" data-poll-id="{{ post.poll.id }}" data-total-votes="{{ post.poll.total_votes }}">
+                <div class="poll-options-wrapper space-y-3" data-poll-id="{{ post.poll.id }}" data-total-votes="{{ post.poll.total_votes }}">
                     {% if voted_option_id %}
                         <!-- Show results -->
                         {% for option in post.poll.options.all %}
-                        <div class="poll-option-result mb-2">
-                            <div class="d-flex justify-content-between small mb-1">
-                                <span class="fw-semibold {% if option.id == voted_option_id %}text-accent{% endif %}" {% if option.id == voted_option_id %}style="color: var(--accent-color);"{% endif %}>
-                                    {{ option.text }} {% if option.id == voted_option_id %}<i class="bi bi-check-circle-fill"></i>{% endif %}
+                        <div class="poll-option-result">
+                            <div class="flex justify-between text-xs font-semibold mb-1">
+                                <span class="{% if option.id == voted_option_id %}text-primary{% else %}text-on-surface{% endif %}">
+                                    {{ option.text }} {% if option.id == voted_option_id %}<span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">check_circle</span>{% endif %}
                                 </span>
-                                <span class="text-secondary-custom">{{ option.vote_count }} votes</span>
+                                <span class="text-on-surface-variant">{{ option.vote_count }} votes</span>
                             </div>
-                            <div class="progress" style="height: 8px; background: rgba(255,255,255,0.08);">
-                                <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 0%; transition: width 0.8s ease;" data-votes="{{ option.vote_count }}"></div>
+                            <div class="h-2 w-full bg-surface-container-high rounded-full overflow-hidden">
+                                <div class="h-full bg-primary rounded-full transition-all duration-700" style="width: 0%;" data-votes="{{ option.vote_count }}"></div>
                             </div>
                         </div>
                         {% endfor %}
-                        <div class="text-secondary-custom small mt-2 total-votes-label">{{ post.poll.total_votes }} votes total</div>
+                        <div class="text-[10px] text-on-surface-variant uppercase tracking-wider font-semibold mt-2 total-votes-label">{{ post.poll.total_votes }} votes total</div>
                     {% else %}
                         <!-- Show voting options -->
-                        <form class="poll-vote-form" data-poll-id="{{ post.poll.id }}">
+                        <form class="poll-vote-form space-y-2" data-poll-id="{{ post.poll.id }}">
                             {% csrf_token %}
                             {% for option in post.poll.options.all %}
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="option_id" id="opt-{{ option.id }}" value="{{ option.id }}" required>
-                                <label class="form-check-label text-light" for="opt-{{ option.id }}">
-                                    {{ option.text }}
-                                </label>
-                            </div>
+                            <label class="flex items-center gap-3 p-3 bg-surface-container-lowest border border-outline-variant/60 rounded-lg cursor-pointer hover:bg-surface-container transition-colors">
+                                <input class="w-4 h-4 text-primary focus:ring-primary/20 cursor-pointer" type="radio" name="option_id" id="opt-{{ option.id }}" value="{{ option.id }}" required>
+                                <span class="text-xs font-semibold text-on-surface">{{ option.text }}</span>
+                            </label>
                             {% endfor %}
-                            <button type="submit" class="btn btn-outline-light btn-sm rounded-pill px-3 mt-2">Vote</button>
+                            <button type="submit" class="px-5 py-2 bg-surface-container-high hover:bg-surface-container-highest text-on-surface border border-outline-variant/60 rounded-full text-xs font-bold transition-all mt-2">Vote</button>
                         </form>
                     {% endif %}
                 </div>
@@ -329,33 +197,33 @@
         {% endif %}
 
         <!-- Comments link -->
-        <a href="{% url 'post_detail' pk=post.id %}" class="ig-view-comments {% if post.comments.count == 0 %}d-none{% endif %}" id="comments-link-{{ post.id }}">
+        <a href="{% url 'post_detail' pk=post.id %}" class="text-xs font-bold text-primary mt-3 uppercase tracking-[0.1em] inline-block {% if post.comments.count == 0 %}hidden{% endif %}" id="comments-link-{{ post.id }}">
             View all <span class="comment-count-{{ post.id }}">{{ post.comments.count }}</span> comment{% if post.comments.count > 1 %}s{% endif %}
         </a>
 
-        <div class="ig-post-time">
+        <div class="text-[10px] uppercase text-on-surface-variant/60 mt-3 tracking-[0.2em] font-medium">
             {{ post.created_at|timesince }} ago
         </div>
     </div>
 
-    <form action="{% url 'add_comment' pk=post.id %}" method="POST" class="ig-inline-comment">
+    <!-- Inline Comment Form -->
+    <form action="{% url 'add_comment' pk=post.id %}" method="POST" class="flex items-center gap-3 border-t border-surface-container-highest p-4 bg-surface-container-lowest">
         {% csrf_token %}
-        <input type="text" name="content" placeholder="Add a comment..." aria-label="Add a comment to {{ post.author.username }}'s post" autocomplete="off" required>
-        <button type="submit">Post</button>
+        <input class="w-full py-2 bg-transparent border-0 focus:ring-0 text-sm text-on-surface placeholder:text-outline-variant/80 font-body" type="text" name="content" placeholder="Add a comment..." aria-label="Add a comment to {{ post.author.username }}'s post" autocomplete="off" required>
+        <button class="text-sm font-bold text-primary hover:text-primary-container transition-colors" type="submit">Post</button>
     </form>
 </div>
 {% endfor %}
 
 <script>
-    // Local double tap gesture detection and AJAX handling
     $(document).ready(function() {
-        // Prevent duplicate handler bindings if fragment reloads
+        // Prevent duplicate handler bindings
         $(document).off('dblclick', '.ig-post-media-container');
         $(document).on('dblclick', '.ig-post-media-container', function(e) {
             var container = $(this);
             var postId = container.data('post-id');
             var heart = container.find('.ig-double-tap-heart');
-            var likeBtn = container.closest('.ig-post-card').find('.ig-like-btn');
+            var likeBtn = container.closest('.sahara-card').find('.ig-like-btn');
             
             // Visual heart animation
             heart.addClass('animate');
@@ -373,7 +241,8 @@
                     success: function(data) {
                         if (data.reacted) {
                             likeBtn.addClass('liked');
-                            likeBtn.find('i').removeClass('bi-heart').addClass('bi-heart-fill');
+                            var icon = $('#like-icon-' + postId);
+                            icon.css("font-variation-settings", "'FILL' 1, 'wght' 400");
                             $('.reaction-count-' + postId).text(data.reaction_count);
                         }
                     }
@@ -394,13 +263,13 @@
                 headers: { 'X-CSRFToken': '{{ csrf_token }}' },
                 data: { reaction_type: 'like' },
                 success: function(data) {
-                    var icon = btn.find('i');
+                    var icon = $('#like-icon-' + postId);
                     if (data.reacted) {
                         btn.addClass('liked');
-                        icon.removeClass('bi-heart').addClass('bi-heart-fill');
+                        icon.css("font-variation-settings", "'FILL' 1, 'wght' 400");
                     } else {
                         btn.removeClass('liked');
-                        icon.removeClass('bi-heart-fill').addClass('bi-heart');
+                        icon.css("font-variation-settings", "'FILL' 0, 'wght' 300");
                     }
                     $('.reaction-count-' + postId).text(data.reaction_count);
                 }
@@ -413,7 +282,7 @@
             e.preventDefault();
             var btn = $(this);
             var postId = btn.data('post-id');
-            var icon = btn.find('i');
+            var icon = $('#bookmark-icon-' + postId);
 
             $.ajax({
                 url: '/post/' + postId + '/bookmark/',
@@ -422,10 +291,10 @@
                 success: function(data) {
                     if (data.bookmarked) {
                         btn.addClass('text-warning');
-                        icon.removeClass('bi-bookmark').addClass('bi-bookmark-fill');
+                        icon.css("font-variation-settings", "'FILL' 1, 'wght' 400");
                     } else {
                         btn.removeClass('text-warning');
-                        icon.removeClass('bi-bookmark-fill').addClass('bi-bookmark');
+                        icon.css("font-variation-settings", "'FILL' 0, 'wght' 300");
                     }
                 }
             });

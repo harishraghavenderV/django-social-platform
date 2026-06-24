@@ -3,496 +3,260 @@
 
 {% block title %}{{ view_user.username }}'s Profile | ConnectSphere{% endblock %}
 
-{% block extra_css %}
-<style>
-    .profile-cover {
-        display: none;
-        height: 0;
-        background-color: #334155;
-        background-position: center;
-        background-size: cover;
-        position: relative;
-        border-radius: 16px 16px 0 0;
-    }
-    
-    .profile-avatar-container {
-        position: relative;
-        margin-top: 0;
-        margin-left: 0;
-        z-index: 5;
-    }
-    
-    .profile-avatar-img {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid var(--border-color);
-    }
-    
-    .profile-avatar-placeholder {
-        width: 150px;
-        height: 150px;
-        border-radius: 50%;
-        background-color: var(--accent-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 600;
-        color: white;
-        font-size: 2.5rem;
-        border: 2px solid var(--border-color);
-    }
-
-    /* Verified badge */
-    .verified-badge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 22px;
-        height: 22px;
-        background: linear-gradient(135deg, #3b82f6, #6366f1);
-        border-radius: 50%;
-        margin-left: 6px;
-        font-size: 0.7rem;
-        color: #fff;
-        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
-    }
-
-    /* Badge showcase */
-    .badge-showcase {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-top: 0.75rem;
-    }
-    .badge-item {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        padding: 0.35rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        border: 1px solid rgba(255,255,255,0.1);
-        transition: transform .2s, box-shadow .2s;
-        cursor: default;
-    }
-    .badge-item:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0,0,0,.2);
-    }
-    .badge-item i { font-size: 0.85rem; }
-
-    /* Tabs */
-    .profile-tabs {
-        display: flex;
-        gap: 0;
-        border-bottom: 2px solid var(--border-color);
-        margin-bottom: 1.5rem;
-    }
-    .profile-tab {
-        padding: 0.75rem 1.5rem;
-        font-weight: 600;
-        color: var(--text-secondary);
-        text-decoration: none;
-        border-bottom: 3px solid transparent;
-        margin-bottom: -2px;
-        transition: all .2s;
-    }
-    .profile-tab:hover {
-        color: var(--text-primary);
-    }
-    .profile-tab.active {
-        color: var(--text-primary);
-        border-bottom-color: var(--accent-color);
-    }
-
-    /* Activity timeline in profile */
-    .mini-timeline-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.75rem;
-        padding: 0.75rem 0;
-        border-bottom: 1px solid var(--border-color);
-    }
-    .mini-timeline-item:last-child { border-bottom: none; }
-    .mini-timeline-dot {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.8rem;
-        flex-shrink: 0;
-        color: #fff;
-    }
-
-    /* Instagram-Style 3-Column Profile Grid */
-    .profile-grid-container {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 4px;
-        width: 100%;
-        margin-bottom: 2rem;
-    }
-    
-    .profile-grid-item {
-        position: relative;
-        aspect-ratio: 1 / 1;
-        border-radius: 0;
-        overflow: hidden;
-        border: none;
-        cursor: pointer;
-        background: var(--bg-surface);
-        transition: transform 0.2s ease, border-color 0.2s;
-    }
-    .ig-profile-shell {
-        max-width: 935px;
-        margin-inline: auto;
-    }
-    .ig-profile-header {
-        background: transparent !important;
-        border: 0 !important;
-        border-bottom: 1px solid var(--border-color) !important;
-        border-radius: 0 !important;
-        overflow: visible !important;
-    }
-    .ig-profile-actions .btn {
-        border-radius: 8px !important;
-        font-weight: 700;
-    }
-    .profile-grid-item:hover {
-        transform: scale(1.01);
-        border-color: var(--accent-color);
-    }
-    
-    .profile-grid-item-link {
-        display: block;
-        width: 100%;
-        height: 100%;
-        position: relative;
-        text-decoration: none;
-    }
-    
-    .profile-grid-media {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    
-    .profile-grid-overlay {
-        position: absolute;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 1.5rem;
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        z-index: 2;
-    }
-    .profile-grid-item:hover .profile-grid-overlay {
-        opacity: 1;
-    }
-    
-    .profile-grid-stat {
-        font-weight: 700;
-        font-size: 1.1rem;
-        color: #fff;
-        display: inline-flex;
-        align-items: center;
-    }
-    .profile-grid-stat i {
-        margin-right: 0.4rem;
-        font-size: 1.2rem;
-    }
-    
-    .profile-text-thumbnail {
-        width: 100%;
-        height: 100%;
-        background: var(--brand-gradient);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-        text-align: center;
-    }
-    .profile-thumbnail-text {
-        font-weight: 600;
-        font-size: 0.92rem;
-        color: #fff;
-        margin: 0;
-        line-height: 1.45;
-        display: -webkit-box;
-        -webkit-line-clamp: 5;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-    
-    @media (max-width: 767.98px) {
-        .profile-grid-container {
-            gap: 4px;
-        }
-        .profile-grid-item {
-            border-radius: 0;
-            border: none;
-        }
-        .profile-grid-stat {
-            font-size: 0.9rem;
-        }
-        .profile-grid-stat i {
-            font-size: 1rem;
-        }
-        .profile-thumbnail-text {
-            font-size: 0.78rem;
-        }
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-11 ig-profile-shell">
-        <!-- Profile Header -->
-        <div class="card mb-4 ig-profile-header">
-            <!-- Cover Photo -->
+<div class="max-w-5xl mx-auto -mt-6">
+    <!-- Header Section: Cover & Avatar -->
+    <section class="relative">
+        <div class="w-full h-64 md:h-80 overflow-hidden rounded-b-2xl bg-surface-container-high relative">
             {% if profile.cover_photo %}
-                <div class="profile-cover" style="background-image: url('{{ profile.cover_photo.url }}');"></div>
+                <img class="w-full h-full object-cover" alt="Cover photo" src="{{ profile.cover_photo.url }}">
             {% else %}
-                <div class="profile-cover"></div>
+                <div class="w-full h-full bg-gradient-to-tr from-primary/20 via-background to-secondary/15 flex items-center justify-center">
+                    <span class="font-headline text-4xl text-primary/20 italic">ConnectSphere Sanctuary</span>
+                </div>
             {% endif %}
-            
-            <div class="card-body pt-4 pb-4">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start mb-3 gap-4">
-                    <!-- Avatar and Identity -->
-                    <div class="profile-avatar-container d-flex align-items-center gap-4">
+        </div>
+        
+        <div class="px-6 lg:px-12 -mt-20 relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div class="flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-left">
+                <div class="relative">
+                    <div class="w-40 h-40 rounded-full border-4 border-background bg-background overflow-hidden shadow-xl flex items-center justify-center">
                         {% if profile.profile_picture %}
-                            <img src="{{ profile.profile_picture.url }}" class="profile-avatar-img" alt="{{ view_user.username }}">
+                            <img class="w-full h-full object-cover" alt="{{ view_user.username }}" src="{{ profile.profile_picture.url }}">
                         {% else %}
-                            <div class="profile-avatar-placeholder">
+                            <div class="w-full h-full bg-surface-container-high flex items-center justify-center font-bold text-4xl text-on-surface-variant">
                                 {{ view_user.username|slice:":1"|upper }}
                             </div>
                         {% endif %}
-                        <div>
-                            <h4 class="fw-bold mb-0 text-light d-flex align-items-center">
-                                {{ view_user.username }}
-                                {% if profile.is_verified %}
-                                    <span class="verified-badge" title="Verified Account">
-                                        <i class="bi bi-check-lg"></i>
-                                    </span>
-                                {% endif %}
-                            </h4>
-                            <div class="d-flex gap-4 my-3">
-                                <div><span class="fw-bold text-light">{{ posts_count }}</span> <span class="text-secondary-custom">posts</span></div>
-                                <div><span class="fw-bold text-light">{{ followers_count }}</span> <span class="text-secondary-custom">followers</span></div>
-                                <div><span class="fw-bold text-light">{{ following_count }}</span> <span class="text-secondary-custom">following</span></div>
-                            </div>
-                            <p class="text-secondary-custom mb-0 small">@{{ view_user.username }}</p>
+                    </div>
+                    {% if profile.is_verified %}
+                        <div class="absolute bottom-2 right-2 w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white border-2 border-background" title="Verified Account">
+                            <span class="material-symbols-outlined text-sm font-bold">verified</span>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-2">
+                    <h2 class="font-headline text-4xl font-bold text-on-surface leading-none">{{ view_user.username }}</h2>
+                    <p class="text-on-surface-variant font-body text-base mt-2">@{{ view_user.username }}</p>
+                </div>
+            </div>
+            
+            <div class="flex gap-3 mb-2 justify-center flex-wrap">
+                {% if user == view_user %}
+                    <a href="{% url 'profile_edit' %}" class="px-6 py-2.5 border border-outline-variant/60 rounded-lg font-body text-sm font-semibold text-on-surface hover:bg-surface-container-low transition-all">Edit Profile</a>
+                {% else %}
+                    <!-- Message Button -->
+                    <a href="{% url 'start_conversation' user_id=view_user.id %}" class="px-5 py-2.5 border border-outline-variant/60 rounded-lg font-body text-sm font-semibold text-on-surface hover:bg-surface-container-low transition-all flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-base">chat_bubble</span> Message
+                    </a>
+                    
+                    <!-- Follow Button -->
+                    <a href="{% url 'follow_user' user_id=view_user.id %}" class="px-6 py-2.5 {% if is_following %}border border-outline-variant/60 text-on-surface hover:bg-surface-container-low{% else %}bg-primary text-on-primary shadow-md hover:opacity-90{% endif %} rounded-lg font-body text-sm font-semibold transition-all">
+                        {% if is_following %}Unfollow{% else %}Follow{% endif %}
+                    </a>
+                    
+                    <!-- Friend status -->
+                    {% if friend_status == 'friends' %}
+                        <a href="{% url 'remove_friend' user_id=view_user.id %}" class="px-6 py-2.5 border border-error/40 hover:bg-error-container/20 text-error rounded-lg font-body text-sm font-semibold transition-all">Unfriend</a>
+                    {% elif friend_status == 'sent' %}
+                        <a href="{% url 'cancel_friend_request' request_id=friend_request.id %}" class="px-6 py-2.5 border border-warning/40 hover:bg-warning-container/20 text-warning rounded-lg font-body text-sm font-semibold transition-all">Cancel Request</a>
+                    {% elif friend_status == 'received' %}
+                        <div class="flex rounded-lg overflow-hidden shadow-sm border border-outline-variant/60">
+                            <a href="{% url 'accept_friend_request' request_id=friend_request.id %}" class="px-4 py-2.5 bg-primary text-on-primary text-sm font-semibold hover:opacity-90 transition-opacity">Accept</a>
+                            <a href="{% url 'decline_friend_request' request_id=friend_request.id %}" class="px-4 py-2.5 bg-surface-container text-on-surface border-l border-outline-variant/60 text-sm font-semibold hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-base">close</span></a>
+                        </div>
+                    {% else %}
+                        <a href="{% url 'send_friend_request' user_id=view_user.id %}" class="px-6 py-2.5 border border-outline-variant/60 rounded-lg font-body text-sm font-semibold text-on-surface hover:bg-surface-container-low transition-all">Add Friend</a>
+                    {% endif %}
+
+                    <!-- Three dots options -->
+                    <div class="relative">
+                        <button class="dropdown-toggle-btn px-3 py-2.5 border border-outline-variant/60 rounded-lg hover:bg-surface-container-low text-on-surface-variant cursor-pointer flex items-center" type="button">
+                            <span class="material-symbols-outlined text-base">more_horiz</span>
+                        </button>
+                        <div class="dropdown-menu-list hidden absolute right-0 mt-2 w-48 bg-surface-container-lowest border border-surface-container-highest rounded-xl shadow-xl p-2 z-50">
+                            <button class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-surface-container-low text-xs font-semibold text-on-surface-variant transition-colors w-full text-left report-trigger" data-type="user" data-id="{{ view_user.id }}">
+                                <span class="material-symbols-outlined text-base">flag</span>Report User
+                            </button>
+                            <button class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-error-container/20 text-xs font-semibold text-error transition-colors w-full text-left block-toggle-btn" data-username="{{ view_user.username }}">
+                                <span class="material-symbols-outlined text-base">block</span>Block User
+                            </button>
                         </div>
                     </div>
-                    
-                    <!-- Action Buttons -->
-                    <div class="ig-profile-actions ms-md-0 mt-3 mt-md-0 d-flex gap-2 flex-wrap">
-                        {% if user == view_user %}
-                            <a href="{% url 'profile_edit' %}" class="btn btn-outline-light px-4"><i class="bi bi-pencil-fill me-1"></i> Edit Profile</a>
-                        {% else %}
-                            <!-- Message Button -->
-                            <a href="{% url 'start_conversation' user_id=view_user.id %}" class="btn btn-outline-light px-3">
-                                <i class="bi bi-chat-dots-fill me-1"></i> Message
-                            </a>
-                            <!-- Follow/Unfollow Button -->
-                            <a href="{% url 'follow_user' user_id=view_user.id %}" class="btn {% if is_following %}btn-outline-light{% else %}btn-primary{% endif %} px-4">
-                                <i class="bi {% if is_following %}bi-person-x-fill{% else %}bi-person-plus-fill{% endif %} me-1"></i>
-                                {% if is_following %}Unfollow{% else %}Follow{% endif %}
-                            </a>
-                            
-                            <!-- Friend Status Buttons -->
-                            {% if friend_status == 'friends' %}
-                                <a href="{% url 'remove_friend' user_id=view_user.id %}" class="btn btn-outline-danger px-4">
-                                    <i class="bi bi-person-dash-fill me-1"></i> Unfriend
-                                </a>
-                            {% elif friend_status == 'sent' %}
-                                <a href="{% url 'cancel_friend_request' request_id=friend_request.id %}" class="btn btn-outline-warning px-4">
-                                    <i class="bi bi-x-circle-fill me-1"></i> Cancel Request
-                                </a>
-                            {% elif friend_status == 'received' %}
-                                <div class="btn-group">
-                                    <a href="{% url 'accept_friend_request' request_id=friend_request.id %}" class="btn btn-success rounded-start-pill px-3">
-                                        <i class="bi bi-check-circle-fill me-1"></i> Accept
-                                    </a>
-                                    <a href="{% url 'decline_friend_request' request_id=friend_request.id %}" class="btn btn-danger rounded-end-pill px-3">
-                                        <i class="bi bi-x-circle-fill"></i>
-                                    </a>
-                                </div>
-                            {% else %}
-                                <a href="{% url 'send_friend_request' user_id=view_user.id %}" class="btn btn-outline-primary px-4">
-                                    <i class="bi bi-person-add me-1"></i> Add Friend
-                                </a>
-                            {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </section>
 
-                            <!-- Dropdown for Report / Block -->
-                            <div class="dropdown">
-                                <button class="btn btn-outline-light px-3" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-three-dots"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
-                                    <li><a class="dropdown-item report-trigger" href="#" data-type="user" data-id="{{ view_user.id }}"><i class="bi bi-flag-fill me-2"></i>Report User</a></li>
-                                    <li><a class="dropdown-item block-toggle-btn text-danger" href="#" data-username="{{ view_user.username }}"><i class="bi bi-slash-circle-fill me-2"></i>Block User</a></li>
-                                </ul>
-                            </div>
-                        {% endif %}
-                    </div>
+    <!-- Stats & Bio Section -->
+    <section class="px-6 lg:px-12 mt-12 grid grid-cols-1 md:grid-cols-12 gap-12">
+        
+        <!-- Sidebar: Bio & Info -->
+        <div class="md:col-span-4 space-y-8">
+            <div class="flex justify-between items-center py-4 border-y border-outline-variant/30">
+                <div class="text-center flex-1">
+                    <span class="block font-headline text-2xl font-bold text-on-surface">{{ posts_count }}</span>
+                    <span class="block text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">Posts</span>
                 </div>
+                <div class="w-px h-8 bg-outline-variant/30"></div>
+                <div class="text-center flex-1">
+                    <span class="block font-headline text-2xl font-bold text-on-surface">{{ followers_count }}</span>
+                    <span class="block text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">Followers</span>
+                </div>
+                <div class="w-px h-8 bg-outline-variant/30"></div>
+                <div class="text-center flex-1">
+                    <span class="block font-headline text-2xl font-bold text-on-surface">{{ following_count }}</span>
+                    <span class="block text-[10px] uppercase tracking-widest text-on-surface-variant font-semibold">Following</span>
+                </div>
+            </div>
+            
+            <div class="space-y-4">
+                <h3 class="text-xs uppercase tracking-widest text-primary font-bold">About</h3>
+                {% if profile.bio %}
+                    <p class="font-body text-on-surface-variant text-sm leading-relaxed">
+                        {{ profile.bio|social_text|linebreaksbr }}
+                    </p>
+                {% else %}
+                    <p class="font-body text-on-surface-variant/50 text-xs italic">No bio written yet.</p>
+                {% endif %}
                 
-                <!-- Bio & Details -->
-                <div class="px-3 mt-2">
-                    {% if profile.bio %}
-                        <p class="text-light fs-6 mb-3" style="max-width: 600px;">{{ profile.bio|social_text|linebreaksbr }}</p>
+                <div class="space-y-3 pt-2 text-xs font-semibold text-on-surface-variant">
+                    {% if profile.location %}
+                        <div class="flex items-center gap-2"><span class="material-symbols-outlined text-base">location_on</span>{{ profile.location }}</div>
                     {% endif %}
-                    
-                    <div class="d-flex flex-wrap gap-3 text-secondary-custom small mb-3">
-                        {% if profile.location %}
-                            <span><i class="bi bi-geo-alt-fill me-1"></i>{{ profile.location }}</span>
-                        {% endif %}
-                        {% if profile.website %}
-                            <span><i class="bi bi-link-45deg me-1"></i><a href="{{ profile.website }}" target="_blank" class="text-secondary-custom text-decoration-none">{{ profile.website }}</a></span>
-                        {% endif %}
-                        <span><i class="bi bi-calendar3 me-1"></i>Joined {{ profile.joined_date|date:"F Y" }}</span>
-                    </div>
-                    
-                    <!-- Interest Tags -->
-                    {% if interest_tags_list %}
-                    <div class="d-flex flex-wrap gap-2 mb-3">
+                    {% if profile.website %}
+                        <div class="flex items-center gap-2"><span class="material-symbols-outlined text-base">link</span><a href="{{ profile.website }}" target="_blank" class="text-primary hover:underline">{{ profile.website }}</a></div>
+                    {% endif %}
+                    <div class="flex items-center gap-2"><span class="material-symbols-outlined text-base">calendar_today</span>Joined {{ profile.joined_date|date:"F Y" }}</div>
+                </div>
+
+                <!-- Interest Tags -->
+                {% if interest_tags_list %}
+                <div class="pt-4 space-y-2 border-t border-outline-variant/30">
+                    <h4 class="text-xs uppercase tracking-widest text-primary font-bold">Interests</h4>
+                    <div class="flex flex-wrap gap-1.5">
                         {% for tag in interest_tags_list %}
-                            <span class="badge rounded-pill px-3 py-2" style="background: rgba(255, 255, 255, 0.04); color: var(--text-primary); border: 1px solid var(--border-color); font-weight: 500; font-size: 0.82rem;">
-                                <i class="bi bi-tag-fill me-1 text-secondary-custom" style="font-size: 0.75rem;"></i>{{ tag }}
+                            <span class="px-3 py-1 bg-surface-container border border-outline-variant/40 rounded-full text-[10px] font-bold text-on-surface-variant flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[10px]">tag</span>{{ tag }}
                             </span>
                         {% endfor %}
                     </div>
-                    {% endif %}
-                    
-                    <!-- Badge Showcase -->
-                    {% if user_badges %}
-                    <div class="badge-showcase">
+                </div>
+                {% endif %}
+
+                <!-- Badges showcase -->
+                {% if user_badges %}
+                <div class="pt-4 space-y-2 border-t border-outline-variant/30">
+                    <h4 class="text-xs uppercase tracking-widest text-primary font-bold">Badges</h4>
+                    <div class="flex flex-wrap gap-2">
                         {% for ub in user_badges %}
-                        <span class="badge-item" style="background: {{ ub.badge.color }}22; color: {{ ub.badge.color }};" title="{{ ub.badge.description }}">
-                            <i class="bi {{ ub.badge.icon }}"></i>
-                            {{ ub.badge.name }}
-                        </span>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border" style="background: {{ ub.badge.color }}15; color: {{ ub.badge.color }}; border-color: {{ ub.badge.color }}35;" title="{{ ub.badge.description }}">
+                                <span class="material-symbols-outlined text-xs">{{ ub.badge.icon }}</span>
+                                {{ ub.badge.name }}
+                            </span>
                         {% endfor %}
                     </div>
-                    {% endif %}
-
-                </div>
-            </div>
-        </div>
-
-        <!-- Profile Tabs -->
-        <div class="profile-tabs">
-            <a href="?tab=posts" class="profile-tab {% if active_tab == 'posts' %}active{% endif %}">
-                <i class="bi bi-grid-3x3-gap-fill me-1"></i> Posts
-            </a>
-            <a href="?tab=activity" class="profile-tab {% if active_tab == 'activity' %}active{% endif %}">
-                <i class="bi bi-clock-history me-1"></i> Activity
-            </a>
-            {% if user == view_user %}
-            <a href="{% url 'media_gallery' %}" class="profile-tab">
-                <i class="bi bi-images me-1"></i> Media
-            </a>
-            <a href="{% url 'profile_analytics' %}" class="profile-tab">
-                <i class="bi bi-graph-up me-1"></i> Analytics
-            </a>
-            {% endif %}
-        </div>
-
-        {% if active_tab == 'posts' %}
-        <!-- User's Posts Feed in Instagram-Style Grid -->
-        <div class="profile-grid-container">
-            {% for post in posts %}
-            <div class="profile-grid-item" id="post-grid-item-{{ post.id }}">
-                <a href="{% url 'post_detail' pk=post.id %}" class="profile-grid-item-link">
-                    {% if post.image %}
-                        <img src="{{ post.image.url }}" class="profile-grid-media" alt="Post Image">
-                    {% else %}
-                        <div class="profile-text-thumbnail">
-                            <p class="profile-thumbnail-text">{{ post.content|truncatewords:12 }}</p>
-                        </div>
-                    {% endif %}
-                    <!-- Hover Overlay with Stats -->
-                    <div class="profile-grid-overlay">
-                        <span class="profile-grid-stat">
-                            <i class="bi bi-heart-fill"></i>{{ post.reaction_count }}
-                        </span>
-                        <span class="profile-grid-stat">
-                            <i class="bi bi-chat-fill"></i>{{ post.comments.count }}
-                        </span>
-                    </div>
-                </a>
-            </div>
-            {% empty %}
-            <div class="text-center py-5 card w-100" style="grid-column: 1 / -1;">
-                <i class="bi bi-journal-richtext fs-1 text-secondary-custom"></i>
-                <p class="text-secondary-custom mt-2">No posts written by this user yet.</p>
-            </div>
-            {% endfor %}
-        </div>
-
-        {% elif active_tab == 'activity' %}
-        <!-- Activity Feed -->
-        <div class="card">
-            <div class="card-body p-4">
-                {% if activities %}
-                    {% for log in activities %}
-                    <div class="mini-timeline-item">
-                        <div class="mini-timeline-dot" style="background: {{ log.color }};">
-                            <i class="bi {{ log.icon }}"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="fw-semibold text-light" style="font-size: 0.92rem;">{{ log.description }}</div>
-                            <div class="text-secondary-custom" style="font-size: 0.78rem;">
-                                <i class="bi bi-clock me-1"></i>{{ log.created_at|timesince }} ago
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    {% if user == view_user %}
-                    <div class="text-center mt-3">
-                        <a href="{% url 'activity_log' %}" class="btn btn-outline-secondary rounded-pill px-4">
-                            View Full Activity Log <i class="bi bi-arrow-right ms-1"></i>
-                        </a>
-                    </div>
-                    {% endif %}
-                {% else %}
-                <div class="text-center py-4">
-                    <i class="bi bi-clock-history fs-1 text-secondary-custom"></i>
-                    <p class="text-secondary-custom mt-2">No activity yet.</p>
                 </div>
                 {% endif %}
             </div>
         </div>
-        {% endif %}
-    </div>
+
+        <!-- Main Column: Tabs & Content Grid -->
+        <div class="md:col-span-8 flex flex-col gap-6">
+            <!-- Tabs -->
+            <div class="flex gap-8 border-b border-outline-variant/40 pb-0 overflow-x-auto no-scrollbar">
+                <a href="?tab=posts" class="text-xs font-bold uppercase tracking-widest pb-4 border-b-2 transition-all flex items-center gap-2 {% if active_tab == 'posts' %}text-primary border-primary{% else %}text-on-surface-variant/70 border-transparent hover:text-primary{% endif %}">
+                    <span class="material-symbols-outlined text-base">grid_on</span> Posts
+                </a>
+                <a href="?tab=activity" class="text-xs font-bold uppercase tracking-widest pb-4 border-b-2 transition-all flex items-center gap-2 {% if active_tab == 'activity' %}text-primary border-primary{% else %}text-on-surface-variant/70 border-transparent hover:text-primary{% endif %}">
+                    <span class="material-symbols-outlined text-base">history</span> Activity
+                </a>
+                {% if user == view_user %}
+                    <a href="{% url 'media_gallery' %}" class="text-xs font-bold uppercase tracking-widest pb-4 border-b-2 border-transparent text-on-surface-variant/70 hover:text-primary transition-all flex items-center gap-2">
+                        <span class="material-symbols-outlined text-base">photo_library</span> Media
+                    </a>
+                    <a href="{% url 'profile_analytics' %}" class="text-xs font-bold uppercase tracking-widest pb-4 border-b-2 border-transparent text-on-surface-variant/70 hover:text-primary transition-all flex items-center gap-2">
+                        <span class="material-symbols-outlined text-base">analytics</span> Analytics
+                    </a>
+                {% endif %}
+            </div>
+
+            {% if active_tab == 'posts' %}
+                <!-- Grid of posts -->
+                <div class="grid grid-cols-3 gap-1 md:gap-4">
+                    {% for post in posts %}
+                        <a href="{% url 'post_detail' pk=post.id %}" class="relative aspect-square overflow-hidden rounded-xl bg-surface-container border border-surface-container-high cursor-pointer block group">
+                            {% if post.image %}
+                                <img src="{{ post.image.url }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Post thumbnail" loading="lazy">
+                            {% else %}
+                                <div class="p-4 flex flex-col justify-center h-full text-xs leading-normal text-on-surface bg-surface-container-low">
+                                    <p class="line-clamp-4 font-body">{{ post.content }}</p>
+                                </div>
+                            {% endif %}
+                            
+                            <!-- Hover Overlay -->
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4 text-white text-sm font-bold z-10">
+                                <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-white text-base" style="font-variation-settings: 'FILL' 1;">favorite</span>{{ post.reaction_count }}</span>
+                                <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-white text-base" style="font-variation-settings: 'FILL' 1;">mode_comment</span>{{ post.comments.count }}</span>
+                            </div>
+                        </a>
+                    {% empty %}
+                        <div class="col-span-3 text-center py-20 bg-surface-container-lowest border border-surface-container-highest rounded-xl p-8">
+                            <span class="material-symbols-outlined text-outline text-5xl mb-3">grid_off</span>
+                            <p class="text-on-surface-variant font-medium text-sm">No posts written yet.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% elif active_tab == 'activity' %}
+                <!-- Timeline of Activity -->
+                <div class="sahara-card rounded-xl p-6 space-y-6">
+                    {% if activities %}
+                        <div class="relative border-l border-outline-variant/40 pl-6 ml-4 space-y-6">
+                            {% for log in activities %}
+                                <div class="relative">
+                                    <div class="absolute -left-[38px] top-0 w-8 h-8 rounded-full flex items-center justify-center text-white" style="background-color: {{ log.color|default:'#78706a' }}">
+                                        <i class="bi {{ log.icon }}"></i>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <p class="font-body text-sm font-bold text-on-surface">{{ log.description }}</p>
+                                        <p class="text-on-surface-variant text-[10px] uppercase font-semibold flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-xs">schedule</span>{{ log.created_at|timesince }} ago
+                                        </p>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        {% if user == view_user %}
+                            <div class="text-center pt-4">
+                                <a href="{% url 'activity_log' %}" class="px-6 py-2.5 border border-outline-variant/60 rounded-lg text-xs font-bold uppercase tracking-wider text-on-surface hover:bg-surface-container-low transition-colors">View Full Activity Log</a>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-10">
+                            <span class="material-symbols-outlined text-outline text-4xl mb-2">history</span>
+                            <p class="text-on-surface-variant text-sm font-medium">No activity yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+    </section>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    // Like Action Handler
+    // Like reaction via AJAX
     $(document).on('click', '.like-btn', function(e) {
         e.preventDefault();
         var btn = $(this);
         var postId = btn.data('post-id');
-        var url = "/post/" + postId + "/like/";
         
         $.ajax({
-            url: url,
+            url: "/post/" + postId + "/like/",
             type: "POST",
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}"
-            },
+            headers: { "X-CSRFToken": "{{ csrf_token }}" },
             success: function(data) {
                 var icon = btn.find('i');
                 var countSpan = btn.find('.like-count');

@@ -1,162 +1,71 @@
 {% extends 'base.html' %}
+{% load post_extras %}
 
 {% block title %}Explore | ConnectSphere{% endblock %}
 
-{% block extra_css %}
-<style>
-    .trending-tag {
-        display: inline-block;
-        padding: 0.4rem 1rem;
-        border-radius: 20px;
-        background-color: rgba(0, 149, 246, 0.08);
-        color: var(--accent-color);
-        text-decoration: none;
-        font-weight: 500;
-        font-size: 0.9rem;
-        transition: all 0.2s ease;
-        border: 1px solid transparent;
-    }
-    .trending-tag:hover {
-        background-color: rgba(0, 149, 246, 0.15);
-        border-color: var(--accent-color);
-        color: var(--accent-color);
-        transform: translateY(-1px);
-    }
-    .discover-card {
-        text-align: center;
-        padding: 1.5rem 1rem;
-        transition: transform 0.2s ease;
-    }
-    .discover-card:hover {
-        transform: translateY(-3px);
-    }
-    
-    /* Explore Grid styling */
-    .explore-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        margin-top: 1rem;
-    }
-    @media (max-width: 575.98px) {
-        .explore-grid {
-            gap: 4px;
-        }
-    }
-    .explore-grid-item {
-        position: relative;
-        aspect-ratio: 1 / 1;
-        overflow: hidden;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-        background-color: var(--card-bg-solid);
-        cursor: pointer;
-        display: block;
-    }
-    .explore-grid-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
-    }
-    .explore-grid-item:hover .explore-grid-img {
-        transform: scale(1.04);
-    }
-    .explore-grid-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.45);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 1.25rem;
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        z-index: 2;
-        color: #fff;
-    }
-    .explore-grid-item:hover .explore-grid-overlay {
-        opacity: 1;
-    }
-    .explore-grid-stat {
-        font-weight: 700;
-        font-size: 1.05rem;
-        display: flex;
-        align-items: center;
-        gap: 0.35rem;
-    }
-    .explore-text-card {
-        padding: 1.25rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        height: 100%;
-        color: var(--text-primary);
-        font-size: 0.88rem;
-        line-height: 1.4;
-        background: rgba(128, 128, 128, 0.04);
-    }
-    .text-truncate-custom {
-        display: -webkit-box;
-        -webkit-line-clamp: 4;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="row g-4">
+<!-- Page Header -->
+<section class="mb-12">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <div>
+            <h1 class="font-headline text-5xl md:text-6xl text-on-background leading-tight mb-2">Explore the Sphere</h1>
+            <p class="font-body text-on-surface-variant max-w-md">Uncover the latest trends, rising stars, and vibrant communities tailored to your curiosities.</p>
+        </div>
+    </div>
+    
+    <!-- Filter Categories -->
+    <div class="flex overflow-x-auto hide-scrollbar gap-3 pb-4">
+        <button class="px-6 py-2 rounded-full bg-primary text-on-primary font-body text-sm font-medium whitespace-nowrap">All</button>
+        <button class="px-6 py-2 rounded-full bg-surface-container border border-outline-variant/40 hover:bg-surface-container-high transition-colors text-on-surface font-body text-sm font-medium whitespace-nowrap">Art &amp; Design</button>
+        <button class="px-6 py-2 rounded-full bg-surface-container border border-outline-variant/40 hover:bg-surface-container-high transition-colors text-on-surface font-body text-sm font-medium whitespace-nowrap">Technology</button>
+        <button class="px-6 py-2 rounded-full bg-surface-container border border-outline-variant/40 hover:bg-surface-container-high transition-colors text-on-surface font-body text-sm font-medium whitespace-nowrap">Lifestyle</button>
+        <button class="px-6 py-2 rounded-full bg-surface-container border border-outline-variant/40 hover:bg-surface-container-high transition-colors text-on-surface font-body text-sm font-medium whitespace-nowrap">Philosophy</button>
+        <button class="px-6 py-2 rounded-full bg-surface-container border border-outline-variant/40 hover:bg-surface-container-high transition-colors text-on-surface font-body text-sm font-medium whitespace-nowrap">Travel</button>
+    </div>
+</section>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
     <!-- Main Explore Grid -->
-    <div class="col-lg-8">
-        <h4 class="fw-bold mb-3 d-flex align-items-center">
-            <i class="bi bi-compass-fill me-2" style="color: var(--accent-color);"></i>Explore
-        </h4>
-        
-        <div class="explore-grid">
+    <div class="col-span-1 lg:col-span-8">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="explore-posts-container">
             {% for post in trending_posts %}
-                <a href="{% url 'post_detail' pk=post.id %}" class="explore-grid-item text-decoration-none">
+                <a href="{% url 'post_detail' pk=post.id %}" class="relative aspect-square overflow-hidden rounded-xl bg-surface-container border border-surface-container-high cursor-pointer block group">
                     {% if post.image %}
-                        <img src="{{ post.image.url }}" class="explore-grid-img" alt="Explore post image">
+                        <img src="{{ post.image.url }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Explore post image" loading="lazy">
                     {% else %}
-                        <div class="explore-text-card">
-                            <p class="mb-0 text-truncate-custom">{{ post.content }}</p>
-                            <small class="text-secondary-custom mt-2">@{{ post.author.username }}</small>
+                        <div class="p-5 flex flex-col justify-center h-full text-sm leading-relaxed text-on-surface bg-surface-container-low">
+                            <p class="line-clamp-4 font-body">{{ post.content }}</p>
+                            <span class="text-[10px] text-on-surface-variant font-bold uppercase mt-3 tracking-wider">@{{ post.author.username }}</span>
                         </div>
                     {% endif %}
-                    <div class="explore-grid-overlay">
-                        <span class="explore-grid-stat">
-                            <i class="bi bi-heart-fill"></i>{{ post.reaction_count }}
-                        </span>
-                        <span class="explore-grid-stat">
-                            <i class="bi bi-chat-fill"></i>{{ post.comments.count }}
-                        </span>
+                    
+                    <!-- Overlay statistics -->
+                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-6 text-white text-sm font-bold z-10">
+                        <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">favorite</span>{{ post.reaction_count }}</span>
+                        <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">mode_comment</span>{{ post.comments.count }}</span>
                     </div>
                 </a>
             {% empty %}
-                <div class="col-12 text-center py-5">
-                    <i class="bi bi-compass fs-1 text-secondary-custom"></i>
-                    <p class="text-secondary-custom mt-2">Nothing trending right now. Check back later!</p>
+                <div class="col-span-3 text-center py-20 bg-surface-container-lowest border border-surface-container-highest rounded-xl p-8">
+                    <span class="material-symbols-outlined text-outline text-5xl mb-3">explore</span>
+                    <p class="text-on-surface-variant font-medium text-sm">Nothing trending right now. Check back later!</p>
                 </div>
             {% endfor %}
         </div>
     </div>
 
     <!-- Right Sidebar -->
-    <div class="col-lg-4">
+    <div class="col-span-1 lg:col-span-4 space-y-6">
         <!-- Trending Tags -->
         {% if trending_tags %}
-        <div class="card p-3 mb-4">
-            <h6 class="fw-bold text-secondary-custom mb-3"><i class="bi bi-hash me-1"></i>Trending Hashtags</h6>
-            <div class="d-flex flex-wrap gap-2">
+        <div class="sahara-card rounded-xl p-6">
+            <h6 class="font-headline text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-base">tag</span>Trending Hashtags
+            </h6>
+            <div class="flex flex-wrap gap-2">
                 {% for tag in trending_tags %}
-                    <a href="{% url 'hashtag_feed' tag=tag.name %}" class="trending-tag">
-                        #{{ tag.name }}
-                        <span class="text-secondary-custom ms-1" style="font-size: 0.75rem;">{{ tag.post_count }}</span>
+                    <a href="{% url 'hashtag_feed' tag=tag.name %}" class="px-3.5 py-1.5 bg-surface-container border border-outline-variant/60 rounded-full hover:bg-surface-container-high transition-colors text-xs font-bold text-on-surface">
+                        #{{ tag.name }} <span class="text-on-surface-variant font-medium text-[10px] ml-1">{{ tag.post_count }}</span>
                     </a>
                 {% endfor %}
             </div>
@@ -165,27 +74,27 @@
 
         <!-- Discover People -->
         {% if discover_users %}
-        <div class="card p-3">
-            <h6 class="fw-bold text-secondary-custom mb-3"><i class="bi bi-person-plus me-1"></i>Discover People</h6>
-            <div class="row g-2">
+        <div class="sahara-card rounded-xl p-6">
+            <h6 class="font-headline text-lg font-bold text-primary mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-primary text-base">person_add</span>Discover People
+            </h6>
+            <div class="grid grid-cols-2 gap-4">
                 {% for person in discover_users %}
-                <div class="col-6">
-                    <div class="card discover-card mb-0">
-                        <a href="{% url 'profile' username=person.username %}">
-                            {% if person.userprofile.profile_picture %}
-                                <img src="{{ person.userprofile.profile_picture.url }}" class="avatar-img-lg mb-2" alt="{{ person.username }}" style="width:70px; height:70px;">
-                            {% else %}
-                                <div class="avatar-placeholder-lg mx-auto mb-2" style="width:70px; height:70px; font-size: 1.5rem;">
-                                    {{ person.username|slice:":1"|upper }}
-                                </div>
-                            {% endif %}
-                        </a>
-                        <h6 class="fw-bold mb-1 small text-truncate">
-                            <a href="{% url 'profile' username=person.username %}" class="text-decoration-none text-light">{{ person.username }}</a>
-                        </h6>
-                        <span class="text-secondary-custom small text-truncate" style="font-size: 0.75rem;">{{ person.follower_count }} follower{{ person.follower_count|pluralize }}</span>
-                        <a href="{% url 'follow_user' user_id=person.id %}" class="btn btn-primary btn-sm mt-2 px-3" style="font-size: 0.75rem;">Follow</a>
-                    </div>
+                <div class="bg-surface-container-low border border-surface-container-highest rounded-xl p-4 flex flex-col items-center text-center shadow-sm">
+                    <a href="{% url 'profile' username=person.username %}" class="block relative mb-3">
+                        {% if person.userprofile.profile_picture %}
+                            <img src="{{ person.userprofile.profile_picture.url }}" class="w-14 h-14 rounded-full object-cover border border-surface-container-high" alt="{{ person.username }}">
+                        {% else %}
+                            <div class="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-lg text-on-surface-variant border border-surface-container-highest">
+                                {{ person.username|slice:":1"|upper }}
+                            </div>
+                        {% endif %}
+                    </a>
+                    <h6 class="font-body text-xs font-bold text-on-surface truncate w-full mb-0.5">
+                        <a href="{% url 'profile' username=person.username %}" class="hover:text-primary transition-colors">{{ person.username }}</a>
+                    </h6>
+                    <span class="text-on-surface-variant text-[10px] font-semibold truncate w-full mb-3">{{ person.follower_count }} follower{{ person.follower_count|pluralize }}</span>
+                    <a href="{% url 'follow_user' user_id=person.id %}" class="w-full py-1.5 bg-primary text-on-primary rounded-lg text-[10px] font-bold uppercase tracking-wider text-center hover:opacity-90 transition-opacity">Follow</a>
                 </div>
                 {% endfor %}
             </div>
@@ -193,7 +102,4 @@
         {% endif %}
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
 {% endblock %}

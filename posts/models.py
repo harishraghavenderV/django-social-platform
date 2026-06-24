@@ -29,7 +29,7 @@ class Post(models.Model):
         'groups.Group', on_delete=models.CASCADE, related_name='posts',
         blank=True, null=True
     )
-    instagram_url = models.URLField(blank=True, null=True, max_length=500)
+
     co_authors = models.ManyToManyField(User, blank=True, related_name='collaborative_posts', help_text='Co-authors who co-publish this post')
 
 

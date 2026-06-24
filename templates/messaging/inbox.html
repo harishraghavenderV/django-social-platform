@@ -2,113 +2,105 @@
 
 {% block title %}Messages | ConnectSphere{% endblock %}
 
-{% block extra_css %}
-<style>
-    .conversation-item {
-        display: flex;
-        align-items: center;
-        padding: 1rem 1.25rem;
-        border-bottom: 1px solid var(--border-color);
-        text-decoration: none;
-        color: var(--text-primary);
-        transition: background-color 0.2s ease;
-    }
-    .conversation-item:hover {
-        background-color: rgba(99, 102, 241, 0.08);
-        color: var(--text-primary);
-    }
-    .conversation-item.unread {
-        background-color: rgba(99, 102, 241, 0.05);
-    }
-    .conversation-item .msg-preview {
-        color: var(--text-secondary);
-        font-size: 0.85rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        max-width: 300px;
-    }
-    .conversation-item .msg-time {
-        color: var(--text-secondary);
-        font-size: 0.75rem;
-        white-space: nowrap;
-    }
-    .unread-badge {
-        background-color: var(--accent-color);
-        color: white;
-        border-radius: 50%;
-        width: 22px;
-        height: 22px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.7rem;
-        font-weight: 600;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header border-0 d-flex align-items-center justify-content-between px-4 py-3">
-                <h5 class="fw-bold mb-0"><i class="bi bi-chat-dots-fill me-2" style="color: var(--accent-color);"></i>Messages</h5>
-            </div>
+<div class="max-w-3xl mx-auto space-y-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="font-headline text-4xl font-bold text-on-surface">Conversations</h2>
+            <p class="text-on-surface-variant/80 font-body text-sm mt-1">Connect with friends in your personal spheres.</p>
+        </div>
+    </div>
 
+    <!-- Conversations Card Container -->
+    <div class="bg-surface-container-lowest border border-surface-container-highest rounded-2xl shadow-[0_4px_20px_-4px_rgba(194,101,42,0.04)] overflow-hidden">
+        <!-- Search bar in thread list -->
+        <div class="p-6 border-b border-surface-container-high">
+            <div class="relative w-full">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline/65 text-lg">search</span>
+                <input id="contact-search" 
+                       class="w-full pl-12 pr-4 py-3 bg-surface-container-low border border-outline-variant/60 rounded-xl focus:ring-1 focus:ring-primary focus:border-primary outline-none transition-all text-sm font-body text-on-surface placeholder:text-outline/60" 
+                       placeholder="Search contacts..." 
+                       type="text"/>
+            </div>
+        </div>
+
+        <!-- Chat Threads List -->
+        <div class="divide-y divide-surface-container-high" id="conversation-list">
             {% if conversations %}
                 {% for item in conversations %}
                 <a href="{% url 'conversation_detail' conversation_id=item.conversation.id %}"
-                   class="conversation-item {% if item.unread_count > 0 %}unread{% endif %}">
-                    <!-- Avatar -->
-                    {% if item.other_user.userprofile.profile_picture %}
-                        <img src="{{ item.other_user.userprofile.profile_picture.url }}"
-                             class="avatar-img me-3" alt="{{ item.other_user.username }}">
-                    {% else %}
-                        <div class="avatar-placeholder me-3">
-                            {{ item.other_user.username|slice:":1"|upper }}
+                   class="conversation-item flex items-center justify-between p-5 hover:bg-surface-container-low/40 transition-colors {% if item.unread_count > 0 %}bg-primary/5 hover:bg-primary/10{% endif %}"
+                   data-username="{{ item.other_user.username|lower }}">
+                    
+                    <div class="flex items-center gap-4 flex-1 min-w-0">
+                        <!-- User Profile Picture or Placeholder -->
+                        <div class="relative flex-shrink-0">
+                            <div class="w-12 h-12 rounded-full overflow-hidden border border-outline-variant/60 bg-surface-container-low flex items-center justify-center">
+                                {% if item.other_user.userprofile.profile_picture %}
+                                    <img src="{{ item.other_user.userprofile.profile_picture.url }}"
+                                         class="w-full h-full object-cover" alt="{{ item.other_user.username }}">
+                                {% else %}
+                                    <span class="font-bold text-lg text-on-surface-variant/75">
+                                        {{ item.other_user.username|slice:":1"|upper }}
+                                    </span>
+                                {% endif %}
+                            </div>
                         </div>
-                    {% endif %}
 
-                    <!-- Info -->
-                    <div class="flex-grow-1 me-3" style="min-width: 0;">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="mb-0 fw-bold text-light">{{ item.other_user.username }}</h6>
+                        <!-- Info details -->
+                        <div class="flex-grow min-w-0">
+                            <div class="flex justify-between items-baseline mb-1">
+                                <h4 class="font-bold text-on-surface text-sm truncate flex items-center gap-1.5">
+                                    {{ item.other_user.username }}
+                                    {% if item.other_user.userprofile.is_verified %}
+                                        <span class="material-symbols-outlined text-primary text-xs" style="font-variation-settings: 'FILL' 1;">verified</span>
+                                    {% endif %}
+                                </h4>
+                                {% if item.last_message %}
+                                    <span class="text-[10px] text-on-surface-variant/60 font-medium font-body">{{ item.last_message.created_at|timesince }} ago</span>
+                                {% endif %}
+                            </div>
+                            
                             {% if item.last_message %}
-                                <span class="msg-time">{{ item.last_message.created_at|timesince }} ago</span>
+                                <p class="text-xs text-on-surface-variant truncate pr-4">
+                                    {% if item.last_message.sender == user %}
+                                        <span class="text-primary font-bold">You:</span>
+                                    {% endif %}
+                                    {% if item.last_message.content %}
+                                        {{ item.last_message.content }}
+                                    {% else %}
+                                        <span class="italic text-on-surface-variant/65 flex items-center gap-1"><span class="material-symbols-outlined text-xs">image</span> Photo attachment</span>
+                                    {% endif %}
+                                </p>
+                            {% else %}
+                                <p class="text-xs italic text-on-surface-variant/50">No messages yet</p>
                             {% endif %}
                         </div>
-                        {% if item.last_message %}
-                            <p class="msg-preview mb-0">
-                                {% if item.last_message.sender == user %}You: {% endif %}
-                                {% if item.last_message.content %}
-                                    {{ item.last_message.content|truncatechars:60 }}
-                                {% else %}
-                                    <i class="bi bi-image me-1"></i>Photo
-                                {% endif %}
-                            </p>
-                        {% else %}
-                            <p class="msg-preview mb-0">No messages yet</p>
-                        {% endif %}
                     </div>
 
-                    <!-- Pin Icon & Unread Badge -->
-                    <div class="d-flex align-items-center">
-                        <button class="btn btn-link p-0 text-secondary-custom pin-toggle-btn me-2"
+                    <!-- Right Side Controls (Pin & Unread Badge) -->
+                    <div class="flex items-center gap-3 ml-4">
+                        <button class="pin-toggle-btn p-1.5 rounded-lg text-on-surface-variant/45 hover:text-primary transition-colors cursor-pointer flex items-center"
                                 data-convo-id="{{ item.conversation.id }}"
-                                style="font-size: 1.1rem; border: none; outline: none; z-index: 5;">
-                            <i class="bi {% if item.is_pinned %}bi-pin-angle-fill{% else %}bi-pin-angle{% endif %}" {% if item.is_pinned %}style="color: var(--accent-color) !important;"{% endif %}></i>
+                                title="{% if item.is_pinned %}Unpin Conversation{% else %}Pin Conversation{% endif %}">
+                            <span class="material-symbols-outlined text-lg" 
+                                  {% if item.is_pinned %}style="font-variation-settings: 'FILL' 1; color: var(--color-primary);"{% endif %}>
+                                {% if item.is_pinned %}keep_public{% else %}keep{% endif %}
+                            </span>
                         </button>
                         {% if item.unread_count > 0 %}
-                            <div class="unread-badge">{{ item.unread_count }}</div>
+                            <span class="w-5 h-5 rounded-full bg-primary text-on-primary text-[10px] font-bold flex items-center justify-center shadow-sm">
+                                {{ item.unread_count }}
+                            </span>
                         {% endif %}
                     </div>
                 </a>
                 {% endfor %}
             {% else %}
-                <div class="text-center py-5">
-                    <i class="bi bi-chat-text fs-1 text-secondary-custom"></i>
-                    <p class="text-secondary-custom mt-2">No conversations yet. Start chatting with your friends!</p>
+                <div class="text-center py-16 px-6 space-y-4">
+                    <span class="material-symbols-outlined text-5xl text-on-surface-variant/30">forum</span>
+                    <p class="text-on-surface-variant/80 text-sm max-w-sm mx-auto">Your messaging sanctuary is currently quiet. Head over to profiles of members to start a new chat conversation.</p>
                 </div>
             {% endif %}
         </div>
@@ -119,12 +111,26 @@
 {% block extra_js %}
 <script>
     $(document).ready(function() {
+        // Dynamic search filtering
+        $('#contact-search').on('input', function() {
+            var val = $(this).val().toLowerCase().trim();
+            $('.conversation-item').each(function() {
+                var username = $(this).data('username') || '';
+                if (username.indexOf(val) !== -1) {
+                    $(this).show();
+                } else {
+                    $(this).hide();
+                }
+            });
+        });
+
+        // Pin/Unpin conversation
         $('.pin-toggle-btn').on('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
             var btn = $(this);
             var convoId = btn.data('convo-id');
-            var icon = btn.find('i');
+            var iconSpan = btn.find('.material-symbols-outlined');
             
             $.ajax({
                 url: '/messages/' + convoId + '/toggle-pin/',
@@ -133,21 +139,23 @@
                 success: function(data) {
                     if (data.success) {
                         if (data.is_pinned) {
-                            icon.removeClass('bi-pin-angle').addClass('bi-pin-angle-fill');
-                            icon.css('color', 'var(--accent-color)');
+                            iconSpan.text('keep_public');
+                            iconSpan.css('font-variation-settings', "'FILL' 1");
+                            iconSpan.css('color', 'var(--color-primary)');
                         } else {
-                            icon.removeClass('bi-pin-angle-fill').addClass('bi-pin-angle');
-                            icon.css('color', '');
+                            iconSpan.text('keep');
+                            iconSpan.css('font-variation-settings', "'FILL' 0");
+                            iconSpan.css('color', '');
                         }
+                        // Refresh page to re-sort pinned items to top
                         window.location.reload();
                     }
                 },
                 error: function(xhr) {
-                    alert('Failed to pin conversation.');
+                    alert('Failed to pin conversation. Please try again.');
                 }
             });
         });
     });
 </script>
 {% endblock %}
-

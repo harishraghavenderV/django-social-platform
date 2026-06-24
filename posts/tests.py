@@ -179,28 +179,7 @@ class PostsViewsTestCase(TestCase):
         self.assertEqual(response.json()['success'], False)
         self.assertEqual(PollVote.objects.count(), 1)
 
-    def test_import_instagram_missing_url(self):
-        """Test importing instagram post with missing url parameter."""
-        self.client.login(username='user1', password='password123')
-        response = self.client.post(reverse('import_instagram'))
-        self.assertEqual(response.status_code, 400)
-        self.assertIn('URL is required', response.json()['error'])
 
-    def test_import_instagram_iframe_embed(self):
-        """Test importing instagram post to create an iframe embed."""
-        self.client.login(username='user1', password='password123')
-        url = 'https://www.instagram.com/p/C_thanthitv/'
-        response = self.client.post(reverse('import_instagram'), data={'url': url})
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()['success'], True)
-        self.assertEqual(response.json()['author'], 'thanthitv')
-        self.assertEqual(response.json()['instagram_url'], 'https://www.instagram.com/p/C_thanthitv/')
-        
-        # Verify the post and author user profiles were created
-        self.assertTrue(User.objects.filter(username='thanthitv').exists())
-        self.assertTrue(Post.objects.filter(author__username='thanthitv').exists())
-        post = Post.objects.filter(author__username='thanthitv').first()
-        self.assertEqual(post.instagram_url, 'https://www.instagram.com/p/C_thanthitv/')
 
     def test_post_create_collaborative(self):
         """Test creating a post with a co-author and that notification is sent."""
