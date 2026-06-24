@@ -125,7 +125,6 @@ class UserProfileViewSet(viewsets.ReadOnlyModelViewSet):
     @action(detail=False, methods=['get'], url_path='hashtags/suggestions')
     def hashtag_suggestions(self, request):
         """Get hashtag suggestions based on search query parameter 'q'"""
-        from posts.models import HashTag
         query = request.query_params.get('q', '')
         if len(query) < 1:
             return Response([])

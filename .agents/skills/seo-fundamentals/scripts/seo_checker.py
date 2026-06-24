@@ -35,7 +35,8 @@ SKIP_DIRS = {
     'node_modules', '.next', 'dist', 'build', '.git', '.github',
     '__pycache__', '.vscode', '.idea', 'coverage', 'test', 'tests',
     '__tests__', 'spec', 'docs', 'documentation', 'examples',
-    'venv', '.venv', 'env'
+    'venv', '.venv', 'env', '.agents', 'stitch_connectsphere_social_platform',
+    'stitch_design'
 }
 
 # Files to skip (not pages)
