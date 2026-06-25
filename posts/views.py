@@ -14,6 +14,7 @@ from .models import Post, Comment, Share, HashTag, Reaction
 from .poll_models import Poll, PollOption, PollVote
 from friends.models import Follow
 from notifications.models import Notification
+from groups.models import Group
 
 logger = logging.getLogger(__name__)
 
@@ -441,13 +442,33 @@ def explore(request):
     """Trending posts — most engagement in the last 7 days."""
     week_ago = timezone.now() - timedelta(days=7)
 
+    # Get trending posts
     trending_posts = Post.objects.filter(
         created_at__gte=week_ago,
         group__isnull=True,
+        status='published',
+    ).exclude(
+        author_id__in=request.all_blocked_ids if request.user.is_authenticated else []
     ).annotate(
         engagement=Count('reactions') + Count('comments'),
     ).order_by('-engagement', '-created_at')[:30]
 
+    # Get featured post (top trending post with an image, fallback to first trending post)
+    featured_post = Post.objects.filter(
+        created_at__gte=week_ago,
+        group__isnull=True,
+        status='published',
+        image__isnull=False,
+    ).exclude(
+        author_id__in=request.all_blocked_ids if request.user.is_authenticated else []
+    ).annotate(
+        engagement=Count('reactions') + Count('comments'),
+    ).order_by('-engagement', '-created_at').first()
+
+    if not featured_post:
+        featured_post = trending_posts.first()
+
+    # Get trending tags
     trending_tags = HashTag.objects.annotate(
         post_count=Count('posts')
     ).order_by('-post_count')[:10]
@@ -465,10 +486,62 @@ def explore(request):
     else:
         discover_users = []
 
+    # Get top 3 communities
+    top_groups = Group.objects.annotate(
+        num_members=Count('memberships')
+    ).order_by('-num_members')[:3]
+
+    # Daily rotating creative prompts
+    PROMPTS = [
+        "What does simplicity feel like in a world built on complexity?",
+        "How does nature influence your digital aesthetic?",
+        "What is one design principle you refuse to break?",
+        "How do you curate quietness in your everyday workspace?",
+        "What was the last analog experience that inspired you?",
+        "How does warm light change the way you perceive design?",
+        "What does sun-baked minimalism mean to you?"
+    ]
+    import datetime
+    day_index = datetime.datetime.now().weekday()
+    todays_prompt = PROMPTS[day_index % len(PROMPTS)]
+
+    # Dynamic curated collections based on trending tags
+    curated_collections = []
+    for tag in trending_tags[:4]:
+        latest_post_with_image = tag.posts.filter(image__isnull=False).order_by('-created_at').first()
+        if latest_post_with_image:
+            cover_image_url = latest_post_with_image.image.url
+        else:
+            cover_image_url = "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634"
+        
+        curated_collections.append({
+            'name': tag.name.replace('_', ' ').title(),
+            'hashtag': tag.name,
+            'post_count': tag.posts.count(),
+            'cover_image_url': cover_image_url,
+        })
+
+    # If not enough collections, pad with fallback presets
+    presets = [("Slow Living", "slowliving"), ("Architectural Form", "architecture"), ("Design Harmony", "design")]
+    for name, tag_name in presets:
+        if len(curated_collections) >= 4:
+            break
+        if not any(c['hashtag'] == tag_name for c in curated_collections):
+            curated_collections.append({
+                'name': name,
+                'hashtag': tag_name,
+                'post_count': Post.objects.filter(hashtags__name=tag_name).count(),
+                'cover_image_url': "https://images.unsplash.com/photo-1513542789411-b6a5d4f31634",
+            })
+
     return render(request, 'posts/explore.html', {
         'trending_posts': trending_posts,
+        'featured_post': featured_post,
         'trending_tags': trending_tags,
         'discover_users': discover_users,
+        'top_groups': top_groups,
+        'todays_prompt': todays_prompt,
+        'curated_collections': curated_collections,
     })
 
 

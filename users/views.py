@@ -133,11 +133,43 @@ def profile_edit(request):
         user_form = UserForm(instance=request.user)
         profile_form = UserProfileForm(instance=request.user.userprofile)
         
+    alt_users = User.objects.exclude(id=request.user.id)[:5]
+    saved_posts = request.user.bookmarked_posts.all().order_by('-created_at')[:6]
+    
+    # Check 2FA status
+    from django_otp.plugins.otp_totp.models import TOTPDevice
+    has_2fa = TOTPDevice.objects.filter(user=request.user, confirmed=True).exists()
+
     context = {
         'user_form': user_form,
-        'profile_form': profile_form
+        'profile_form': profile_form,
+        'alt_users': alt_users,
+        'saved_posts': saved_posts,
+        'has_2fa': has_2fa,
     }
     return render(request, 'users/profile_edit.html', context)
+
+
+@login_required
+def switch_account(request, user_id):
+    """Switch active login to a different user for demo convenience."""
+    target_user = get_object_or_404(User, id=user_id)
+    login(request, target_user, backend='django.contrib.auth.backends.ModelBackend')
+    messages.success(request, f"Switched to account: {target_user.username}")
+    return redirect('profile_edit')
+
+
+@login_required
+def delete_account(request):
+    """Permanently delete logged in user's profile and auth record."""
+    if request.method == 'POST':
+        user = request.user
+        from django.contrib.auth import logout
+        logout(request)
+        user.delete()
+        messages.success(request, "Your account has been permanently deleted.")
+        return redirect('home')
+    return redirect('profile_edit')
 
 
 @login_required

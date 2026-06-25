@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% load post_extras %}
 
-{% block title %}Explore | ConnectSphere{% endblock %}
+{% block title %}Discover | ConnectSphere{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
+<!-- Search & Categories Header -->
 <section class="mb-12">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
         <div>
@@ -12,8 +12,6 @@
             <p class="font-body text-on-surface-variant max-w-md">Uncover the latest trends, rising stars, and vibrant communities tailored to your curiosities.</p>
         </div>
     </div>
-    
-    <!-- Filter Categories -->
     <div class="flex overflow-x-auto hide-scrollbar gap-3 pb-4">
         <button class="px-6 py-2 rounded-full bg-primary text-on-primary font-body text-sm font-medium whitespace-nowrap">All</button>
         <button class="px-6 py-2 rounded-full bg-surface-container border border-outline-variant/40 hover:bg-surface-container-high transition-colors text-on-surface font-body text-sm font-medium whitespace-nowrap">Art &amp; Design</button>
@@ -24,82 +22,146 @@
     </div>
 </section>
 
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-    <!-- Main Explore Grid -->
-    <div class="col-span-1 lg:col-span-8">
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="explore-posts-container">
-            {% for post in trending_posts %}
-                <a href="{% url 'post_detail' pk=post.id %}" class="relative aspect-square overflow-hidden rounded-xl bg-surface-container border border-surface-container-high cursor-pointer block group">
-                    {% if post.image %}
-                        <img src="{{ post.image.url }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="Explore post image" loading="lazy">
+<!-- Featured Bento Section -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
+    <!-- Trending Card -->
+    {% if featured_post %}
+    <div onclick="window.location.href='{% url 'post_detail' pk=featured_post.id %}'" class="lg:col-span-8 group cursor-pointer relative overflow-hidden rounded-xl bg-surface-container-low shadow-[0_2px_16px_rgba(58,48,42,0.04)]">
+        {% if featured_post.image %}
+        <div class="aspect-[16/9] w-full relative overflow-hidden bg-surface-container">
+            <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="{{ featured_post.image.url }}" alt="Featured post image"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
+            <div class="absolute top-6 left-6 bg-primary-container text-on-primary-container backdrop-blur-md px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest">Featured Story</div>
+        </div>
+        {% endif %}
+        <div class="p-8 md:p-10">
+            <span class="font-body text-tertiary font-bold text-xs uppercase tracking-widest mb-3 block">Perspective</span>
+            <h2 class="font-headline text-3xl md:text-5xl text-on-surface mb-4 leading-tight group-hover:text-primary transition-colors">{{ featured_post.content|truncatechars:120 }}</h2>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-6 h-6 rounded-full overflow-hidden bg-surface-variant flex items-center justify-center">
+                        {% if featured_post.author.userprofile.profile_picture %}
+                            <img class="w-full h-full object-cover" src="{{ featured_post.author.userprofile.profile_picture.url }}" alt="{{ featured_post.author.username }}"/>
+                        {% else %}
+                            <span class="text-[10px] font-bold">{{ featured_post.author.username|slice:":1"|upper }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="font-body text-sm font-medium text-on-surface-variant">@{{ featured_post.author.username }}</span>
+                </div>
+                <div class="w-1 h-1 rounded-full bg-outline-variant"></div>
+                <span class="font-body text-sm text-on-surface-variant">{{ featured_post.created_at|timesince }} ago</span>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Side Info Cards -->
+    <div class="lg:col-span-4 flex flex-col gap-8 justify-between">
+        <div class="bg-primary-container/10 p-8 rounded-xl border border-primary/10 flex flex-col justify-center h-full">
+            <h3 class="font-headline text-2xl text-primary mb-3">Today's Prompt</h3>
+            <p class="font-body text-on-surface mb-6 italic text-lg leading-relaxed">"{{ todays_prompt }}"</p>
+            <a href="{% url 'home' %}" class="flex items-center gap-2 text-primary font-bold text-sm uppercase tracking-wider group">
+                Share your thoughts
+                <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+            </a>
+        </div>
+        <div class="bg-surface-container-high/40 p-8 rounded-xl border border-outline-variant/30">
+            <h3 class="font-body text-xs font-extrabold uppercase tracking-[0.2em] text-on-surface-variant/60 mb-6">Trending Topics</h3>
+            <ul class="space-y-4">
+                {% for tag in trending_tags|slice:":3" %}
+                <li onclick="window.location.href='{% url 'hashtag_feed' tag=tag.name %}'" class="flex items-center justify-between group cursor-pointer">
+                    <span class="font-headline text-xl text-on-surface group-hover:text-primary transition-colors">#{{ tag.name }}</span>
+                    <span class="font-body text-xs text-on-surface-variant bg-surface px-2 py-1 rounded">{{ tag.post_count }}</span>
+                </li>
+                {% empty %}
+                <p class="text-xs text-on-surface-variant">No trending tags today.</p>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- Rising Creators Section -->
+<section class="mb-16">
+    <div class="flex items-end justify-between mb-8">
+        <div>
+            <h2 class="font-headline text-4xl text-on-surface mb-2">Rising Creators</h2>
+            <p class="font-body text-on-surface-variant">The minds shaping tomorrow's conversations.</p>
+        </div>
+    </div>
+    <div class="flex overflow-x-auto hide-scrollbar gap-6 pb-6 -mx-2 px-2">
+        {% for creator in discover_users %}
+        <div onclick="window.location.href='{% url 'profile' username=creator.username %}'" class="flex-shrink-0 w-64 group cursor-pointer">
+            <div class="relative mb-4 aspect-square rounded-xl overflow-hidden shadow-sm bg-surface-container">
+                {% if creator.userprofile.profile_picture %}
+                    <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="{{ creator.userprofile.profile_picture.url }}" alt="{{ creator.username }}"/>
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center bg-surface-variant text-4xl font-headline text-on-surface-variant">
+                        {{ creator.username|slice:":1"|upper }}
+                    </div>
+                {% endif %}
+                <div class="absolute bottom-4 left-4 right-4 bg-white/80 backdrop-blur-md p-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity translate-y-4 group-hover:translate-y-0 duration-300">
+                    <p class="text-[10px] font-bold text-primary uppercase tracking-widest font-body">Creative</p>
+                </div>
+            </div>
+            <h4 class="font-headline text-xl text-on-surface group-hover:text-primary transition-colors">@{{ creator.username }}</h4>
+            <p class="font-body text-xs text-on-surface-variant">{{ creator.userprofile.bio|default:"No bio yet."|truncatechars:40 }}</p>
+        </div>
+        {% empty %}
+        <p class="text-sm text-on-surface-variant">No new creators to discover.</p>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Top Communities & Lists -->
+<section class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-24">
+    <div>
+        <div class="flex items-end justify-between mb-8">
+            <h2 class="font-headline text-3xl text-on-surface">Top Communities</h2>
+            <a href="{% url 'group_list' %}" class="text-primary font-bold text-[10px] uppercase tracking-[0.2em] hover:underline">See All</a>
+        </div>
+        <div class="space-y-4">
+            {% for group in top_groups %}
+            <div onclick="window.location.href='{% url 'group_detail' pk=group.id %}'" class="flex items-center gap-5 p-4 rounded-xl bg-surface-container/30 hover:bg-surface-container transition-all cursor-pointer group border-l-4 border-transparent hover:border-primary">
+                <div class="w-14 h-14 rounded-lg bg-surface-container-highest flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    {% if group.cover_image %}
+                        <img class="w-full h-full object-cover" src="{{ group.cover_image.url }}" alt="{{ group.name }}"/>
                     {% else %}
-                        <div class="p-5 flex flex-col justify-center h-full text-sm leading-relaxed text-on-surface bg-surface-container-low">
-                            <p class="line-clamp-4 font-body">{{ post.content }}</p>
-                            <span class="text-[10px] text-on-surface-variant font-bold uppercase mt-3 tracking-wider">@{{ post.author.username }}</span>
+                        <div class="w-full h-full flex items-center justify-center bg-primary/20 text-primary font-bold text-lg">
+                            {{ group.name|slice:":1"|upper }}
                         </div>
                     {% endif %}
-                    
-                    <!-- Overlay statistics -->
-                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-6 text-white text-sm font-bold z-10">
-                        <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">favorite</span>{{ post.reaction_count }}</span>
-                        <span class="flex items-center gap-1.5"><span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">mode_comment</span>{{ post.comments.count }}</span>
-                    </div>
-                </a>
-            {% empty %}
-                <div class="col-span-3 text-center py-20 bg-surface-container-lowest border border-surface-container-highest rounded-xl p-8">
-                    <span class="material-symbols-outlined text-outline text-5xl mb-3">explore</span>
-                    <p class="text-on-surface-variant font-medium text-sm">Nothing trending right now. Check back later!</p>
                 </div>
+                <div class="flex-grow">
+                    <h5 class="font-headline text-lg text-on-surface group-hover:text-primary transition-colors">{{ group.name }}</h5>
+                    <p class="font-body text-xs text-on-surface-variant">{{ group.num_members }} member{{ group.num_members|pluralize }} • {{ group.posts.count }} post{{ group.posts.count|pluralize }}</p>
+                </div>
+                <span class="material-symbols-outlined text-outline-variant group-hover:text-primary">chevron_right</span>
+            </div>
+            {% empty %}
+            <p class="text-sm text-on-surface-variant">No active communities found.</p>
             {% endfor %}
         </div>
     </div>
-
-    <!-- Right Sidebar -->
-    <div class="col-span-1 lg:col-span-4 space-y-6">
-        <!-- Trending Tags -->
-        {% if trending_tags %}
-        <div class="sahara-card rounded-xl p-6">
-            <h6 class="font-headline text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary text-base">tag</span>Trending Hashtags
-            </h6>
-            <div class="flex flex-wrap gap-2">
-                {% for tag in trending_tags %}
-                    <a href="{% url 'hashtag_feed' tag=tag.name %}" class="px-3.5 py-1.5 bg-surface-container border border-outline-variant/60 rounded-full hover:bg-surface-container-high transition-colors text-xs font-bold text-on-surface">
-                        #{{ tag.name }} <span class="text-on-surface-variant font-medium text-[10px] ml-1">{{ tag.post_count }}</span>
-                    </a>
-                {% endfor %}
-            </div>
+    <div>
+        <div class="flex items-end justify-between mb-8">
+            <h2 class="font-headline text-3xl text-on-surface">Curated Collections</h2>
         </div>
-        {% endif %}
-
-        <!-- Discover People -->
-        {% if discover_users %}
-        <div class="sahara-card rounded-xl p-6">
-            <h6 class="font-headline text-lg font-bold text-primary mb-4 flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary text-base">person_add</span>Discover People
-            </h6>
-            <div class="grid grid-cols-2 gap-4">
-                {% for person in discover_users %}
-                <div class="bg-surface-container-low border border-surface-container-highest rounded-xl p-4 flex flex-col items-center text-center shadow-sm">
-                    <a href="{% url 'profile' username=person.username %}" class="block relative mb-3">
-                        {% if person.userprofile.profile_picture %}
-                            <img src="{{ person.userprofile.profile_picture.url }}" class="w-14 h-14 rounded-full object-cover border border-surface-container-high" alt="{{ person.username }}">
-                        {% else %}
-                            <div class="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-lg text-on-surface-variant border border-surface-container-highest">
-                                {{ person.username|slice:":1"|upper }}
-                            </div>
-                        {% endif %}
-                    </a>
-                    <h6 class="font-body text-xs font-bold text-on-surface truncate w-full mb-0.5">
-                        <a href="{% url 'profile' username=person.username %}" class="hover:text-primary transition-colors">{{ person.username }}</a>
-                    </h6>
-                    <span class="text-on-surface-variant text-[10px] font-semibold truncate w-full mb-3">{{ person.follower_count }} follower{{ person.follower_count|pluralize }}</span>
-                    <a href="{% url 'follow_user' user_id=person.id %}" class="w-full py-1.5 bg-primary text-on-primary rounded-lg text-[10px] font-bold uppercase tracking-wider text-center hover:opacity-90 transition-opacity">Follow</a>
+        <div class="grid grid-cols-2 gap-4">
+            {% for collection in curated_collections %}
+            <div onclick="window.location.href='{% url 'hashtag_feed' tag=collection.hashtag %}'" class="aspect-square rounded-xl bg-surface-container-highest relative overflow-hidden group cursor-pointer">
+                <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" src="{{ collection.cover_image_url }}" alt="{{ collection.name }}"/>
+                <div class="absolute inset-0 bg-black/40 flex items-center justify-center p-6 text-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <p class="font-headline text-xl text-white">{{ collection.name }}</p>
                 </div>
-                {% endfor %}
+                <div class="absolute bottom-4 left-4 right-4 flex justify-between items-center z-10">
+                    <span class="bg-white/20 backdrop-blur-sm px-2 py-1 rounded text-[8px] text-white uppercase tracking-widest font-bold">{{ collection.post_count }} item{{ collection.post_count|pluralize }}</span>
+                </div>
             </div>
+            {% empty %}
+            <p class="text-sm text-on-surface-variant">No collections curated yet.</p>
+            {% endfor %}
         </div>
-        {% endif %}
     </div>
-</div>
+</section>
 {% endblock %}

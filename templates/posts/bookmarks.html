@@ -4,52 +4,71 @@
 {% block title %}Bookmarks | ConnectSphere{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="d-flex align-items-center justify-content-between mb-4">
-            <h4 class="fw-bold mb-0"><i class="bi bi-bookmark-fill me-2" style="color: var(--accent-color);"></i>Saved Posts</h4>
-            <span class="text-secondary-custom">{{ posts.count }} saved</span>
+<div class="max-w-3xl mx-auto space-y-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between border-b border-surface-container-highest pb-4">
+        <div class="flex items-center gap-3">
+            <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">bookmark</span>
+            <div>
+                <h1 class="font-headline text-3xl font-bold text-on-surface">Saved Posts</h1>
+                <p class="text-on-surface-variant/80 font-body text-xs mt-0.5">Your private library of reference and inspiration.</p>
+            </div>
         </div>
+        <span class="text-xs font-bold text-secondary bg-surface-container-high px-3 py-1.5 rounded-full uppercase tracking-wider">{{ posts.count }} saved</span>
+    </div>
 
+    <!-- Posts List -->
+    <div class="space-y-6" id="bookmarks-container">
         {% for post in posts %}
-        <div class="card" id="post-card-{{ post.id }}">
-            <div class="card-header border-0 d-flex align-items-center justify-content-between pb-0">
-                <div class="d-flex align-items-center">
-                    <a href="{% url 'profile' username=post.author.username %}">
+        <div class="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl p-6 md:p-8 shadow-[0_2px_16px_rgba(58,48,42,0.03)] space-y-4 transition-all duration-300" id="post-card-{{ post.id }}">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'profile' username=post.author.username %}" class="block w-10 h-10 rounded-full overflow-hidden bg-surface-container">
                         {% if post.author.userprofile.profile_picture %}
-                            <img src="{{ post.author.userprofile.profile_picture.url }}" class="avatar-img me-2" alt="{{ post.author.username }}">
+                            <img src="{{ post.author.userprofile.profile_picture.url }}" class="w-full h-full object-cover" alt="{{ post.author.username }}">
                         {% else %}
-                            <div class="avatar-placeholder me-2">{{ post.author.username|slice:":1"|upper }}</div>
+                            <div class="w-full h-full flex items-center justify-center bg-surface-variant font-bold text-sm text-on-surface-variant">
+                                {{ post.author.username|slice:":1"|upper }}
+                            </div>
                         {% endif %}
                     </a>
                     <div>
-                        <h6 class="mb-0 fw-bold"><a href="{% url 'profile' username=post.author.username %}" class="text-decoration-none text-light">{{ post.author.username }}</a></h6>
-                        <span class="text-secondary-custom small">{{ post.created_at|timesince }} ago</span>
+                        <h6 class="font-bold text-sm text-on-surface mb-0.5">
+                            <a href="{% url 'profile' username=post.author.username %}" class="hover:text-primary transition-colors">@{{ post.author.username }}</a>
+                        </h6>
+                        <span class="text-[10px] text-on-surface-variant/70">{{ post.created_at|timesince }} ago</span>
                     </div>
                 </div>
-                <button class="btn btn-link text-secondary-custom p-0 bookmark-btn active" data-post-id="{{ post.id }}">
-                    <i class="bi bi-bookmark-fill fs-5"></i>
+                <button class="text-primary hover:opacity-85 transition-opacity bookmark-btn active" data-post-id="{{ post.id }}">
+                    <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">bookmark</span>
                 </button>
             </div>
-            <div class="card-body">
-                <p class="card-text">{{ post.content }}</p>
+            
+            <div class="space-y-4">
+                <p class="font-body text-sm text-on-surface leading-relaxed">{{ post.content }}</p>
                 {% if post.image %}
-                    <img src="{{ post.image.url }}" class="img-fluid rounded w-100 mb-3" alt="Post media">
+                    <div class="rounded-xl overflow-hidden bg-surface-container">
+                        <img src="{{ post.image.url }}" class="w-full object-cover max-h-[400px]" alt="Post media">
+                    </div>
                 {% endif %}
-                <hr class="my-2" style="border-color: var(--border-color);">
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="text-secondary-custom small">
-                        <i class="bi bi-heart me-1"></i>{{ post.reaction_count }} reactions
-                    </span>
-                    <a href="{% url 'post_detail' pk=post.id %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">View Post</a>
-                </div>
+            </div>
+
+            <div class="pt-4 border-t border-outline-variant/30 flex justify-between items-center text-xs">
+                <span class="text-on-surface-variant/80 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-sm text-tertiary" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                    {{ post.reaction_count }} reaction{{ post.reaction_count|pluralize }}
+                </span>
+                <a href="{% url 'post_detail' pk=post.id %}" class="px-4 py-2 border border-outline-variant/60 text-on-surface-variant font-bold rounded-lg hover:bg-surface-container-low transition-colors">View Thread</a>
             </div>
         </div>
         {% empty %}
-        <div class="text-center py-5">
-            <i class="bi bi-bookmark fs-1 text-secondary-custom"></i>
-            <p class="text-secondary-custom mt-3">No saved posts yet.</p>
-            <p class="text-secondary-custom small">Bookmark posts from your feed to find them here later.</p>
+        <div class="text-center py-20 bg-surface-container-low border border-dashed border-outline-variant/60 rounded-2xl p-8 space-y-4">
+            <span class="material-symbols-outlined text-outline text-5xl">bookmark</span>
+            <div>
+                <p class="text-on-surface font-medium text-sm">No saved posts yet.</p>
+                <p class="text-on-surface-variant/85 text-xs">Bookmark posts from your feed to view them here later.</p>
+            </div>
+            <a href="{% url 'explore' %}" class="px-5 py-2.5 bg-primary text-on-primary font-bold text-xs uppercase tracking-wider rounded-xl hover:opacity-90 inline-block">Explore Feed</a>
         </div>
         {% endfor %}
     </div>
@@ -58,20 +77,43 @@
 
 {% block extra_js %}
 <script>
-    $(document).on('click', '.bookmark-btn', function(e) {
-        e.preventDefault();
-        var btn = $(this);
-        var postId = btn.data('post-id');
-        $.ajax({
-            url: '/post/' + postId + '/bookmark/',
-            type: 'POST',
-            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-            success: function(data) {
-                if (!data.bookmarked) {
-                    btn.closest('.card').fadeOut(300, function() { $(this).remove(); });
+    document.addEventListener("DOMContentLoaded", () => {
+        const container = document.getElementById("bookmarks-container");
+        if (container) {
+            container.addEventListener("click", async (e) => {
+                const button = e.target.closest(".bookmark-btn");
+                if (!button) return;
+
+                e.preventDefault();
+                const postId = button.getAttribute("data-post-id");
+                const card = document.getElementById(`post-card-${postId}`);
+
+                try {
+                    const response = await fetch(`/post/${postId}/bookmark/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (!data.bookmarked && card) {
+                            card.style.opacity = '0';
+                            card.style.transform = 'scale(0.95)';
+                            setTimeout(() => {
+                                card.remove();
+                                if (container.children.length === 0) {
+                                    location.reload();
+                                }
+                            }, 300);
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error removing bookmark:", error);
                 }
-            }
-        });
+            });
+        }
     });
 </script>
 {% endblock %}

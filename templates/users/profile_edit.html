@@ -1,20 +1,20 @@
 {% extends 'base.html' %}
 
-{% block title %}Edit Profile | ConnectSphere{% endblock %}
+{% block title %}Settings | ConnectSphere{% endblock %}
 
 {% block content %}
 <div class="max-w-4xl mx-auto space-y-12">
-    <!-- Page Title & Header -->
+    <!-- Header -->
     <div>
         <h2 class="font-headline text-4xl font-bold text-on-surface">Settings</h2>
         <p class="text-on-surface-variant/80 font-body text-sm mt-1">Manage your identity, settings, and connected spheres.</p>
     </div>
 
-    <!-- Settings Sub-Navigation Tabs -->
+    <!-- Navigation Tabs -->
     <div class="flex gap-6 border-b border-surface-container-highest pb-2 overflow-x-auto hide-scrollbar">
         <a href="{% url 'profile_edit' %}" class="text-primary border-b-2 border-primary font-bold text-sm pb-3 whitespace-nowrap flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">account_circle</span>
-            Account & Profile
+            <span class="material-symbols-outlined text-lg">settings</span>
+            Settings & Account
         </a>
         <a href="{% url 'notification_prefs' %}" class="text-on-surface-variant/75 hover:text-primary transition-colors text-sm pb-3 whitespace-nowrap flex items-center gap-2">
             <span class="material-symbols-outlined text-lg">notifications</span>
@@ -28,153 +28,342 @@
             <span class="material-symbols-outlined text-lg">block</span>
             Blocked Users
         </a>
-        <a href="{% url 'setup_2fa' %}" class="text-on-surface-variant/75 hover:text-primary transition-colors text-sm pb-3 whitespace-nowrap flex items-center gap-2">
-            <span class="material-symbols-outlined text-lg">security</span>
-            Security & 2FA
-        </a>
     </div>
 
-    <!-- Main Content Grid -->
-    <div class="grid grid-cols-1 gap-10">
-        
-        <!-- Profile / Account Details Form -->
-        <div class="bg-surface-container-lowest border border-surface-container-highest rounded-2xl p-6 md:p-8 shadow-[0_4px_20px_-4px_rgba(194,101,42,0.04)] space-y-8">
-            <div class="border-b border-surface-container-high pb-4">
-                <h3 class="font-headline text-2xl font-bold text-on-surface">Public Profile Settings</h3>
-                <p class="text-on-surface-variant/80 text-xs mt-1">This information will be displayed publicly to other members.</p>
+    <!-- Settings Navigation Tabs (In-Page Switcher) -->
+    <div class="flex gap-8 border-b border-outline-variant/40 pb-4 overflow-x-auto hide-scrollbar">
+        <button class="settings-tab-btn text-primary border-b-2 border-primary font-bold text-sm pb-4 whitespace-nowrap focus:outline-none transition-all" data-target="tab-account">Account Profile</button>
+        <button class="settings-tab-btn text-secondary hover:text-primary transition-colors text-sm pb-4 whitespace-nowrap focus:outline-none transition-all" data-target="tab-security">Security &amp; Switcher</button>
+        <button class="settings-tab-btn text-secondary hover:text-primary transition-colors text-sm pb-4 whitespace-nowrap focus:outline-none transition-all" data-target="tab-saved">Saved Collections</button>
+        <button class="settings-tab-btn text-secondary hover:text-primary transition-colors text-sm pb-4 whitespace-nowrap focus:outline-none transition-all" data-target="tab-management">Account Control</button>
+    </div>
+
+    <!-- Content Sections -->
+    <div class="space-y-12">
+        <!-- 1. ACCOUNT PROFILE TAB -->
+        <div id="tab-account" class="settings-tab-content">
+            <div class="bg-surface-container-lowest border border-surface-container-highest rounded-2xl p-6 md:p-8 shadow-[0_4px_20px_-4px_rgba(194,101,42,0.04)] space-y-8">
+                <div class="border-b border-surface-container-high pb-4">
+                    <h3 class="font-headline text-2xl font-bold text-on-surface">Public Profile Settings</h3>
+                    <p class="text-on-surface-variant/80 text-xs mt-1">This information will be displayed publicly to other members.</p>
+                </div>
+
+                <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                    {% csrf_token %}
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="id_username" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">Username</label>
+                            <input type="text" name="username" id="id_username" 
+                                   class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all" 
+                                   value="{{ user_form.username.value|default:'' }}" required>
+                            {% if user_form.username.errors %}
+                                <p class="text-error text-xs mt-1 font-semibold">{{ user_form.username.errors.as_text }}</p>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <label for="id_email" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">Email Address</label>
+                            <input type="email" name="email" id="id_email" 
+                                   class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all" 
+                                   value="{{ user_form.email.value|default:'' }}" required>
+                            {% if user_form.email.errors %}
+                                <p class="text-error text-xs mt-1 font-semibold">{{ user_form.email.errors.as_text }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="id_first_name" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">First Name</label>
+                            <input type="text" name="first_name" id="id_first_name" 
+                                   class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all" 
+                                   value="{{ user_form.first_name.value|default:'' }}">
+                        </div>
+                        <div>
+                            <label for="id_last_name" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">Last Name</label>
+                            <input type="text" name="last_name" id="id_last_name" 
+                                   class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all" 
+                                   value="{{ user_form.last_name.value|default:'' }}">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="id_bio" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">Biography</label>
+                        <textarea name="bio" id="id_bio" rows="3" 
+                                  class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all resize-none"
+                                  placeholder="Tell the community about yourself...">{{ profile_form.bio.value|default:'' }}</textarea>
+                    </div>
+
+                    <div>
+                        <label for="id_interest_tags" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">Interest Tags (comma-separated)</label>
+                        <input type="text" name="interest_tags" id="id_interest_tags" 
+                               class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all" 
+                               value="{{ profile_form.interest_tags.value|default:'' }}" 
+                               placeholder="e.g. Design, Coding, Travel, Art, Writing">
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="id_location" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">Location</label>
+                            <input type="text" name="location" id="id_location" 
+                                   class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all" 
+                                   value="{{ profile_form.location.value|default:'' }}" 
+                                   placeholder="e.g. Paris, France">
+                        </div>
+                        <div>
+                            <label for="id_website" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">Website URL</label>
+                            <input type="url" name="website" id="id_website" 
+                                   class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all" 
+                                   value="{{ profile_form.website.value|default:'' }}" 
+                                   placeholder="https://yourspace.com">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                        <div class="space-y-3">
+                            <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold block">Profile Picture</label>
+                            <div class="flex items-center gap-4 p-4 bg-surface-container-low rounded-2xl border border-outline-variant/40">
+                                <div class="w-16 h-16 rounded-full overflow-hidden bg-surface-container-high flex-shrink-0 flex items-center justify-center border border-outline-variant/60">
+                                    {% if request.user.userprofile.profile_picture %}
+                                        <img src="{{ request.user.userprofile.profile_picture.url }}" class="w-full h-full object-cover" alt="Profile Picture">
+                                    {% else %}
+                                        <span class="material-symbols-outlined text-4xl text-on-surface-variant/40">account_circle</span>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <input type="file" name="profile_picture" id="id_profile_picture" accept="image/*"
+                                           class="block w-full text-xs text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer cursor-pointer">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold block">Cover Banner Photo</label>
+                            <div class="flex items-center gap-4 p-4 bg-surface-container-low rounded-2xl border border-outline-variant/40">
+                                <div class="w-20 h-12 rounded-lg overflow-hidden bg-surface-container-high flex-shrink-0 flex items-center justify-center border border-outline-variant/60">
+                                    {% if request.user.userprofile.cover_photo %}
+                                        <img src="{{ request.user.userprofile.cover_photo.url }}" class="w-full h-full object-cover" alt="Cover Photo">
+                                    {% else %}
+                                        <span class="material-symbols-outlined text-2xl text-on-surface-variant/40">image</span>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow min-w-0">
+                                    <input type="file" name="cover_photo" id="id_cover_photo" accept="image/*"
+                                           class="block w-full text-xs text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer cursor-pointer">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center pt-6 border-t border-surface-container-high">
+                        <a href="{% url 'profile' username=user.username %}" 
+                           class="px-6 py-3 border border-outline-variant/60 text-on-surface-variant font-bold text-sm rounded-xl hover:bg-surface-container-low transition-colors">
+                            Cancel
+                        </a>
+                        <button type="submit" 
+                                class="px-8 py-3 bg-primary text-on-primary font-bold text-sm rounded-xl hover:opacity-90 shadow-md transition-opacity">
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <form method="POST" enctype="multipart/form-data" class="space-y-6">
-                {% csrf_token %}
-
-                <!-- Account Info Group -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="id_username" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">Username</label>
-                        <input type="text" name="username" id="id_username" 
-                               class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all" 
-                               value="{{ user_form.username.value|default:'' }}" required>
-                        {% if user_form.username.errors %}
-                            <p class="text-error text-xs mt-1 font-semibold">{{ user_form.username.errors.as_text }}</p>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <label for="id_email" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">Email Address</label>
-                        <input type="email" name="email" id="id_email" 
-                               class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all" 
-                               value="{{ user_form.email.value|default:'' }}" required>
-                        {% if user_form.email.errors %}
-                            <p class="text-error text-xs mt-1 font-semibold">{{ user_form.email.errors.as_text }}</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Personal Info Group -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="id_first_name" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">First Name</label>
-                        <input type="text" name="first_name" id="id_first_name" 
-                               class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all" 
-                               value="{{ user_form.first_name.value|default:'' }}">
-                    </div>
-                    <div>
-                        <label for="id_last_name" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">Last Name</label>
-                        <input type="text" name="last_name" id="id_last_name" 
-                               class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all" 
-                               value="{{ user_form.last_name.value|default:'' }}">
-                    </div>
-                </div>
-
-                <!-- Bio -->
-                <div>
-                    <label for="id_bio" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">Biography</label>
-                    <textarea name="bio" id="id_bio" rows="3" 
-                              class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all resize-none"
-                              placeholder="Tell the community about yourself...">{{ profile_form.bio.value|default:'' }}</textarea>
-                </div>
-
-                <!-- Interest Tags & Location/Website -->
-                <div>
-                    <label for="id_interest_tags" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">Interest Tags (comma-separated, max 5)</label>
-                    <input type="text" name="interest_tags" id="id_interest_tags" 
-                           class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all" 
-                           value="{{ profile_form.interest_tags.value|default:'' }}" 
-                           placeholder="e.g. Design, Coding, Travel, Art, Writing">
-                    {% if profile_form.interest_tags.errors %}
-                        <p class="text-error text-xs mt-1 font-semibold">{{ profile_form.interest_tags.errors.as_text }}</p>
-                    {% endif %}
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="id_location" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">Location</label>
-                        <input type="text" name="location" id="id_location" 
-                               class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all" 
-                               value="{{ profile_form.location.value|default:'' }}" 
-                               placeholder="e.g. Paris, France">
-                    </div>
-                    <div>
-                        <label for="id_website" class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold mb-2 block">Website URL</label>
-                        <input type="url" name="website" id="id_website" 
-                               class="bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-3 text-sm text-on-surface focus:ring-1 focus:ring-primary focus:border-primary w-full outline-none transition-all" 
-                               value="{{ profile_form.website.value|default:'' }}" 
-                               placeholder="https://yourspace.com">
-                    </div>
-                </div>
-
-                <!-- Media Uploads (Cover & Avatar) -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                    <!-- Profile Avatar -->
-                    <div class="space-y-3">
-                        <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold block">Profile Picture</label>
-                        <div class="flex items-center gap-4 p-4 bg-surface-container-low rounded-2xl border border-outline-variant/40">
-                            <div class="w-16 h-16 rounded-full overflow-hidden bg-surface-container-high flex-shrink-0 flex items-center justify-center border border-outline-variant/60">
-                                {% if request.user.userprofile.profile_picture %}
-                                    <img src="{{ request.user.userprofile.profile_picture.url }}" class="w-full h-full object-cover" alt="Profile Picture">
-                                {% else %}
-                                    <span class="material-symbols-outlined text-4xl text-on-surface-variant/40">account_circle</span>
-                                {% endif %}
-                            </div>
-                            <div class="flex-grow min-w-0">
-                                <input type="file" name="profile_picture" id="id_profile_picture" accept="image/*"
-                                       class="block w-full text-xs text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer cursor-pointer">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Cover Photo -->
-                    <div class="space-y-3">
-                        <label class="font-label text-xs uppercase tracking-widest text-on-surface-variant font-bold block">Cover Banner Photo</label>
-                        <div class="flex items-center gap-4 p-4 bg-surface-container-low rounded-2xl border border-outline-variant/40">
-                            <div class="w-20 h-12 rounded-lg overflow-hidden bg-surface-container-high flex-shrink-0 flex items-center justify-center border border-outline-variant/60">
-                                {% if request.user.userprofile.cover_photo %}
-                                    <img src="{{ request.user.userprofile.cover_photo.url }}" class="w-full h-full object-cover" alt="Cover Photo">
-                                {% else %}
-                                    <span class="material-symbols-outlined text-2xl text-on-surface-variant/40">image</span>
-                                {% endif %}
-                            </div>
-                            <div class="flex-grow min-w-0">
-                                <input type="file" name="cover_photo" id="id_cover_photo" accept="image/*"
-                                       class="block w-full text-xs text-on-surface-variant file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 file:cursor-pointer cursor-pointer">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Form Controls -->
-                <div class="flex justify-between items-center pt-6 border-t border-surface-container-high">
-                    <a href="{% url 'profile' username=user.username %}" 
-                       class="px-6 py-3 border border-outline-variant/60 text-on-surface-variant font-bold text-sm rounded-xl hover:bg-surface-container-low transition-colors">
-                        Cancel
-                    </a>
-                    <button type="submit" 
-                            class="px-8 py-3 bg-primary text-on-primary font-bold text-sm rounded-xl hover:opacity-90 shadow-md transition-opacity">
-                        Save Changes
-                    </button>
-                </div>
-            </form>
         </div>
 
+        <!-- 2. SECURITY & SWITCHER TAB -->
+        <div id="tab-security" class="settings-tab-content hidden space-y-12">
+            <!-- Switch Accounts Section -->
+            <section class="space-y-6">
+                <div>
+                    <h3 class="font-headline text-3xl text-on-surface mb-2">Switch Accounts</h3>
+                    <p class="text-secondary font-body text-sm">Quickly pivot between active developer spheres.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Current User Card -->
+                    <div class="bg-surface-container-low p-6 rounded-2xl border-2 border-primary flex items-center gap-4 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-2">
+                            <span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                        </div>
+                        <div class="w-14 h-14 rounded-full overflow-hidden bg-surface-container">
+                            {% if request.user.userprofile.profile_picture %}
+                                <img class="w-full h-full object-cover" src="{{ request.user.userprofile.profile_picture.url }}" alt="{{ request.user.username }}"/>
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center bg-surface-variant text-lg font-headline">
+                                    {{ request.user.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="font-bold text-on-surface">@{{ request.user.username }}</p>
+                            <p class="text-xs text-secondary">Active now</p>
+                        </div>
+                    </div>
+
+                    <!-- Alternate Users -->
+                    {% for alt in alt_users %}
+                    <div onclick="window.location.href='{% url 'switch_account' user_id=alt.id %}'" class="bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant/60 flex items-center gap-4 hover:bg-surface-container-low transition-colors cursor-pointer group">
+                        <div class="w-14 h-14 rounded-full overflow-hidden bg-surface-container">
+                            {% if alt.userprofile.profile_picture %}
+                                <img class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all" src="{{ alt.userprofile.profile_picture.url }}" alt="{{ alt.username }}">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center bg-surface-variant text-lg font-headline">
+                                    {{ alt.username|slice:":1"|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <p class="font-bold text-on-surface">@{{ alt.username }}</p>
+                            <p class="text-xs text-secondary">Click to switch</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Security & Password -->
+            <section class="space-y-6">
+                <div class="flex items-center justify-between border-b border-outline-variant/40 pb-4">
+                    <h3 class="font-headline text-3xl text-on-surface">Password &amp; Security</h3>
+                    <span class="material-symbols-outlined text-secondary/40">shield</span>
+                </div>
+                <div class="space-y-4">
+                    <div onclick="window.location.href='{% url 'account_change_password' %}'" class="flex items-center justify-between p-6 bg-surface-container-low rounded-2xl hover:shadow-[0_2px_16px_rgba(58,48,42,0.04)] transition-shadow cursor-pointer">
+                        <div class="flex items-center gap-4">
+                            <span class="material-symbols-outlined text-primary p-3 bg-white rounded-full">lock</span>
+                            <div>
+                                <p class="font-bold text-on-surface">Change Password</p>
+                                <p class="text-xs text-secondary">Update your credentials to secure your profile</p>
+                            </div>
+                        </div>
+                        <span class="material-symbols-outlined text-secondary">chevron_right</span>
+                    </div>
+
+                    <div onclick="window.location.href='{% url 'setup_2fa' %}'" class="flex items-center justify-between p-6 bg-surface-container-low rounded-2xl hover:shadow-[0_2px_16px_rgba(58,48,42,0.04)] transition-shadow cursor-pointer">
+                        <div class="flex items-center gap-4">
+                            <span class="material-symbols-outlined text-primary p-3 bg-white rounded-full">phonelink_lock</span>
+                            <div>
+                                <p class="font-bold text-on-surface">Two-Factor Authentication</p>
+                                <p class="text-xs text-secondary">
+                                    {% if has_2fa %}
+                                        <span class="text-green-600 font-bold">Enabled</span> • Add extra confirmation to your logins
+                                    {% else %}
+                                        <span class="text-red-500 font-bold">Disabled</span> • Secure logins via authentication token
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            {% if not has_2fa %}
+                                <span class="text-[10px] font-bold text-tertiary bg-tertiary-fixed px-2 py-1 rounded uppercase tracking-wider">Recommended</span>
+                            {% endif %}
+                            <span class="material-symbols-outlined text-secondary">chevron_right</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 3. SAVED COLLECTIONS TAB -->
+        <div id="tab-saved" class="settings-tab-content hidden space-y-6">
+            <div>
+                <h3 class="font-headline text-3xl text-on-surface mb-2">Saved Collections</h3>
+                <p class="text-secondary font-body text-sm">Your private archive of bookmarked stories and spaces.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {% for post in saved_posts %}
+                <div onclick="window.location.href='{% url 'post_detail' pk=post.id %}'" class="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer bg-surface-container">
+                    {% if post.image %}
+                        <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="{{ post.image.url }}" alt="Collection cover"/>
+                    {% else %}
+                        <div class="w-full h-full p-6 flex flex-col justify-center bg-surface-container-low text-xs">
+                            <p class="line-clamp-4 font-body text-on-surface leading-relaxed">{{ post.content }}</p>
+                        </div>
+                    {% endif %}
+                    <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
+                    <div class="absolute bottom-4 left-4 text-white">
+                        <p class="font-headline text-lg">@{{ post.author.username }}</p>
+                        <p class="text-[10px] uppercase tracking-widest opacity-80">{{ post.created_at|date:"M d, Y" }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-span-3 text-center py-20 bg-surface-container-low border border-outline-variant/40 rounded-2xl p-8">
+                    <span class="material-symbols-outlined text-outline text-5xl mb-3">bookmark</span>
+                    <p class="text-on-surface-variant font-medium text-sm">No saved items found in your collections.</p>
+                    <a href="{% url 'explore' %}" class="text-primary font-bold text-xs uppercase tracking-wider mt-4 inline-block hover:underline">Discover Ideas</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 4. ACCOUNT CONTROL TAB -->
+        <div id="tab-management" class="settings-tab-content hidden space-y-8">
+            <div>
+                <h3 class="font-headline text-3xl text-on-surface mb-2">Account Management</h3>
+                <p class="text-secondary font-body text-sm">Permanent status changes and profile controls.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                <!-- Log Out Card -->
+                <div class="bg-surface-container p-6 rounded-2xl border border-outline-variant/40 flex flex-col justify-between space-y-4">
+                    <div>
+                        <h4 class="font-bold text-lg text-on-surface">Sign Out</h4>
+                        <p class="text-xs text-secondary leading-relaxed">Safely terminate your active session on this device.</p>
+                    </div>
+                    <form action="{% url 'logout' %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full flex items-center justify-center gap-3 py-3 bg-surface-container-high hover:bg-surface-container-highest transition-colors rounded-xl font-bold text-sm text-on-surface">
+                            <span class="material-symbols-outlined">logout</span>
+                            Log Out
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Permanently Delete Card -->
+                <div class="bg-error-container/10 p-6 rounded-2xl border border-error/20 flex flex-col justify-between space-y-4">
+                    <div>
+                        <h4 class="font-bold text-lg text-error">Delete Account</h4>
+                        <p class="text-xs text-secondary leading-relaxed">Permanently erase your identity, badge achievements, and all posts. This is irreversible.</p>
+                    </div>
+                    <form action="{% url 'delete_account' %}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete your account? This action cannot be undone.');">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full flex items-center justify-center gap-3 py-3 bg-error hover:bg-error-container text-white transition-colors rounded-xl font-bold text-sm">
+                            <span class="material-symbols-outlined">delete_forever</span>
+                            Delete Permanently
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Tab switcher interactive script -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const tabs = document.querySelectorAll(".settings-tab-btn");
+        const contents = document.querySelectorAll(".settings-tab-content");
+
+        tabs.forEach(tab => {
+            tab.addEventListener("click", () => {
+                const target = tab.getAttribute("data-target");
+
+                // Toggle active tab classes
+                tabs.forEach(t => {
+                    t.classList.remove("text-primary", "border-b-2", "border-primary", "font-bold");
+                    t.classList.add("text-secondary");
+                });
+                tab.classList.add("text-primary", "border-b-2", "border-primary", "font-bold");
+                tab.classList.remove("text-secondary");
+
+                // Toggle visible content
+                contents.forEach(content => {
+                    if (content.id === target) {
+                        content.classList.remove("hidden");
+                    } else {
+                        content.classList.add("hidden");
+                    }
+                });
+            });
+        });
+    });
+</script>
 {% endblock %}
