@@ -255,3 +255,7 @@ Below are actual local screenshots verifying the Sahara layout redesign:
 
 ### 7. Active Cloud Deployment Logs (Railway)
 ![Railway Deployment Logs](screenshots/deploy_logs.png)
+
+### 8. Live Production Landing Page
+Verified live production page:
+![ConnectSphere Production Landing Page](screenshots/live_home.png)

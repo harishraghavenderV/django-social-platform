@@ -59,6 +59,11 @@ Clean list of bookmarked posts with asynchronous removal using the native Fetch 
 Live build logs confirming Daphne ASGI is active and running:
 ![Railway Deployment Logs](docs/screenshots/deploy_logs.png)
 
+### 7. Live ConnectSphere Platform (Production)
+The verified production website dashboard landing page:
+![ConnectSphere Production Landing Page](docs/screenshots/live_home.png)
+
+
 
 ---
 
