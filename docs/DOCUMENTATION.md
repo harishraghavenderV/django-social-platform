@@ -252,3 +252,6 @@ Below are actual local screenshots verifying the Sahara layout redesign:
 
 ### 6. Bookmarks Page
 ![Bookmarks Page](screenshots/bookmarks_page.png)
+
+### 7. Active Cloud Deployment Logs (Railway)
+![Railway Deployment Logs](screenshots/deploy_logs.png)

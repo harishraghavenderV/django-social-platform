@@ -55,6 +55,11 @@ A grid displaying bookmarked posts:
 Clean list of bookmarked posts with asynchronous removal using the native Fetch API:
 ![Bookmarks Page](docs/screenshots/bookmarks_page.png)
 
+### 6. Active Cloud Deployment (Railway)
+Live build logs confirming Daphne ASGI is active and running:
+![Railway Deployment Logs](docs/screenshots/deploy_logs.png)
+
+
 ---
 
 ## 🚀 Quick Start (Local Run)
