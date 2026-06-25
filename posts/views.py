@@ -113,7 +113,7 @@ def home(request):
         }
         return render(request, 'posts/home.html', context)
     else:
-        return render(request, 'posts/home.html')
+        return render(request, 'posts/welcome.html')
 
 
 @login_required

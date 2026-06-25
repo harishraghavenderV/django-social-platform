@@ -17,7 +17,7 @@ class PostsViewsTestCase(TestCase):
         """Test that unauthenticated users can access the home page."""
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'posts/home.html')
+        self.assertTemplateUsed(response, 'posts/welcome.html')
         self.assertNotIn('posts', response.context)
 
     def test_home_feed_authenticated(self):

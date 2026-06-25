@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>ConnectSphere | Welcome</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Eb+Garamond:ital,wght@0,400..800;1,400..800&amp;family=Manrope:wght@200..800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+          tailwind.config = {
+            darkMode: "class",
+            theme: {
+              extend: {
+                "colors": {
+                        "surface-container-low": "#f6f0e8",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed": "#fbe8d8",
+                        "on-error": "#ffffff",
+                        "on-primary-fixed-variant": "#8a4518",
+                        "surface-tint": "#c2652a",
+                        "on-secondary": "#ffffff",
+                        "surface-container-highest": "#e6e0d6",
+                        "surface-bright": "#faf5ee",
+                        "surface": "#faf5ee",
+                        "on-primary-fixed": "#401a08",
+                        "on-background": "#3a302a",
+                        "tertiary": "#8c3c3c",
+                        "surface-container": "#f2ece4",
+                        "secondary-fixed": "#eae2da",
+                        "primary-container": "#e08850",
+                        "on-error-container": "#7a1a10",
+                        "secondary-fixed-dim": "#cec6be",
+                        "secondary": "#78706a",
+                        "surface-variant": "#ece6dc",
+                        "error": "#c0392b",
+                        "tertiary-container": "#d47070",
+                        "secondary-container": "#eae2da",
+                        "on-surface-variant": "#605850",
+                        "on-secondary-fixed-variant": "#504840",
+                        "on-tertiary-fixed": "#2e1515",
+                        "inverse-primary": "#f0a878",
+                        "primary-fixed-dim": "#f0a878",
+                        "outline-variant": "#d8d0c8",
+                        "inverse-on-surface": "#faf5ee",
+                        "tertiary-fixed": "#fce0e0",
+                        "on-primary-container": "#fbe8d8",
+                        "tertiary-fixed-dim": "#e8a0a0",
+                        "surface-dim": "#dcd6cc",
+                        "primary": "#c2652a",
+                        "on-tertiary": "#ffffff",
+                        "error-container": "#fce4e0",
+                        "outline": "#9a9088",
+                        "on-surface": "#3a302a",
+                        "inverse-surface": "#3a302a",
+                        "surface-container-high": "#ece6dc",
+                        "on-tertiary-container": "#3a2020",
+                        "on-secondary-fixed": "#2a2420",
+                        "on-secondary-container": "#605850",
+                        "on-primary": "#ffffff",
+                        "background": "#faf5ee",
+                        "on-tertiary-fixed-variant": "#6e3030"
+                },
+                "fontFamily": {
+                        "headline": ["Eb Garamond", "serif"],
+                        "display": ["Eb Garamond", "serif"],
+                        "body": ["Manrope", "sans-serif"],
+                        "label": ["Manrope", "sans-serif"]
+                }
+              },
+            },
+          }
+        </script>
+    <style>
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scale-in {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+
+        .animate-fade-in-up {
+            animation: fade-in-up 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .animate-scale-in {
+            animation: scale-in 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .animate-pulse-soft {
+            animation: pulse-soft 3s ease-in-out infinite;
+        }
+
+        .letter-spacing-widest {
+            letter-spacing: 0.2em;
+        }
+
+        .vignette {
+            background: radial-gradient(circle, rgba(250,245,238,0) 0%, rgba(58,48,42,0.05) 100%);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body overflow-hidden selection:bg-primary/20">
+<!-- Premium Splash Canvas -->
+<main class="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden vignette">
+    <!-- Background Atmosphere (Subtle Texture) -->
+    <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: url('https://www.transparenttextures.com/patterns/natural-paper.png');"></div>
+    
+    <!-- Central Visual Element: The Sphere -->
+    <div class="absolute inset-0 z-0 flex items-center justify-center opacity-80">
+        <div class="w-full h-full max-w-4xl max-h-[819px] animate-scale-in" style="display:block;">
+            <script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+            <div id="threejs-container-ANIMATION_28" style="width:100%;height:100%"></div>
+            <script>
+            (function() {
+              const container = document.getElementById('threejs-container-ANIMATION_28');
+              const width = container.clientWidth || window.innerWidth;
+              const height = container.clientHeight || window.innerHeight;
+
+              const scene = new THREE.Scene();
+              const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+              camera.position.z = 5;
+
+              const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+              renderer.setSize(width, height);
+              renderer.setPixelRatio(window.devicePixelRatio || 1);
+              container.appendChild(renderer.domElement);
+
+              // Create a series of interconnected rings representing "Spheres" and "Connection"
+              const group = new THREE.Group();
+              scene.add(group);
+
+              const material = new THREE.MeshPhongMaterial({
+                color: 0xc2652a, // Sahara Burnt Sienna
+                emissive: 0x7c3aed, // Subtle glow
+                shininess: 100,
+                transparent: true,
+                opacity: 0.8
+              });
+
+              for (let i = 0; i < 3; i++) {
+                const geometry = new THREE.TorusGeometry(2 + i * 0.5, 0.02, 16, 100);
+                const ring = new THREE.Mesh(geometry, material);
+                ring.rotation.x = Math.random() * Math.PI;
+                ring.rotation.y = Math.random() * Math.PI;
+                group.add(ring);
+              }
+
+              // Central core sphere
+              const coreGeo = new THREE.SphereGeometry(0.5, 32, 32);
+              const coreMat = new THREE.MeshPhongMaterial({
+                color: 0xc2652a,
+                emissive: 0xc2652a,
+                emissiveIntensity: 0.5
+              });
+              const core = new THREE.Mesh(coreGeo, coreMat);
+              group.add(core);
+
+              const light = new THREE.PointLight(0xffffff, 1, 100);
+              light.position.set(5, 5, 5);
+              scene.add(light);
+
+              const ambientLight = new THREE.AmbientLight(0x404040);
+              scene.add(ambientLight);
+
+              function animate(t) {
+                requestAnimationFrame(animate);
+                
+                group.rotation.y += 0.005;
+                group.rotation.x += 0.003;
+                
+                group.children.forEach((child, i) => {
+                  if (i < 3) {
+                    child.rotation.z += 0.01 * (i + 1);
+                  }
+                });
+                
+                const scale = 1 + Math.sin(t * 0.002) * 0.05;
+                core.scale.set(scale, scale, scale);
+                
+                renderer.render(scene, camera);
+              }
+
+              window.addEventListener('resize', () => {
+                const w = container.clientWidth || window.innerWidth;
+                const h = container.clientHeight || window.innerHeight;
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+              });
+
+              animate(0);
+            })();
+            </script>
+        </div>
+    </div>
+    
+    <!-- Foreground Content Layer -->
+    <div class="relative z-10 flex flex-col items-center gap-4 text-center px-6">
+        <!-- Brand Logo -->
+        <div class="animate-fade-in-up" style="animation-delay: 0.4s; opacity: 0;">
+            <h1 class="font-headline text-6xl md:text-8xl lg:text-9xl tracking-tight text-primary italic font-bold">
+                ConnectSphere
+            </h1>
+        </div>
+        <!-- Subheading -->
+        <div class="animate-fade-in-up" style="animation-delay: 0.8s; opacity: 0;">
+            <p class="font-label text-sm md:text-base uppercase letter-spacing-widest text-on-surface-variant font-medium">
+                Where Connections Transcend
+            </p>
+        </div>
+    </div>
+    
+    <!-- Footer / Status Area -->
+    <div class="absolute bottom-16 w-full flex flex-col items-center gap-6 z-20">
+        <!-- Status Text -->
+        <div class="flex items-center gap-3 animate-fade-in-up" style="animation-delay: 1.4s; opacity: 0;">
+            <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse-soft"></span>
+            <p class="font-label text-xs md:text-sm uppercase letter-spacing-widest text-on-surface-variant/80 tracking-[0.3em]">
+                Entering the Sanctuary
+            </p>
+        </div>
+        <!-- Interactive Hint (Micro-interaction) -->
+        <button class="group relative px-8 py-3 bg-transparent border border-outline-variant/40 rounded-full hover:border-primary transition-all duration-700 overflow-hidden animate-fade-in-up" id="enter-btn" style="animation-delay: 1.8s; opacity: 0;">
+            <span class="relative z-10 font-label text-xs uppercase tracking-widest text-on-surface group-hover:text-primary transition-colors duration-500">
+                Begin Journey
+            </span>
+            <div class="absolute inset-0 bg-primary-fixed/30 scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-500"></div>
+        </button>
+    </div>
+    
+    <!-- Decorative Elements -->
+    <div class="absolute top-12 left-12 w-32 h-px bg-gradient-to-r from-primary/40 to-transparent"></div>
+    <div class="absolute bottom-12 right-12 w-32 h-px bg-gradient-to-l from-primary/40 to-transparent"></div>
+</main>
+
+<!-- Overlay Transition Effect (Hidden by Default) -->
+<div class="fixed inset-0 bg-surface-container-low translate-y-full z-[100] transition-transform duration-1000 cubic-bezier(0.7, 0, 0.3, 1)" id="transition-overlay"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const enterBtn = document.getElementById('enter-btn');
+        const overlay = document.getElementById('transition-overlay');
+
+        if (enterBtn) {
+            enterBtn.addEventListener('click', () => {
+                // Start exit transition
+                overlay.style.transform = 'translateY(0)';
+                
+                // Simulate navigation after animation
+                setTimeout(() => {
+                    window.location.href = "{% url 'login' %}";
+                }, 1100);
+            });
+        }
+
+        // Mouse parallax effect
+        document.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - window.innerWidth / 2) / 50;
+            const moveY = (e.clientY - window.innerHeight / 2) / 50;
+            const threeContainer = document.getElementById('threejs-container-ANIMATION_28');
+            if (threeContainer) {
+                threeContainer.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            }
+        });
+    });
+</script>
+</body>
+</html>
