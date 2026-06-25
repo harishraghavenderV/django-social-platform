@@ -256,6 +256,14 @@ Below are actual local screenshots verifying the Sahara layout redesign:
 ### 7. Active Cloud Deployment Logs (Railway)
 ![Railway Deployment Logs](screenshots/deploy_logs.png)
 
-### 8. Live Production Landing Page
-Verified live production page:
+### 8. Welcome Splash Landing Page (ThreeJS)
+Verified welcome splash page featuring the active Three.js interconnected sphere animation:
+![Welcome Splash Page](screenshots/welcome_landing_page.png)
+
+### 9. User Sign In Page (Redirected from Splash)
+![User Sign In Page](screenshots/login_page.png)
+
+### 10. Live Production Feed Page
+Verified live production feed view:
 ![ConnectSphere Production Landing Page](screenshots/live_home.png)
+

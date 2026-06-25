@@ -35,32 +35,40 @@ ConnectSphere is a modern, feature-rich social media platform built for creators
 
 Below are actual layout screenshots verifying the Sahara minimalist design:
 
-### 1. Discover / Explore Page
+### 1. Welcome Splash Page (ThreeJS)
+A premium animated splash screen containing a Three.js interconnected sphere vector model:
+![Welcome Splash Page](docs/screenshots/welcome_landing_page.png)
+
+### 2. Sign In Page (Redirected from Splash)
+Clean credentials entry cards matching the Sahara warm colors:
+![User Sign In Page](docs/screenshots/login_page.png)
+
+### 3. Discover / Explore Page
 A beautiful 12-column bento board highlighting trending stories, daily prompts, trending tags, rising creators, and curated collections.
 ![Discover Page](docs/screenshots/discover_page.png)
 
-### 2. Settings Dashboard — Account Tab
+### 4. Settings Dashboard — Account Tab
 A tabbed, no-reload configuration suite for custom public profiles:
 ![Settings Profile Tab](docs/screenshots/settings_profile.png)
 
-### 3. Settings Dashboard — Switcher Tab
+### 5. Settings Dashboard — Switcher Tab
 Switch accounts instantly inside development environments:
 ![Settings Security Tab](docs/screenshots/settings_security.png)
 
-### 4. Settings Dashboard — Saved Collections
+### 6. Settings Dashboard — Saved Collections
 A grid displaying bookmarked posts:
 ![Settings Saved Collections Tab](docs/screenshots/settings_saved.png)
 
-### 5. Bookmarks Page
+### 7. Bookmarks Page
 Clean list of bookmarked posts with asynchronous removal using the native Fetch API:
 ![Bookmarks Page](docs/screenshots/bookmarks_page.png)
 
-### 6. Active Cloud Deployment (Railway)
+### 8. Active Cloud Deployment (Railway)
 Live build logs confirming Daphne ASGI is active and running:
 ![Railway Deployment Logs](docs/screenshots/deploy_logs.png)
 
-### 7. Live ConnectSphere Platform (Production)
-The verified production website dashboard landing page:
+### 9. Live ConnectSphere Platform (Production)
+The verified production website feed dashboard:
 ![ConnectSphere Production Landing Page](docs/screenshots/live_home.png)
 
 
