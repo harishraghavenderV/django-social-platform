@@ -8,11 +8,25 @@ https://docs.djangoproject.com/en/6.0/howto/deployment/asgi/
 """
 
 import os
+from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'social_platform.settings')
-
-# Import Django ASGI application early to ensure AppRegistry is populated
-# before importing consumers and routing.
 import django
 django.setup()
 
+import messaging.routing
+import notifications.routing
+import posts.routing
+
+application = ProtocolTypeRouter({
+    'http': get_asgi_application(),
+    'websocket': AuthMiddlewareStack(
+        URLRouter(
+            messaging.routing.websocket_urlpatterns
+            + notifications.routing.websocket_urlpatterns
+            + posts.routing.websocket_urlpatterns
+        )
+    ),
+})
